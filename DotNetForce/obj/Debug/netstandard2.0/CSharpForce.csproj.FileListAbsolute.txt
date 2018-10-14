@@ -1,0 +1,9 @@
+C:\D\S\Web\Salesforce\DotNetForce\bin\Debug\netstandard2.0\DotNetForce.deps.json
+C:\D\S\Web\Salesforce\DotNetForce\bin\Debug\netstandard2.0\DotNetForce.dll
+C:\D\S\Web\Salesforce\DotNetForce\bin\Debug\netstandard2.0\DotNetForce.pdb
+C:\D\S\Web\Salesforce\DotNetForce\obj\Debug\netstandard2.0\DotNetForce.csprojAssemblyReference.cache
+C:\D\S\Web\Salesforce\DotNetForce\obj\Debug\netstandard2.0\DotNetForce.csproj.CoreCompileInputs.cache
+C:\D\S\Web\Salesforce\DotNetForce\obj\Debug\netstandard2.0\DotNetForce.AssemblyInfoInputs.cache
+C:\D\S\Web\Salesforce\DotNetForce\obj\Debug\netstandard2.0\DotNetForce.AssemblyInfo.cs
+C:\D\S\Web\Salesforce\DotNetForce\obj\Debug\netstandard2.0\DotNetForce.dll
+C:\D\S\Web\Salesforce\DotNetForce\obj\Debug\netstandard2.0\DotNetForce.pdb
