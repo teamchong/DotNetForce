@@ -58,3 +58,5 @@ var bulkClient = new BulkForceClient(instanceUrl, accessToken, apiVersion);
 ### Sample Code
 
 under construction....
+https://github.com/ste80/DotNetForce/tree/master/DotNetForceTest
+please see Unit Test for code sample for now
