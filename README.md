@@ -5,17 +5,23 @@ Original repository https://github.com/developerforce/Force.com-Toolkit-for-NET
 Currently it support the following
 
 1) Rest API, when query large dataset, after the first batch is retrieved
-   it will put 5 NextQueryUrls in 1 composite API call as a chunk, run all the chunks in parallel (not lazy loading)
+   it will put 5 NextQueryUrls in 1 composite API call as a chunk and run all the chunks in parallel (not lazy loading)
 2) Composite, Multiple request in 1 api call
-   (when allOrNone: true, up to 25 requests, 5 of them can soql query).
+   (when allOrNone: true, up to 25 requests, 5 of them can bee soql query).
    (when allOrNone: false, there no limit, the requests will be ran in parallel).
+   https://developer.salesforce.com/docs/atlas.en-us.api_rest.meta/api_rest/resources_composite_composite.htm
 3) Composite Tree, create up to 100 objects and its related child objects in 1 api call
-4) Compoiste Collection, up to 2000 x 5 retrieve or 200 x 5 create|update|delete requests in 1 api call
-5) Tooling API, let you run apex using rest api etc.
+   https://developer.salesforce.com/docs/atlas.en-us.api_rest.meta/api_rest/resources_composite_sobject_tree.htm
+4) Composite Collection, up to 2000 x 5 retrieve or 200 x 5 create|update|delete requests in 1 api call
+   x 5 because I can put 5 composite collection requests in 1 Composite API call
+   https://developer.salesforce.com/docs/atlas.en-us.api_rest.meta/api_rest/resources_composite_sobjects_collections.htm
+5) Batch, Executes up to 25 subrequests in a single request. unlike the above Composite API
+   Each subrequest counts against rate limits.
+6) Tooling API, let you run apex using rest api etc.
    https://developer.salesforce.com/docs/atlas.en-us.api_tooling.meta/api_tooling/intro_api_tooling.htm
-6) Chatter API same as Force.com-Toolkit-for-NET
+7) Chatter API same as Force.com-Toolkit-for-NET
    https://developer.salesforce.com/docs/atlas.en-us.chatterapi.meta/chatterapi/
-7) Bulk API same as Force.com-Toolkit-for-NET
+8) Bulk API same as Force.com-Toolkit-for-NET
    https://developer.salesforce.com/docs/atlas.en-us.api_asynch.meta/api_asynch/asynch_api_intro.htm
 
 This library is now targeting .NET Standard 2.0.
