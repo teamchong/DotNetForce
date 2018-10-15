@@ -114,7 +114,7 @@ namespace DotNetForce
                             {
                                 foreach (var (row, j) in response.Body.ToObject<JArray>().Select((row, j) => (row, j)))
                                 {
-                                    var refId = $"{subrequest.ReferenceId}/{j}";
+                                    var refId = $"{subrequest.ReferenceId}_{j}";
 
                                     if (response.Body?.Type == JTokenType.Object &&
                                         response.Body?["totalSize"]?.Type == JTokenType.Integer &&

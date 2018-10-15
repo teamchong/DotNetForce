@@ -44,6 +44,8 @@ namespace DotNetForce
 
             if (allOrNone)
             {
+                if (records.Count() > 200 * DNF.COMPOSITE_QUERY_LIMIT) throw new ArgumentOutOfRangeException("records");
+
                 var request = new CompositeRequest();
                 foreach (var (chunk, chunkIdx) in records.Chunk(200).Select((chunk, chunkIdx) => (chunk, chunkIdx)))
                 {
@@ -70,7 +72,7 @@ namespace DotNetForce
                             var request = new CompositeRequest();
                             foreach (var (chunk, chunkIdx) in batch.Chunk(200).Select((chunk, chunkIdx) => (chunk, chunkIdx)))
                             {
-                                request.Create($"{batchNo}/{chunkIdx}", allOrNone, chunk);
+                                request.Create($"{batchNo}_{chunkIdx}", allOrNone, chunk);
                             }
                             Logger?.Invoke($"Create Start {batchNo}");
                             var result = await PostAsync(request).ConfigureAwait(false);
@@ -115,7 +117,7 @@ namespace DotNetForce
                         var request = new CompositeRequest();
                         foreach (var (chunk, chunkIdx) in batch.Chunk(2000).Select((chunk, chunkIdx) => (chunk, chunkIdx)))
                         {
-                            request.Retrieve($"{batchNo}/{chunkIdx}", objectName, chunk, fields);
+                            request.Retrieve($"{batchNo}_{chunkIdx}", objectName, chunk, fields);
                         }
                         Logger?.Invoke($"Retrieve Start {batchNo}");
                         var result = await PostAsync(request).ConfigureAwait(false);
@@ -160,7 +162,7 @@ namespace DotNetForce
                         var request = new CompositeRequest();
                         foreach (var (chunk, chunkIdx) in batch.Chunk(2000).Select((chunk, chunkIdx) => (chunk, chunkIdx)))
                         {
-                            request.RetrieveExternal($"{batchNo}/{chunkIdx}", objectName, externalFieldName, chunk, fields);
+                            request.RetrieveExternal($"{batchNo}_{chunkIdx}", objectName, externalFieldName, chunk, fields);
                         }
                         Logger?.Invoke($"Retrieve Start {batchNo}");
                         var result = await PostAsync(request).ConfigureAwait(false);
@@ -195,6 +197,8 @@ namespace DotNetForce
 
             if (allOrNone)
             {
+                if (records.Count() > 200 * DNF.COMPOSITE_QUERY_LIMIT) throw new ArgumentOutOfRangeException("records");
+
                 var request = new CompositeRequest();
                 foreach (var (chunk, chunkIdx) in records.Chunk(200).Select((chunk, chunkIdx) => (chunk, chunkIdx)))
                 {
@@ -221,7 +225,7 @@ namespace DotNetForce
                             var request = new CompositeRequest();
                             foreach (var (chunk, chunkIdx) in batch.Chunk(200).Select((chunk, chunkIdx) => (chunk, chunkIdx)))
                             {
-                                request.Update($"{batchNo}/{chunkIdx}", allOrNone, chunk);
+                                request.Update($"{batchNo}_{chunkIdx}", allOrNone, chunk);
                             }
                             Logger?.Invoke($"Update Start {batchNo}");
                             var result = await PostAsync(request).ConfigureAwait(false);
@@ -257,6 +261,8 @@ namespace DotNetForce
 
         //    if (allOrNone)
         //    {
+        //        if (records.Count() > 200 * DNF.COMPOSITE_QUERY_LIMIT) throw new ArgumentOutOfRangeException("records");
+
         //        var request = new CompositeRequest();
         //        foreach (var (chunk, chunkIdx) in records.Chunk(200).Select((chunk, chunkIdx) => (chunk, chunkIdx)))
         //        {
@@ -283,7 +289,7 @@ namespace DotNetForce
         //                    var request = new CompositeRequest();
         //                    foreach (var (chunk, chunkIdx) in batch.Chunk(200).Select((chunk, chunkIdx) => (chunk, chunkIdx)))
         //                    {
-        //                        request.UpsertExternal($"{batchNo}/{chunkIdx}", allOrNone, externalFieldName, chunk);
+        //                        request.UpsertExternal($"{batchNo}_{chunkIdx}", allOrNone, externalFieldName, chunk);
         //                    }
         //                    Logger?.Invoke($"Update Start {batchNo}");
         //                    var result = await PostAsync(request).ConfigureAwait(false);
@@ -319,6 +325,8 @@ namespace DotNetForce
 
             if (allOrNone)
             {
+                if (ids.Count() > 200 * DNF.COMPOSITE_QUERY_LIMIT) throw new ArgumentOutOfRangeException("records");
+
                 var request = new CompositeRequest();
                 foreach (var (chunk, chunkIdx) in ids.Chunk(200).Select((chunk, chunkIdx) => (chunk, chunkIdx)))
                 {
@@ -345,7 +353,7 @@ namespace DotNetForce
                             var request = new CompositeRequest();
                             foreach (var (chunk, chunkIdx) in batch.Chunk(200).Select((chunk, chunkIdx) => (chunk, chunkIdx)))
                             {
-                                request.Delete($"{batchNo}/{chunkIdx}", allOrNone, chunk.ToArray());
+                                request.Delete($"{batchNo}_{chunkIdx}", allOrNone, chunk.ToArray());
                             }
                             Logger?.Invoke($"Delete Start {batchNo}");
                             var result = await PostAsync(request).ConfigureAwait(false);

@@ -161,10 +161,10 @@ namespace DotNetForce
         public Task<SuccessResponse> CreateAsync(string objectName, object record) => Force.CreateAsync(objectName, record);
         public Task<SaveResponse> CreateAsync(string objectName, CreateRequest request) => Force.CreateAsync(objectName, request);
         public Task<SuccessResponse> UpdateAsync(string objectName, string recordId, object record) => Force.UpdateAsync(objectName, recordId, record);
-        public Task<SuccessResponse> UpsertExternalAsync(string objectName, string externalFieldName, string externalId, object record) => Force.UpsertExternalAsync(objectName, externalFieldName, externalId, record);
-        public Task<SuccessResponse> UpsertExternalAsync(string objectName, string externalFieldName, string externalId, object record, bool ignoreNull) => Force.UpsertExternalAsync(objectName, externalFieldName, externalId, record, ignoreNull);
+        public Task<SuccessResponse> UpsertExternalAsync(string objectName, string externalFieldName, string externalId, object record) => Force.UpsertExternalAsync(objectName, externalFieldName, Uri.EscapeDataString(externalId), record);
+        public Task<SuccessResponse> UpsertExternalAsync(string objectName, string externalFieldName, string externalId, object record, bool ignoreNull) => Force.UpsertExternalAsync(objectName, externalFieldName, Uri.EscapeDataString(externalId), record, ignoreNull);
         public Task<bool> DeleteAsync(string objectName, string recordId) => Force.DeleteAsync(objectName, recordId);
-        public Task<bool> DeleteExternalAsync(string objectName, string externalFieldName, string externalId) => Force.DeleteExternalAsync(objectName, externalFieldName, externalId);
+        public Task<bool> DeleteExternalAsync(string objectName, string externalFieldName, string externalId) => Force.DeleteExternalAsync(objectName, externalFieldName, Uri.EscapeDataString(externalId));
         public Task<DescribeGlobalResult<T>> GetObjectsAsync<T>() => Force.GetObjectsAsync<T>();
         public Task<T> BasicInformationAsync<T>(string objectName) => Force.BasicInformationAsync<T>(objectName);
         public Task<T> DescribeAsync<T>(string objectName) => Force.DescribeAsync<T>(objectName);
@@ -275,9 +275,9 @@ namespace DotNetForce
         {
             if (string.IsNullOrEmpty(objectName)) throw new ArgumentNullException("objectName");
             if (string.IsNullOrEmpty(externalId)) throw new ArgumentNullException("externalId");
-            if (fields == null || fields.Length == 0) throw new ArgumentNullException("fields");
+            if (fields == null) throw new ArgumentNullException("fields");
 
-            return await JsonHttp.HttpGetAsync<T>($"sobjects/{objectName}/{externalFieldName}/{externalId}" +
+            return await JsonHttp.HttpGetAsync<T>($"sobjects/{objectName}/{externalFieldName}/{Uri.EscapeDataString(externalId)}" +
                 (fields?.Length > 0 ? $"?fields={string.Join(",", fields.Select(field => Uri.EscapeDataString(field)))}" : "")).ConfigureAwait(false);
         }
 

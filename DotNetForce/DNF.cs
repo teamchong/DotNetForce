@@ -26,7 +26,7 @@ namespace DotNetForce
 
 
         // for Full DotNet Framework, please set ServicePointManager.DefaultConnectionLimit (Default is 2)
-        public static int ConcurrentRequestLimit = 2000;
+        public static int ConcurrentRequestLimit = 25;
 
         //public enum MetadataType
         //{
