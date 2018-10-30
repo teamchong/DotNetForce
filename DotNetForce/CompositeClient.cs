@@ -58,7 +58,7 @@ namespace DotNetForce
             }
             else
             {
-                var throttler = new SemaphoreSlim(DNF.ConcurrentRequestLimit, DNF.ConcurrentRequestLimit);
+                var throttler = new SemaphoreSlim(DNF.DEFAULT_CONCURRENT_LIMIT, DNF.DEFAULT_CONCURRENT_LIMIT);
                 var tasks = new List<Task>();
                 var results = new CompositeResult();
 
@@ -103,7 +103,7 @@ namespace DotNetForce
             if (ids == null) throw new ArgumentNullException("ids");
             if (fields == null || fields.Length == 0) throw new ArgumentNullException("fields");
 
-            var throttler = new SemaphoreSlim(DNF.ConcurrentRequestLimit, DNF.ConcurrentRequestLimit);
+            var throttler = new SemaphoreSlim(DNF.DEFAULT_CONCURRENT_LIMIT, DNF.DEFAULT_CONCURRENT_LIMIT);
             var tasks = new List<Task>();
             var results = new CompositeResult();
 
@@ -141,14 +141,14 @@ namespace DotNetForce
             return results;
         }
 
-        public async Task<CompositeResult> RetrieveExternalAsync(string objectName, string externalFieldName,  IEnumerable<string> externalIds, params string[] fields)
+        public async Task<CompositeResult> RetrieveExternalAsync(string objectName, string externalFieldName, IEnumerable<string> externalIds, params string[] fields)
         {
             if (string.IsNullOrEmpty(objectName)) throw new ArgumentNullException("objectName");
             if (string.IsNullOrEmpty(externalFieldName)) throw new ArgumentNullException("externalFieldName");
             if (externalIds == null || !externalIds.Any()) throw new ArgumentNullException("externalIds");
             if (fields == null || fields.Length == 0) throw new ArgumentNullException("fields");
-            
-            var throttler = new SemaphoreSlim(DNF.ConcurrentRequestLimit, DNF.ConcurrentRequestLimit);
+
+            var throttler = new SemaphoreSlim(DNF.DEFAULT_CONCURRENT_LIMIT, DNF.DEFAULT_CONCURRENT_LIMIT);
             var tasks = new List<Task>();
             var results = new CompositeResult();
 
@@ -211,7 +211,7 @@ namespace DotNetForce
             }
             else
             {
-                var throttler = new SemaphoreSlim(DNF.ConcurrentRequestLimit, DNF.ConcurrentRequestLimit);
+                var throttler = new SemaphoreSlim(DNF.DEFAULT_CONCURRENT_LIMIT, DNF.DEFAULT_CONCURRENT_LIMIT);
                 var tasks = new List<Task>();
                 var results = new CompositeResult();
 
@@ -339,7 +339,7 @@ namespace DotNetForce
             }
             else
             {
-                var throttler = new SemaphoreSlim(DNF.ConcurrentRequestLimit, DNF.ConcurrentRequestLimit);
+                var throttler = new SemaphoreSlim(DNF.DEFAULT_CONCURRENT_LIMIT, DNF.DEFAULT_CONCURRENT_LIMIT);
                 var tasks = new List<Task>();
                 var results = new CompositeResult();
 
@@ -404,7 +404,7 @@ namespace DotNetForce
                 }
                 else
                 {
-                    var throttler = new SemaphoreSlim(DNF.ConcurrentRequestLimit, DNF.ConcurrentRequestLimit);
+                    var throttler = new SemaphoreSlim(DNF.DEFAULT_CONCURRENT_LIMIT, DNF.DEFAULT_CONCURRENT_LIMIT);
                     var results = new CompositeResult();
 
                     var chunks = new List<List<CompositeSubrequest>>();
@@ -516,7 +516,7 @@ namespace DotNetForce
                 }
                 else
                 {
-                    var throttler = new SemaphoreSlim(DNF.ConcurrentRequestLimit, DNF.ConcurrentRequestLimit);
+                    var throttler = new SemaphoreSlim(DNF.DEFAULT_CONCURRENT_LIMIT, DNF.DEFAULT_CONCURRENT_LIMIT);
                     var results = new BatchResult();
 
                     var chunks = new List<List<BatchSubrequest>>();
@@ -587,19 +587,32 @@ namespace DotNetForce
             }
         }
 
-        public async Task<SaveResponse> CreateTreeAsync<JObject>(string objectName, IEnumerable<JObject> objectTree)
+        public async Task<SaveResponse> CreateTreeAsync<T>(string objectName, IEnumerable<T> objectTree)
         {
             if (string.IsNullOrEmpty(objectName)) throw new ArgumentNullException("objectName");
 
             if (objectTree == null) throw new ArgumentNullException("objectTree");
 
-            return await DNF.TryDeserializeObject(async () =>
+            if (typeof(IAttributedObject).IsAssignableFrom(typeof(T)))
             {
-                var result = await JsonHttp.HttpPostAsync<SaveResponse>(
-                    new CreateRequest { Records = objectTree.Cast<IAttributedObject>().ToList() },
-                    $"composite/tree/{objectName}").ConfigureAwait(false);
-                return result;
-            });
+                return await DNF.TryDeserializeObject(async () =>
+                {
+                    var result = await JsonHttp.HttpPostAsync<SaveResponse>(
+                        new CreateRequest { Records = objectTree.Cast<IAttributedObject>().ToList() },
+                        $"composite/tree/{objectName}").ConfigureAwait(false);
+                    return result;
+                });
+            }
+            else
+            {
+                return await DNF.TryDeserializeObject(async () =>
+                {
+                    var result = await JsonHttp.HttpPostAsync<SaveResponse>(
+                        new JObject { ["records"] = JArray.FromObject(objectTree.Select(o => JObject.FromObject(o).ToObject<IAttributedObject>())) },
+                        $"composite/tree/{objectName}").ConfigureAwait(false);
+                    return result;
+                });
+            }
         }
 
         protected string DecodeReference(string value)

@@ -16,8 +16,10 @@ namespace DotNetForce.Common.Internals
         protected string ApiVersion;
         protected readonly HttpClient HttpClient;
         
+        public DateTime? ApiLastRetrieve = null;
         public int? ApiUsed = null;
         public int? ApiLimit = null;
+        public DateTime? PerAppApiLastRetrieve = null;
         public int? PerAppApiUsed = null;
         public int? PerAppApiLimit = null;
 
@@ -62,6 +64,7 @@ namespace DotNetForce.Common.Internals
                             var usage = str.Trim().Substring("api-usage=".Length).Split('/');
                             if (usage.Length == 2 && int.TryParse(usage[0], out int apiUsed) && int.TryParse(usage[1], out int apiLimit))
                             {
+                                ApiLastRetrieve = DateTime.Now;
                                 ApiUsed = apiUsed;
                                 ApiLimit = apiLimit;
                             }
@@ -71,6 +74,7 @@ namespace DotNetForce.Common.Internals
                             var usage = str.Trim().Substring("per-app-api-usage=".Length).Split('/');
                             if (usage.Length == 2 && int.TryParse(usage[0], out int apiUsed) && int.TryParse(usage[1], out int apiLimit))
                             {
+                                PerAppApiLastRetrieve = DateTime.Now;
                                 PerAppApiUsed = apiUsed;
                                 PerAppApiLimit = apiLimit;
                             }
@@ -80,10 +84,24 @@ namespace DotNetForce.Common.Internals
             }
         }
 
+        protected StreamContent GetGZipContent(string payload)
+        {
+            var ms = new System.IO.MemoryStream();
+            var payloadData = Encoding.UTF8.GetBytes(payload);
+            using (var gzip = new System.IO.Compression.GZipStream(ms, System.IO.Compression.CompressionMode.Compress, true))
+            {
+                gzip.Write(payloadData, 0, payloadData.Length);
+            }
+            ms.Position = 0;
+            var streamContent = new StreamContent(ms);
+            streamContent.Headers.ContentType = new MediaTypeHeaderValue(_contentType);
+            streamContent.Headers.ContentEncoding.Add("gzip");
+            return streamContent;
+        }
+
         protected async Task<string> HttpGetAsync(Uri uri)
         {
             var responseMessage = await HttpClient.GetAsync(uri).ConfigureAwait(false);
-            ParseApiUsage(responseMessage);
 
             if (responseMessage.StatusCode == HttpStatusCode.NoContent)
             {
@@ -101,7 +119,8 @@ namespace DotNetForce.Common.Internals
 
         protected async Task<string> HttpPostAsync(string payload, Uri uri)
         {
-            var content = new StringContent(payload, Encoding.UTF8, _contentType);
+            //var content = new StringContent(payload, Encoding.UTF8, _contentType);
+            var content = GetGZipContent(payload);
 
             var responseMessage = await HttpClient.PostAsync(uri, content).ConfigureAwait(false);
             ParseApiUsage(responseMessage);
@@ -123,7 +142,8 @@ namespace DotNetForce.Common.Internals
 
         protected async Task<string> HttpPatchAsync(string payload, Uri uri)
         {
-            var content = new StringContent(payload, Encoding.UTF8, _contentType);
+            //var content = new StringContent(payload, Encoding.UTF8, _contentType);
+            var content = GetGZipContent(payload);
 
             var request = new HttpRequestMessage
             {

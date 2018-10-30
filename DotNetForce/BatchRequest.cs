@@ -168,7 +168,7 @@ namespace DotNetForce
             if (record == null) throw new ArgumentNullException("record");
 
             var richInput = JObject.FromObject(record).UnFlatten();
-            return Update(objectName, richInput["Id"]?.ToObject<string>(), richInput.Omit("Id"));
+            return Update(objectName, richInput["Id"]?.ToString(), richInput.Omit("Id"));
         }
 
         public BatchSubrequest Update(string objectName, string recordId, object record)
@@ -194,7 +194,7 @@ namespace DotNetForce
             if (record == null) throw new ArgumentNullException("record");
 
             var richInput = JObject.FromObject(record).UnFlatten();
-            return UpsertExternal(objectName, externalFieldName, richInput[externalFieldName]?.ToObject<string>(), richInput.Omit(externalFieldName));
+            return UpsertExternal(objectName, externalFieldName, richInput[externalFieldName]?.ToString(), richInput.Omit(externalFieldName));
         }
 
         public BatchSubrequest UpsertExternal(string objectName, string externalFieldName, string externalId, object record)

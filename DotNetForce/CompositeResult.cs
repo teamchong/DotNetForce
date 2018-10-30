@@ -47,18 +47,15 @@ namespace DotNetForce
         public Dictionary<string, SuccessResponse> SuccessResponses()
         {
             return _Results
-                .Where(r => !string.IsNullOrEmpty(r.Value["id"]?.ToObject<string>())
-                && r.Value["success"]?.Type == JTokenType.Boolean
-                && r.Value["errors"]?.Type == JTokenType.Array)
+                .Where(r => DNF.IsSuccessResponse(r.Value))
                 .ToDictionary(r => r.Key, r => r.Value.ToObject<SuccessResponse>());
         }
+
         public SuccessResponse SuccessResponses(string referenceId)
         {
             return !_Results.TryGetValue(referenceId, out JToken value) ? default(SuccessResponse)
                 : value == null ? default(SuccessResponse)
-                : !string.IsNullOrEmpty(value["id"]?.ToObject<string>())
-                && value["success"]?.Type == JTokenType.Boolean
-                && value["errors"]?.Type == JTokenType.Array ? value.ToObject<SuccessResponse>()
+                : DNF.IsSuccessResponse(value) ? value.ToObject<SuccessResponse>()
                 : default(SuccessResponse);
         }
 
@@ -112,20 +109,15 @@ namespace DotNetForce
                         {
                             if (response.Body.Type == JTokenType.Array)
                             {
-                                foreach (var (row, j) in response.Body.ToObject<JArray>().Select((row, j) => (row, j)))
+                                foreach (var (row, j) in ((JArray)response.Body).Select((row, j) => (row, j)))
                                 {
                                     var refId = $"{subrequest.ReferenceId}_{j}";
 
-                                    if (response.Body?.Type == JTokenType.Object &&
-                                        response.Body?["totalSize"]?.Type == JTokenType.Integer &&
-                                        response.Body?["done"]?.Type == JTokenType.Boolean &&
-                                        response.Body?["records"]?.Type == JTokenType.Array)
+                                    if (DNF.IsQueryResult(response.Body))
                                     {
                                         _Queries.Add(refId, row.ToObject<QueryResult<JObject>>());
                                     }
-                                    else if (!string.IsNullOrEmpty(row["id"]?.ToObject<string>()) &&
-                                        row["success"]?.Type == JTokenType.Boolean &&
-                                        row["errors"]?.Type == JTokenType.Array)
+                                    else if (DNF.IsSuccessResponse(row))
                                     {
                                         _Results.Add(refId, row);
                                     }
@@ -133,7 +125,7 @@ namespace DotNetForce
                                     {
                                         _Results.Add(refId, row);
                                     }
-                                    else if (row["success"]?.ToObject<bool?>() == true)
+                                    else if ((bool?)row["success"] == true)
                                     {
                                         _Results.Add(refId, row);
                                     }
@@ -142,7 +134,7 @@ namespace DotNetForce
                                         _Errors.Add(refId, DNF.GetErrorResponses(row));
                                     }
 
-                                    if (row["errors"]?.Type == JTokenType.Array && row["errors"].ToObject<JArray>().Count > 0)
+                                    if (row["errors"]?.Type == JTokenType.Array && ((JArray)row["errors"]).Count > 0)
                                     {
                                         _Errors.Add(refId, DNF.GetErrorResponses(row["errors"]));
                                     }
@@ -163,16 +155,13 @@ namespace DotNetForce
                         {
                             if (IsSuccessStatusCode(response.HttpStatusCode))
                             {
-                                if (response.Body?.Type == JTokenType.Object &&
-                                    response.Body?["totalSize"]?.Type == JTokenType.Integer &&
-                                    response.Body?["done"]?.Type == JTokenType.Boolean &&
-                                    response.Body?["records"]?.Type == JTokenType.Array)
+                                if (DNF.IsQueryResult(response.Body))
                                 {
                                     _Queries.Add(subrequest.ReferenceId, response.Body?.ToObject<QueryResult<JObject>>() ?? new QueryResult<JObject>());
                                 }
                                 else if (response.Body?.Type == JTokenType.Array)
                                 {
-                                    _Results.Add(subrequest.ReferenceId, response.Body.ToObject<JArray>());
+                                    _Results.Add(subrequest.ReferenceId, (JArray)response.Body);
                                 }
                                 else
                                 {
@@ -219,12 +208,14 @@ namespace DotNetForce
         public void ThrowIfError()
         {
             var exList = new List<ForceException>();
-            foreach (var errors in _Errors.Values)
+            foreach (var errors in _Errors)
             {
-                foreach (var error in errors)
-                {
-                    exList.Add(new ForceException(error.ErrorCode ?? $"{Error.Unknown}", error.Message));
-                }
+                var request = _Requests.Where(req => req.ReferenceId == errors.Key).FirstOrDefault();
+                exList.Add(new ForceException(
+                    errors.Value.Select(error => error.ErrorCode).FirstOrDefault() ?? $"{Error.Unknown}",
+                    (request == null ? $"{errors.Key}:" : $"{request}") + Environment.NewLine +
+                    string.Join(Environment.NewLine, errors.Value.Select(error => error.Message))
+                ));
             }
             if (exList.Count > 0)
             {
@@ -241,7 +232,7 @@ namespace DotNetForce
             //if (_Requests.Count > 0) output["Requests"] = JToken.FromObject(_Requests);
             return output.ToString();
         }
-        
+
         public string ToString(bool includeRequests)
         {
             return ToString(includeRequests, Formatting.Indented);

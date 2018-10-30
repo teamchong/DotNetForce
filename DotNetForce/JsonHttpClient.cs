@@ -10,6 +10,7 @@ using Newtonsoft.Json.Linq;
 using DotNetForce.Common.Internals;
 using DotNetForce.Common.Models.Json;
 using DotNetForce.Common.Serializer;
+using System.Net;
 
 namespace DotNetForce.Common
 {
@@ -48,23 +49,25 @@ namespace DotNetForce.Common
         {
             try
             {
-                var response = await HttpGetAsync(uri);
-                var jToken = JsonConvert.DeserializeObject<JToken>(response);
-                if (jToken.Type == JTokenType.Array)
-                {
-                    var jArray = JsonConvert.DeserializeObject<JArray>(response);
-                    return JsonConvert.DeserializeObject<T>(jArray.ToString());
-                }
+                //var response = await HttpGetAsync(uri);
+                //var jToken = JsonConvert.DeserializeObject<JToken>(response);
+                //if (jToken.Type == JTokenType.Array)
+                //{
+                //    var jArray = JsonConvert.DeserializeObject<JArray>(response);
+                //    return JsonConvert.DeserializeObject<T>(jArray.ToString());
+                //}
                 // else
-                try
-                {
-                    var jObject = JsonConvert.DeserializeObject<JObject>(response);
-                    return JsonConvert.DeserializeObject<T>(jObject.ToString());
-                }
-                catch
-                {
-                    return JsonConvert.DeserializeObject<T>(response);
-                }
+                //try
+                //{
+                //    ////var jObject = JsonConvert.DeserializeObject<JObject>(response);
+                //    ////return JsonConvert.DeserializeObject<T>(jObject.ToString());
+                //}
+                //catch
+                //{
+                //    return JsonConvert.DeserializeObject<T>(response);
+                //}
+                var jToken = await HttpGetJsonAsync(uri);
+                return jToken.ToObject<T>();
             }
             catch (BaseHttpClientException e)
             {
@@ -86,11 +89,16 @@ namespace DotNetForce.Common
                 }
                 try
                 {
-                    var response = await HttpGetAsync(url);
-                    var jObject = JsonConvert.DeserializeObject<JObject>(response);
-                    var jToken = jObject.GetValue(nodeName);
-                    next = (jObject.GetValue("nextRecordsUrl") != null) ? jObject.GetValue("nextRecordsUrl").ToString() : null;
-                    records.AddRange(JsonConvert.DeserializeObject<IList<T>>(jToken.ToString()));
+                    //var response = await HttpGetAsync(url);
+                    //var jObject = JsonConvert.DeserializeObject<JObject>(response);
+                    //var jToken = jObject.GetValue(nodeName);
+                    //next = (jObject.GetValue("nextRecordsUrl") != null) ? jObject.GetValue("nextRecordsUrl").ToString() : null;
+                    //records.AddRange(JsonConvert.DeserializeObject<IList<T>>(jToken.ToString()));
+
+                    var jObject = await HttpGetJsonAsync(url);
+                    var jToken = jObject[nodeName];
+                    next = jObject["nextRecordsUrl"]?.ToString();
+                    records.AddRange(jToken.ToObject<IList<T>>());
                 }
                 catch (BaseHttpClientException e)
                 {
@@ -152,8 +160,10 @@ namespace DotNetForce.Common
                    });
             try
             {
-                var response = await HttpPostAsync(json, uri);
-                return JsonConvert.DeserializeObject<T>(response);
+                //var response = await HttpPostAsync(json, uri);
+                //return JsonConvert.DeserializeObject<T>(response);
+                var response = await HttpPostJsonAsync(json, uri);
+                return response.ToObject<T>();
             }
             catch (BaseHttpClientException e)
             {
@@ -293,6 +303,66 @@ namespace DotNetForce.Common
             catch (BaseHttpClientException e)
             {
                 throw ParseForceException(e.Message);
+            }
+        }
+
+        // Get/Post/Patch/Delete
+        private static JToken DeserializeJson(System.IO.StreamReader streamReader)
+        {
+            var serializer = new JsonSerializer();
+            using (var jsonReader = new JsonTextReader(streamReader))
+            {
+                return serializer.Deserialize<JToken>(jsonReader);
+            }
+        }
+
+        protected async Task<JToken> HttpGetJsonAsync(Uri uri)
+        {
+            var responseMessage = await HttpClient.GetAsync(uri).ConfigureAwait(false);
+            ParseApiUsage(responseMessage);
+
+            if (responseMessage.StatusCode == HttpStatusCode.NoContent)
+            {
+                return string.Empty;
+            }
+
+            var response = await responseMessage.Content.ReadAsStreamAsync().ConfigureAwait(false);
+
+            using (var reader = new System.IO.StreamReader(response))
+            {
+                if (responseMessage.IsSuccessStatusCode)
+                {
+                    return DeserializeJson(reader);
+                }
+
+                throw new BaseHttpClientException(await reader.ReadToEndAsync().ConfigureAwait(false), responseMessage.StatusCode);
+            }
+        }
+
+        protected async Task<JToken> HttpPostJsonAsync(string payload, Uri uri)
+        {
+            //var content = new StringContent(payload, Encoding.UTF8, _contentType);
+            var content = GetGZipContent(payload);
+
+            var responseMessage = await HttpClient.PostAsync(uri, content).ConfigureAwait(false);
+            ParseApiUsage(responseMessage);
+
+
+            if (responseMessage.StatusCode == HttpStatusCode.NoContent)
+            {
+                return string.Empty;
+            }
+
+            var response = await responseMessage.Content.ReadAsStreamAsync().ConfigureAwait(false);
+
+            using (var reader = new System.IO.StreamReader(response))
+            {
+                if (responseMessage.IsSuccessStatusCode)
+                {
+                    return DeserializeJson(reader);
+                }
+
+                throw new BaseHttpClientException(await reader.ReadToEndAsync().ConfigureAwait(false), responseMessage.StatusCode);
             }
         }
     }

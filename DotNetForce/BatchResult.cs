@@ -1,4 +1,5 @@
-﻿using DotNetForce.Common.Models.Json;
+﻿using DotNetForce.Common;
+using DotNetForce.Common.Models.Json;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
@@ -12,47 +13,38 @@ namespace DotNetForce
         protected List<BatchSubrequest> _Requests = new List<BatchSubrequest>();
         public List<BatchSubrequest> Requests() => _Requests;
 
-        protected Dictionary<int, ErrorResponses> _Errors = new Dictionary<int, ErrorResponses>();
-        public Dictionary<int, ErrorResponses> Errors() => _Errors;
-        public ErrorResponses Errors(int referenceId)
+        protected Dictionary<string, ErrorResponses> _Errors = new Dictionary<string, ErrorResponses>();
+        public Dictionary<string, ErrorResponses> Errors() => _Errors;
+        public ErrorResponses Errors(string referenceId)
         {
             return !_Errors.TryGetValue(referenceId, out ErrorResponses value) ? null : value;
         }
 
-        protected Dictionary<int, QueryResult<JObject>> _Queries = new Dictionary<int, QueryResult<JObject>>();
-        public Dictionary<int, QueryResult<JObject>> Queries() => _Queries;
-        public QueryResult<JObject> Queries(int referenceId)
+        protected Dictionary<string, QueryResult<JObject>> _Queries = new Dictionary<string, QueryResult<JObject>>();
+        public Dictionary<string, QueryResult<JObject>> Queries() => _Queries;
+        public QueryResult<JObject> Queries(string referenceId)
         {
             return !_Queries.TryGetValue(referenceId, out QueryResult<JObject> value) ? null : value;
         }
 
-        protected Dictionary<int, JToken> _Results = new Dictionary<int, JToken>();
-        public Dictionary<int, JToken> Results() => _Results;
-        public JToken Results(int referenceId)
+        protected Dictionary<string, JToken> _Results = new Dictionary<string, JToken>();
+        public Dictionary<string, JToken> Results() => _Results;
+        public JToken Results(string referenceId)
         {
             return !_Results.TryGetValue(referenceId, out JToken value) ? null : value;
         }
-        public SuccessResponse Results<SuccessResponse>(int referenceId)
-        {
-            return !_Results.TryGetValue(referenceId, out JToken value) ? default(SuccessResponse) : value == null ? default(SuccessResponse) : value.ToObject<SuccessResponse>();
-        }
-        
-        public Dictionary<int, SuccessResponse> SuccessResponses()
+        public Dictionary<string, SuccessResponse> SuccessResponses()
         {
             return _Results
-                .Where(r => !string.IsNullOrEmpty(r.Value["id"]?.ToObject<string>())
-                && r.Value["success"]?.Type == JTokenType.Boolean
-                && r.Value["errors"]?.Type == JTokenType.Array)
+                .Where(r => DNF.IsQueryResult(r.Value))
                 .ToDictionary(r => r.Key, r => r.Value.ToObject<SuccessResponse>());
         }
 
-        public SuccessResponse SuccessResponses(int referenceId)
+        public SuccessResponse SuccessResponses(string referenceId)
         {
             return !_Results.TryGetValue(referenceId, out JToken value) ? default(SuccessResponse)
                 : value == null ? default(SuccessResponse)
-                : !string.IsNullOrEmpty(value["id"]?.ToObject<string>())
-                && value["success"]?.Type == JTokenType.Boolean
-                && value["errors"]?.Type == JTokenType.Array ? value.ToObject<SuccessResponse>()
+                : DNF.IsSuccessResponse(value) ? value.ToObject<SuccessResponse>()
                 : default(SuccessResponse);
         }
 
@@ -63,6 +55,23 @@ namespace DotNetForce
         public BatchResult(List<BatchSubrequest> subrequests, List<BatchSubrequestResult> responses)
         {
             Add(subrequests, responses);
+        }
+
+        public void Add(BatchResult result)
+        {
+            _Requests.AddRange(result._Requests);
+            foreach (var item in result._Errors)
+            {
+                _Errors.Add(item.Key, item.Value);
+            }
+            foreach (var item in result._Queries)
+            {
+                _Queries.Add(item.Key, item.Value);
+            }
+            foreach (var item in result._Results)
+            {
+                _Results.Add(item.Key, item.Value);
+            }
         }
 
         public void Add(List<BatchSubrequest> subrequests, List<BatchSubrequestResult> responses)
@@ -81,6 +90,7 @@ namespace DotNetForce
                 }
 
                 var response = responses[i];
+                var refId = $"{i}";
 
                 switch (subrequest.ResponseType)
                 {
@@ -89,27 +99,27 @@ namespace DotNetForce
                         {
                             if (IsSuccessStatusCode(response.StatusCode))
                             {
-
-                                if (response.Result?.Type == JTokenType.Object &&
-                                    response.Result?["totalSize"]?.Type == JTokenType.Integer &&
-                                    response.Result?["done"]?.Type == JTokenType.Boolean &&
-                                    response.Result?["records"]?.Type == JTokenType.Array)
+                                if (DNF.IsQueryResult(response.Result))
                                 {
-                                    _Queries.Add(i, response.Result?.ToObject<QueryResult<JObject>>() ?? new QueryResult<JObject>());
+                                    _Queries.Add(refId, response.Result?.ToObject<QueryResult<JObject>>() ?? new QueryResult<JObject>());
+                                }
+                                else if (response.Result?.Type == JTokenType.Array)
+                                {
+                                    _Results.Add(refId, (JArray)response.Result);
                                 }
                                 else
                                 {
-                                    _Errors.Add(i, DNF.GetErrorResponses(response.Result));
+                                    _Results.Add(refId, new JArray { response.Result });
                                 }
                             }
                             else
                             {
-                                _Errors.Add(i, DNF.GetErrorResponses(response.Result));
+                                _Errors.Add(refId, DNF.GetErrorResponses(response.Result));
                             }
                         }
                         catch
                         {
-                            _Errors.Add(i, DNF.GetErrorResponses(response.Result));
+                            _Errors.Add(refId, DNF.GetErrorResponses(response.Result));
                         }
                         break;
                     case "object":
@@ -118,16 +128,16 @@ namespace DotNetForce
                         {
                             if (IsSuccessStatusCode(response.StatusCode))
                             {
-                                _Results.Add(i, response.Result ?? new JObject());
+                                _Results.Add(refId, response.Result);
                             }
                             else
                             {
-                                _Errors.Add(i, DNF.GetErrorResponses(response.Result));
+                                _Errors.Add(refId, DNF.GetErrorResponses(response.Result));
                             }
                         }
                         catch
                         {
-                            _Errors.Add(i, DNF.GetErrorResponses(response.Result));
+                            _Errors.Add(refId, DNF.GetErrorResponses(response.Result));
                         }
                         break;
                 }
@@ -139,14 +149,47 @@ namespace DotNetForce
             }
         }
 
+        public void ThrowIfError()
+        {
+            var exList = new List<ForceException>();
+            foreach (var errors in _Errors)
+            {
+                var request = _Requests.Where((req, reqIdx) => $"{reqIdx}" == errors.Key).FirstOrDefault();
+                exList.Add(new ForceException(
+                    errors.Value.Select(error => error.ErrorCode).FirstOrDefault() ?? $"{Error.Unknown}",
+                    (request == null ? $"{errors.Key}:" : $"{request}") + Environment.NewLine +
+                    string.Join(Environment.NewLine, errors.Value.Select(error => error.Message))
+                ));
+            }
+            if (exList.Count > 0)
+            {
+                throw new AggregateException(exList);
+            }
+        }
+
         public override string ToString()
         {
             var output = new JObject();
-            if (_Errors.Count > 0) output["Errors"] = JObject.FromObject(_Errors);
-            if (_Queries.Count > 0) output["Queries"] = JObject.FromObject(_Queries);
-            if (_Results.Count > 0) output["Objects"] = JObject.FromObject(_Results);
-            if (_Requests.Count > 0) output["Requests"] = JObject.FromObject(_Requests);
+            if (_Errors.Count > 0) output["Errors"] = JToken.FromObject(_Errors);
+            if (_Queries.Count > 0) output["Queries"] = JToken.FromObject(_Queries);
+            if (_Results.Count > 0) output["Objects"] = JToken.FromObject(_Results);
+            //if (_Requests.Count > 0) output["Requests"] = JToken.FromObject(_Requests);
             return output.ToString();
+        }
+        
+        public string ToString(bool includeRequests)
+        {
+            return ToString(includeRequests, Formatting.Indented);
+        }
+
+        public string ToString(bool includeRequests, Formatting formatting)
+        {
+            var output = new JObject();
+            if (_Errors.Count > 0) output["Errors"] = JToken.FromObject(_Errors);
+            if (_Queries.Count > 0) output["Queries"] = JToken.FromObject(_Queries);
+            if (_Results.Count > 0) output["Objects"] = JToken.FromObject(_Results);
+            if (includeRequests && _Requests.Count > 0) output["Requests"] = JToken.FromObject(_Requests);
+            return output.ToString(formatting);
         }
     }
 }

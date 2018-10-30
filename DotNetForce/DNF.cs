@@ -10,6 +10,7 @@ using System.Linq;
 using System.Reactive.Linq;
 using System.Security.Cryptography;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace DotNetForce
@@ -24,9 +25,21 @@ namespace DotNetForce
 
         public const int BATCH_LIMIT = 25;
 
+        public const int DEFAULT_CONCURRENT_LIMIT = 50;
+        
+        public const int QUERY_CURSOR_LIMIT = 25;
 
         // for Full DotNet Framework, please set ServicePointManager.DefaultConnectionLimit (Default is 2)
-        public static int ConcurrentRequestLimit = 25;
+        // for safy reason, max no of concurrent api call with transactions longer than 20 seconds.
+
+        //private static Lazy<SemaphoreSlim> _ConcurrentRequestThrottler = new Lazy<SemaphoreSlim>(() =>
+        //    new SemaphoreSlim(DNF.DEFAULT_CONCURRENT_LIMIT, DNF.DEFAULT_CONCURRENT_LIMIT));
+        //public static SemaphoreSlim ConcurrentRequestThrottler { get => _ConcurrentRequestThrottler.Value; }
+
+        //public static Lazy<SemaphoreSlim> _QueryCursorThrottler = new Lazy<SemaphoreSlim>(() =>
+        //    new SemaphoreSlim(DNF.QUERY_CURSOR_LIMIT, DNF.QUERY_CURSOR_LIMIT));
+        //    //new SemaphoreSlim(DNF.QUERY_CURSOR_LIMIT / DNF.COMPOSITE_QUERY_LIMIT, DNF.QUERY_CURSOR_LIMIT / DNF.COMPOSITE_QUERY_LIMIT);
+        //public static SemaphoreSlim QueryCursorThrottler { get => _QueryCursorThrottler.Value; }
 
         //public enum MetadataType
         //{
@@ -275,7 +288,7 @@ namespace DotNetForce
 
         //public static JArray Records(JToken token)
         //{
-        //    return token?["records"]?.ToObject<JArray>();
+        //    return (JArray)token?["records"];
         //}
 
         //public static IEnumerable<T> Records<T>(JToken token) where T : JObject
@@ -331,6 +344,22 @@ namespace DotNetForce
         //        return true;
         //    return false;
         //}
+
+        public static bool IsQueryResult(JToken token)
+        {
+            return token?.Type == JTokenType.Object
+                && token["totalSize"]?.Type == JTokenType.Integer
+                && token["done"]?.Type == JTokenType.Boolean
+                && token["records"]?.Type == JTokenType.Array;
+        }
+
+        public static bool IsSuccessResponse(JToken token)
+        {
+            return token?.Type == JTokenType.Object
+                && token["id"]?.Type == JTokenType.String
+                && token["success"]?.Type == JTokenType.Boolean
+                && token["errors"]?.Type == JTokenType.Array;
+        }
 
         public static string SOQLString(string input)
         {

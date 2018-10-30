@@ -33,10 +33,10 @@ namespace DotNetForce
 
         public Action<string> Logger { get; set; }
 
-        public int? ApiUsed { get => new[] { JsonHttp?.ApiUsed, XmlHttp?.ApiUsed }.Max(); }
-        public int? ApiLimit { get => new[] { JsonHttp?.ApiLimit, XmlHttp?.ApiLimit }.Max(); }
-        public int? PerAppApiUsed { get => new[] { JsonHttp?.PerAppApiUsed, XmlHttp?.PerAppApiUsed }.Max(); }
-        public int? PerAppApiLimit { get => new[] { JsonHttp?.PerAppApiLimit, XmlHttp?.PerAppApiLimit }.Max(); }
+        public int? ApiUsed { get => JsonHttp.ApiLastRetrieve < XmlHttp.ApiLastRetrieve ? XmlHttp.ApiUsed : JsonHttp.ApiUsed; }
+        public int? ApiLimit { get => JsonHttp.ApiLastRetrieve < XmlHttp.ApiLastRetrieve ? XmlHttp.ApiLimit : JsonHttp.ApiLimit; }
+        public int? PerAppApiUsed { get => JsonHttp.PerAppApiLastRetrieve < XmlHttp.PerAppApiLastRetrieve ? XmlHttp.PerAppApiUsed : JsonHttp.PerAppApiUsed; }
+        public int? PerAppApiLimit { get => JsonHttp.PerAppApiLastRetrieve < XmlHttp.PerAppApiLastRetrieve ? XmlHttp.PerAppApiLimit : JsonHttp.PerAppApiLimit; }
 
         #region Client
 
@@ -74,10 +74,16 @@ namespace DotNetForce
             {
                 var tokenRequestEndpointUrl = new Uri(new Uri(client.LoginUri.GetLeftPart(UriPartial.Authority)), "/services/oauth2/token").ToString();
                 await auth.UsernamePasswordAsync(clientId, clientSecret, userName, password, tokenRequestEndpointUrl).ConfigureAwait(false);
-                var jsonClient = new HttpClient { Timeout = TimeSpan.FromSeconds(60 * 30) };
-                jsonClient.DefaultRequestHeaders.ConnectionClose = true;
-                var xmlClient = new HttpClient { Timeout = TimeSpan.FromSeconds(60 * 30) };
-                xmlClient.DefaultRequestHeaders.ConnectionClose = true;
+                var httpHandler = new HttpClientHandler
+                {
+                    AutomaticDecompression = System.Net.DecompressionMethods.GZip | System.Net.DecompressionMethods.Deflate
+                };
+                var jsonClient = new HttpClient(httpHandler) { Timeout = TimeSpan.FromSeconds(60 * 30) };
+                //jsonClient.DefaultRequestHeaders.ConnectionClose = true;
+                jsonClient.DefaultRequestHeaders.AcceptEncoding.Add(new System.Net.Http.Headers.StringWithQualityHeaderValue("gzip"));
+                var xmlClient = new HttpClient(httpHandler) { Timeout = TimeSpan.FromSeconds(60 * 30) };
+                //xmlClient.DefaultRequestHeaders.ConnectionClose = true;
+                xmlClient.DefaultRequestHeaders.AcceptEncoding.Add(new System.Net.Http.Headers.StringWithQualityHeaderValue("gzip"));
                 client.Id = auth.Id;
                 client.InstanceUrl = auth.InstanceUrl;
                 client.RefreshToken = auth.RefreshToken;
@@ -110,12 +116,18 @@ namespace DotNetForce
 
             using (var auth = new AuthenticationClient() { ApiVersion = DefaultApiVersion })
             {
-                var requestEndpointUrl = new Uri(new Uri(client.LoginUri.GetLeftPart(UriPartial.Authority)), "/services/oauth2/token").ToString();
-                await auth.WebServerAsync(oAuthProfile.ClientId, oAuthProfile.ClientSecret, oAuthProfile.RedirectUri, oAuthProfile.Code, requestEndpointUrl).ConfigureAwait(false);
-                var jsonClient = new HttpClient { Timeout = TimeSpan.FromSeconds(60 * 30) };
-                jsonClient.DefaultRequestHeaders.ConnectionClose = true;
-                var xmlClient = new HttpClient { Timeout = TimeSpan.FromSeconds(60 * 30) };
-                xmlClient.DefaultRequestHeaders.ConnectionClose = true;
+                var tokenRequestEndpointUrl = new Uri(new Uri(client.LoginUri.GetLeftPart(UriPartial.Authority)), "/services/oauth2/token").ToString();
+                await auth.WebServerAsync(oAuthProfile.ClientId, oAuthProfile.ClientSecret, oAuthProfile.RedirectUri, oAuthProfile.Code, tokenRequestEndpointUrl).ConfigureAwait(false);
+                var httpHandler = new HttpClientHandler
+                {
+                    AutomaticDecompression = System.Net.DecompressionMethods.GZip | System.Net.DecompressionMethods.Deflate
+                };
+                var jsonClient = new HttpClient(httpHandler) { Timeout = TimeSpan.FromSeconds(60 * 30) };
+                //jsonClient.DefaultRequestHeaders.ConnectionClose = true;
+                jsonClient.DefaultRequestHeaders.AcceptEncoding.Add(new System.Net.Http.Headers.StringWithQualityHeaderValue("gzip"));
+                var xmlClient = new HttpClient(httpHandler) { Timeout = TimeSpan.FromSeconds(60 * 30) };
+                //xmlClient.DefaultRequestHeaders.ConnectionClose = true;
+                xmlClient.DefaultRequestHeaders.AcceptEncoding.Add(new System.Net.Http.Headers.StringWithQualityHeaderValue("gzip"));
                 client.Id = auth.Id;
                 client.InstanceUrl = auth.InstanceUrl;
                 client.RefreshToken = auth.RefreshToken;
@@ -196,6 +208,18 @@ namespace DotNetForce
         public async Task<T> LimitsAsync<T>()
         {
             return await JsonHttp.HttpGetAsync<T>("limits").ConfigureAwait(false);
+        }
+
+        public async Task<int> DailyApiUsed()
+        {
+            var limits = await LimitsAsync<JObject>();
+            return (int?)limits?["DailyApiRequests"]?["Remaining"] ?? 0;
+        }
+
+        public async Task<int> DailyApiLimit()
+        {
+            var limits = await LimitsAsync<JObject>();
+            return (int?)limits?["DailyApiRequests"]?["Max"] ?? 0;
         }
 
         #region sobjects
@@ -325,30 +349,56 @@ namespace DotNetForce
             return await JsonHttp.HttpGetAsync<T>(new Uri(new Uri(InstanceUrl), $"/services/data/{apiVersion}")).ConfigureAwait(false);
         }
 
-        public IEnumerable<JObject> ToEnumerable(JObject parent, string field)
+        public IEnumerable<JObject> ToEnumerable<T>(T parent, string field)
         {
             if (parent == null) throw new ArgumentNullException("parent");
 
-            if (parent[field] == null || parent[field].Type == JTokenType.Null)
+            var objParent = JObject.FromObject(parent);
+
+            if (objParent[field] == null || objParent[field].Type == JTokenType.Null)
             {
                 return Enumerable.Empty<JObject>();
             }
 
-            return ToEnumerable<JObject>(parent?[field].ToObject<QueryResult<JObject>>());
+            return ToEnumerable(objParent[field].ToObject<QueryResult<JObject>>());
         }
 
+        public IEnumerable<TChild> ToEnumerable<T, TChild>(T parent, string field)
+        {
+            if (parent == null) throw new ArgumentNullException("parent");
+
+            var objParent = JObject.FromObject(parent);
+
+            if (objParent[field] == null || objParent[field].Type == JTokenType.Null)
+            {
+                return Enumerable.Empty<TChild>();
+            }
+
+            return ToEnumerable(objParent[field].ToObject<QueryResult<TChild>>());
+        }
+
+        public IEnumerable<TChild> ToLazyEnumerable<T, TChild>(T parent, string field)
+        {
+            if (parent == null) throw new ArgumentNullException("parent");
+
+            var objParent = JObject.FromObject(parent);
+
+            if (objParent[field] == null || objParent[field].Type == JTokenType.Null)
+            {
+                return Enumerable.Empty<TChild>();
+            }
+
+            return ToLazyEnumerable(objParent[field].ToObject<QueryResult<TChild>>());
+        }
 
         public IEnumerable<T> ToEnumerable<T>(QueryResult<T> queryResult)
-        {
-            return ToEnumerable<T>(queryResult, true);
-        }
-
-        public IEnumerable<T> ToEnumerable<T>(QueryResult<T> queryResult, bool runInParallel)
         {
             if (queryResult == null)
             {
                 return Enumerable.Empty<T>();
             }
+
+            var batchSize = GetBatchSize(queryResult.NextRecordsUrl);
 
             return Observable.Create<T>(subscribe => Task.Run(async () =>
             {
@@ -356,20 +406,16 @@ namespace DotNetForce
                 {
                     foreach (var row in queryResult.Records)
                     {
+                        //subscribe.OnNext(await IncludeRelationships(row).ConfigureAwait(false));
                         subscribe.OnNext(row);
                     }
 
                     if (queryResult.Records.Count < queryResult.TotalSize)
                     {
-                        var batchSize = GetBatchSize(queryResult.NextRecordsUrl);
-
-                        if (!runInParallel || batchSize <= 0 || queryResult.Records.Count + batchSize >= queryResult.TotalSize)
+                        foreach (var row in QueryByBatchs(queryResult, batchSize))
                         {
-                            await QueryContinuationAsync(queryResult, subscribe).ConfigureAwait(false);
-                        }
-                        else
-                        {
-                            await QueryContinuationAsync(queryResult, subscribe, batchSize).ConfigureAwait(false);
+                            //subscribe.OnNext(await IncludeRelationships(row).ConfigureAwait(false));
+                            subscribe.OnNext(row);
                         }
                     }
 
@@ -380,10 +426,110 @@ namespace DotNetForce
                     subscribe.OnError(ex);
                 }
             })).ToEnumerable();
+        }
 
-            int GetBatchSize(string url)
+        //public async Task<T> IncludeRelationships<T>(T obj)
+        //{
+        //    var token = JObject.FromObject(obj);
+        //    var batchs = new List<(int offset, int size, string nextUrl, string referenceId)>();
+
+        //    foreach (var prop in token.Properties())
+        //    {
+        //        if (DNF.IsQueryResult(prop.Value))
+        //        {
+        //            var recordsCount = ((JArray)prop.Value["records"]).Count;
+        //            var totalSize = (int)prop.Value["totalSize"];
+
+        //            if (recordsCount < totalSize)
+        //            {
+        //                var nextRecordsUrl = prop.Value["nextRecordsUrl"]?.ToString();
+        //                var batchSize = GetBatchSize(nextRecordsUrl);
+
+        //                var remaining = totalSize - recordsCount;
+        //                var subBatchSize = Math.Min(remaining, Math.Max(200, recordsCount));
+        //                batchs.AddRange(GetQueryBatchs(nextRecordsUrl, recordsCount, remaining, subBatchSize, $"{prop.Name}-{{0}}-{{1}}"));
+        //            }
+        //        }
+        //    }
+
+        //    if (batchs.Count > 0)
+        //    {
+        //        var batchChunks = batchs.Chunk(DNF.COMPOSITE_QUERY_LIMIT);
+
+        //        var tasks = new List<Task>();
+
+        //        foreach (var (batch, batchIdx) in batchChunks.Select((batch, batchIdx) => (batch, batchIdx)))
+        //        {
+        //            tasks.Add(Task.Run(async () =>
+        //            {
+        //                await DNF.QueryCursorThrottler.WaitAsync().ConfigureAwait(true);
+        //                try
+        //                {
+        //                    foreach (var (record, recordIdx) in QueryByBatch<T>(batch).Select((record, recordIdx) => (record, recordIdx)))
+        //                    {
+        //                        if (batchIdx > 0 && recordIdx == 0)
+        //                        {
+        //                            await tasks[batchIdx - 1].ConfigureAwait(false);
+        //                        }
+        //                        var propName = record.referenceId.Split('-').First();
+        //                        var records = (JArray)token[propName]["records"];
+        //                        records.Add(record.record);
+
+        //                        if (records.Count >= (int?)token[propName]["totalSize"])
+        //                        {
+        //                            token[propName]["done"] = true;
+        //                            token[propName]["nextRecordsUrl"] = null;
+        //                        }
+        //                    }
+        //                }
+        //                finally
+        //                {
+        //                    DNF.QueryCursorThrottler.Release();
+        //                }
+        //            }));
+        //        }
+
+        //        await Task.WhenAll(tasks).ConfigureAwait(false);
+        //    }
+        //    return token.ToObject<T>();
+        //}
+
+        public IEnumerable<T> ToLazyEnumerable<T>(QueryResult<T> queryResult)
+        {
+            foreach (var row in queryResult.Records)
             {
-                return !int.TryParse(Regex.Match(url ?? "", @"^/services/data/v\d+\.\d+/.+-(\d+)$").Groups[1].Value, out int intVal) ? 0 : intVal < 0 ? 0 : intVal > 2000 ? 2000 : intVal;
+                yield return row;
+            }
+
+            var loaded = queryResult.Records.Count;
+            var nextRecordsUrl = queryResult.NextRecordsUrl;
+
+            while (loaded < queryResult.TotalSize && !string.IsNullOrEmpty(nextRecordsUrl))
+            {
+                foreach (var nextResult in Observable.Create<QueryResult<T>>(subscribe => Task.Run(async () =>
+                {
+                    try
+                    {
+                        var result = await QueryContinuationAsync<T>(nextRecordsUrl).ConfigureAwait(false);
+                        subscribe.OnNext(result);
+                        subscribe.OnCompleted();
+                    }
+                    catch (Exception ex)
+                    {
+                        subscribe.OnError(ex);
+                    }
+                    return default(T);
+                })).ToEnumerable())
+                {
+                    foreach (var row in nextResult.Records)
+                    {
+                        if (++loaded <= queryResult.TotalSize)
+                        {
+                            yield return row;
+                        }
+                    }
+                    nextRecordsUrl = nextResult.NextRecordsUrl;
+                }
             }
         }
 
@@ -406,75 +552,93 @@ namespace DotNetForce
             }
         }
 
-        private async Task QueryContinuationAsync<T>(QueryResult<T> queryResult, IObserver<T> subscribe, int batchSize)
-        {
-            // batch size can be changed via Sforce-Query-Options header
-            // i.e. request.Query(referenceId, query).HttpHeaders = new HttpHeaders().QueryOptions(200);
-            // https://developer.salesforce.com/docs/atlas.en-us.api_rest.meta/api_rest/headers_queryoptions.htm
-            // The default is 2,000; the minimum is 200, and the maximum is 2,000.
-            // There is no guarantee that the requested batch size is the actual batch size.
-            // Changes are made as necessary to maximize performance.
-            var batchs = GetQueryBatchs(queryResult.Records.Count, queryResult.TotalSize, batchSize);
-            var batchChunks = batchs.Chunk(DNF.COMPOSITE_QUERY_LIMIT);
-
-            var throttler = new SemaphoreSlim(DNF.ConcurrentRequestLimit, DNF.ConcurrentRequestLimit);
-            var tasks = new List<Task>();
-
-            foreach (var (batch, batchNo) in batchChunks.Select((batch, batchNo) => (batch, batchNo)))
-            {
-                tasks.Add(Task.Run(async () =>
-                {
-                    await throttler.WaitAsync().ConfigureAwait(true);
-                    try
-                    {
-                        foreach (var (record, j) in QueryByChunk<T>(queryResult.NextRecordsUrl, batch).Select((record, j) => (record, j)))
-                        {
-                            if (batchNo > 0 && j == 0)
-                            {
-                                await tasks[batchNo - 1].ConfigureAwait(false);
-                            }
-                            queryResult.Records.Add(record);
-                            queryResult.Done = queryResult.Records.Count >= queryResult.TotalSize;
-                            subscribe.OnNext(record);
-                        }
-                    }
-                    finally
-                    {
-                        throttler.Release();
-                    }
-                }));
-            }
-
-            await Task.WhenAll(tasks).ConfigureAwait(false);
-            queryResult.NextRecordsUrl = null;
-        }
-
-        private IEnumerable<T> QueryByChunk<T>(string nextRecordsUrl, List<(int offset, int size)> batchChunk)
+        private IEnumerable<T> QueryByBatchs<T>(QueryResult<T> queryResult, int batchSize)
         {
             return Observable.Create<T>(subscribe => Task.Run(async () =>
             {
                 try
                 {
+                    // batch size can be changed via Sforce-Query-Options header
+                    // i.e. request.Query(referenceId, query).HttpHeaders = new HttpHeaders().QueryOptions(200);
+                    // https://developer.salesforce.com/docs/atlas.en-us.api_rest.meta/api_rest/headers_queryoptions.htm
+                    // The default is 2,000; the minimum is 200, and the maximum is 2,000.
+                    // There is no guarantee that the requested batch size is the actual batch size.
+                    // Changes are made as necessary to maximize performance.
+                    var batchs = GetQueryBatchs(queryResult.NextRecordsUrl, queryResult.Records.Count, queryResult.TotalSize - queryResult.Records.Count, batchSize);
+                    var batchChunks = batchs.Chunk(DNF.COMPOSITE_QUERY_LIMIT);
+
+                    var tasks = new List<Task>();
+
+                    foreach (var (batch, batchIdx) in batchChunks.Select((batch, batchIdx) => (batch, batchIdx)))
+                    {
+                        tasks.Add(Task.Run(async () =>
+                        {
+                            //await DNF.QueryCursorThrottler.WaitAsync().ConfigureAwait(true);
+                            //try
+                            //{
+                            foreach (var (record, recordIdx) in QueryByBatch<T>(batch).Select((record, recordIdx) => (record, recordIdx)))
+                            {
+                                if (batchIdx > 0 && recordIdx == 0)
+                                {
+                                    await tasks[batchIdx - 1].ConfigureAwait(false);
+                                }
+                                //queryResult.Records.Add(record);
+                                //queryResult.Done = queryResult.Records.Count >= queryResult.TotalSize;
+                                subscribe.OnNext(record.record);
+                            }
+                            //}
+                            //finally
+                            //{
+                            //    DNF.QueryCursorThrottler.Release();
+                            //}
+                        }));
+                    }
+
+                    await Task.WhenAll(tasks).ConfigureAwait(false);
+                    subscribe.OnCompleted();
+                }
+                catch (Exception ex)
+                {
+                    subscribe.OnError(ex);
+                }
+            })).ToEnumerable();
+        }
+
+        private IEnumerable<(T record, string referenceId)> QueryByBatch<T>(List<(int offset, int size, string nextUrl, string referenceId)> batchChunk)
+        {
+            return Observable.Create<(T record, string referenceId)>(subscribe => Task.Run(async () =>
+            {
+                try
+                {
                     var request = new CompositeRequest();
 
-                    foreach (var (offset, size) in batchChunk)
+                    foreach (var (offset, size, nextUrl, referenceId) in batchChunk)
                     {
-                        var url = GetNextUrl(nextRecordsUrl, offset);
                         request.CompositeRequests.Add(new CompositeSubrequest
                         {
-                            ReferenceId = $"{offset}",
+                            ReferenceId = referenceId,
                             ResponseType = "query",
                             Method = "GET",
-                            Url = url
+                            Url = nextUrl
                         });
                     }
-                    if (Logger != null) request.CompositeRequests.ForEach(r => Logger.Invoke($"Query Start\t{r.Url}"));
-                    var result = await Composite.PostAsync(request).ConfigureAwait(false);
-                    if (Logger != null) request.CompositeRequests.ForEach(r => Logger.Invoke($"Query End\t{r.Url}"));
 
-                    foreach (var (offset, size) in batchChunk)
+                    Logger?.Invoke($"Query Start {JArray.FromObject(request.CompositeRequests)}");
+                    var result = await Composite.PostAsync(request).ConfigureAwait(false);
+
+                    result.ThrowIfError();
+
+                    Logger?.Invoke("Query End " + JArray.FromObject(result.Queries().Select(que => new
                     {
-                        var referenceId = $"{offset}";
+                        ReferenceId = que.Key,
+                        que.Value.Done,
+                        que.Value.TotalSize,
+                        que.Value.NextRecordsUrl,
+                        RecordsCount = que.Value.Records.Count
+                    })));
+
+                    foreach (var (offset, size, nextUrl, referenceId) in batchChunk)
+                    {
                         var query = result.Queries(referenceId);
 
                         if (query == null || query.Records?.Any() != true)
@@ -487,19 +651,18 @@ namespace DotNetForce
 
                         foreach (var record in records)
                         {
-                            subscribe.OnNext(record);
+                            subscribe.OnNext((record, referenceId));
                         }
 
                         // actual batch size can be less than requested batch size
                         if (records.Count < size)
                         {
-                            var initialSize = size + records.Count;
-                            var total = size - records.Count;
-                            var subBatchSize = Math.Min(total, Math.Max(200, records.Count));
-                            var subBatchs = GetQueryBatchs(offset + records.Count, offset + size, subBatchSize);
-                            foreach (var record in QueryByChunk<T>(nextRecordsUrl, subBatchs))
+                            var remaining = size - records.Count;
+                            var subBatchSize = Math.Min(remaining, Math.Max(200, records.Count));
+                            var subBatchs = GetQueryBatchs(nextUrl, offset + records.Count, remaining, subBatchSize);
+                            foreach (var batchResult in QueryByBatch<T>(subBatchs))
                             {
-                                subscribe.OnNext(record);
+                                subscribe.OnNext(batchResult);
                             }
                         }
                     }
@@ -511,24 +674,40 @@ namespace DotNetForce
                     subscribe.OnError(ex);
                 }
             })).ToEnumerable();
-
-            string GetNextUrl(string url, int batchNo)
-            {
-                return Regex.Replace(url ?? "", @"^/services/data/v\d+\.\d+/(.+)-\d+$", $"$1-{batchNo}");
-            }
-
-
         }
 
-        private List<(int offset, int size)> GetQueryBatchs(int loaded, int total, int batchSize)
+
+        private int GetBatchSize(string url)
         {
-            var noOfBatch = (int)Math.Ceiling((total - loaded) / (double)batchSize);
+            if (url == null) return 2000;
+            url = Regex.Replace(url, @"^/services/data/[^/]+/", "");
+            return !int.TryParse(Regex.Match(url ?? "", @"^(?:.*query/01g[^/]+)-(\d+)$").Groups[1].Value, out int intVal)
+                ? 2000 : intVal < 1 ? 1 : intVal > 2000 ? 2000 : intVal;
+        }
+
+        private string GetNextUrl(string url, int batchNo)
+        {
+            if (url == null) return null;
+            url = Regex.Replace(url, @"^/services/data/[^/]+/", "");
+            return Regex.Replace(url ?? "", @"^(.*query/[^/]+)-\d+$", $"$1-{batchNo}");
+        }
+
+        private List<(int offset, int size, string nextUrl, string referenceId)> GetQueryBatchs(string nextRecordsUrl, int loaded, int remaining, int batchSize)
+        {
+            return GetQueryBatchs(nextRecordsUrl, loaded, remaining, batchSize, "{0}-{1}");
+        }
+
+        private List<(int offset, int size, string nextUrl, string referenceId)> GetQueryBatchs(string nextRecordsUrl, int loaded, int remaining, int batchSize, string referenceFormat)
+        {
+            var noOfBatch = (int)Math.Ceiling(remaining / (double)batchSize);
             var batchs = Enumerable.Range(0, noOfBatch).Select(i =>
             {
                 var offset = loaded + i * batchSize;
-                var last = Math.Min(total, offset + batchSize);
+                var last = Math.Min(loaded + remaining, offset + batchSize);
                 var size = last - offset;
-                return (offset, size);
+                var nextUrl = GetNextUrl(nextRecordsUrl, offset);
+                var referenceId = string.Format(referenceFormat, offset, size);
+                return (offset, size, nextUrl, referenceId);
             }).ToList();
             return batchs;
         }

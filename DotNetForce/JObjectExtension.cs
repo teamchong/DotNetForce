@@ -19,7 +19,7 @@ namespace DotNetForce
             {
                 var propName = prop.Name.Split(new[] { ':' }, 2);
                 result[propName[0]] = prop?.Type == JTokenType.Object
-                    ? prop.Value.ToObject<JObject>().UnFlatten(propName.Skip(1).FirstOrDefault())
+                    ? ((JObject)prop.Value).UnFlatten(propName.Skip(1).FirstOrDefault())
                     : prop.Value;
             }
             return result;

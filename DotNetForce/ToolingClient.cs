@@ -89,7 +89,7 @@ namespace DotNetForce
             if (record == null) throw new ArgumentNullException("record");
 
             var body = JObject.FromObject(record);
-            return UpdateAsync(metadataType, body["Id"]?.ToObject<string>(), body.Omit("Id"));
+            return UpdateAsync(metadataType, body["Id"]?.ToString(), body.Omit("Id"));
         }
 
         public async Task<SuccessResponse> UpdateAsync(MetadataType metadataType, string recordId, object record)

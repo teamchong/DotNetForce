@@ -181,7 +181,7 @@ namespace DotNetForce
             if (record == null) throw new ArgumentNullException("record");
 
             var body = JObject.FromObject(record).UnFlatten();
-            return Update(referenceId, objectName, body["Id"]?.ToObject<string>(), body.Omit("Id"));
+            return Update(referenceId, objectName, body["Id"]?.ToString(), body.Omit("Id"));
         }
 
         public CompositeSubrequest Update(string referenceId, string objectName, string recordId, object record)
@@ -210,7 +210,7 @@ namespace DotNetForce
             if (record == null) throw new ArgumentNullException("record");
 
             var body = JObject.FromObject(record).UnFlatten();
-            return UpsertExternal(referenceId, objectName, externalFieldName, body[externalFieldName]?.ToObject<string>(), body.Omit(externalFieldName));
+            return UpsertExternal(referenceId, objectName, externalFieldName, body[externalFieldName]?.ToString(), body.Omit(externalFieldName));
         }
 
         public CompositeSubrequest UpsertExternal(string referenceId, string objectName, string externalFieldName, string externalId, object record)

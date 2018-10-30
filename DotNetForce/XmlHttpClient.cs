@@ -34,8 +34,9 @@ namespace DotNetForce.Common
         {
             try
             {
-                var response = await HttpGetAsync(uri);
-                return DeserializeXmlString<T>(response);
+                //var response = await HttpGetAsync(uri);
+                //return DeserializeXmlString<T>(response);
+                return await HttpGetXmlAsync<T>(uri);
             }
             catch (BaseHttpClientException e)
             {
@@ -56,8 +57,9 @@ namespace DotNetForce.Common
             var postBody = SerializeXmlObject(inputObject);
             try
             {
-                var response = await HttpPostAsync(postBody, uri);
-                return DeserializeXmlString<T>(response);
+                //var response = await HttpPostAsync(postBody, uri);
+                //return DeserializeXmlString<T>(response);
+                return await HttpPostXmlAsync<T>(postBody, uri);
             }
             catch (BaseHttpClientException e)
             {
@@ -95,6 +97,57 @@ namespace DotNetForce.Common
                 result = (T) serializer.Deserialize(reader);
             }
             return result;
+        }
+
+        // Get/Post/Patch/Delete
+        private static T DeserializeXml<T>(StreamReader streamReader)
+        {
+            var serializer = new XmlSerializer(typeof(T));
+            T result;
+            using (var reader = new XmlTextReader(streamReader))
+            {
+                result = (T) serializer.Deserialize(reader);
+            }
+            return result;
+        }
+
+        protected async Task<T> HttpGetXmlAsync<T>(Uri uri)
+        {
+            var responseMessage = await HttpClient.GetAsync(uri).ConfigureAwait(false);
+            ParseApiUsage(responseMessage);
+
+            var response = await responseMessage.Content.ReadAsStreamAsync().ConfigureAwait(false);
+
+            using (var reader = new StreamReader(response))
+            {
+                if (responseMessage.IsSuccessStatusCode)
+                {
+                    return DeserializeXml<T>(reader);
+                }
+
+                throw new BaseHttpClientException(await reader.ReadToEndAsync().ConfigureAwait(false), responseMessage.StatusCode);
+            }
+        }
+
+        protected async Task<T> HttpPostXmlAsync<T>(string payload, Uri uri)
+        {
+            //var content = new StringContent(payload, Encoding.UTF8, _contentType);
+            var content = GetGZipContent(payload);
+
+            var responseMessage = await HttpClient.PostAsync(uri, content).ConfigureAwait(false);
+            ParseApiUsage(responseMessage);
+
+            var response = await responseMessage.Content.ReadAsStreamAsync().ConfigureAwait(false);
+
+            using (var reader = new StreamReader(response))
+            {
+                if (responseMessage.IsSuccessStatusCode)
+                {
+                    return DeserializeXml<T>(reader);
+                }
+
+                throw new BaseHttpClientException(await reader.ReadToEndAsync().ConfigureAwait(false), responseMessage.StatusCode);
+            }
         }
     }
 }

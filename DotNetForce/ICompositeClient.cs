@@ -54,6 +54,6 @@ namespace DotNetForce
 
         Task<BatchResult> BatchAsync(IBatchRequest request);
 
-        Task<SaveResponse> CreateTreeAsync<JObject>(string objectName, IEnumerable<JObject> objectTree);
+        Task<SaveResponse> CreateTreeAsync<T>(string objectName, IEnumerable<T> objectTree);
     }
 }

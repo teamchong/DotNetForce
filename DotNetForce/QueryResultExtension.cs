@@ -18,10 +18,10 @@ namespace DotNetForce
                 : client?.ToEnumerable(queryResult) ?? Enumerable.Empty<T>();
         }
 
-        public static IEnumerable<T> ToEnumerable<T>(this QueryResult<T> queryResult, DNFClient client, bool runInParallel)
+        public static IEnumerable<T> ToLazyEnumerable<T>(this QueryResult<T> queryResult, DNFClient client)
         {
             return queryResult == null ? Enumerable.Empty<T>()
-                : client?.ToEnumerable(queryResult, runInParallel) ?? Enumerable.Empty<T>();
+                : client?.ToLazyEnumerable(queryResult) ?? Enumerable.Empty<T>();
         }
     }
 }
