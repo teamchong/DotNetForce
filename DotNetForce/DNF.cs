@@ -340,7 +340,7 @@ namespace DotNetForce
         //    if (v2.Type == JTokenType.Null && string.IsNullOrEmpty(v1.ToString()))
         //        return true;
         //    if (new[] { v1, v2 }.Count(_ => _.Type == JTokenType.Integer || _.Type == JTokenType.Float) == 2 &&
-        //        (v1.ToObject<double?>() ?? 0) == (v1.ToObject<double?>() ?? 0))
+        //        ((double?)v1 ?? 0) == ((double?)v1 ?? 0))
         //        return true;
         //    return false;
         //}
