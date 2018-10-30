@@ -1,5 +1,5 @@
 {
-	"UAT": {
+	"DEV": {
 	  "LoginUrl": "https://test.salesforce.com/services/oauth2/token",
 	  "ClientId": "{your_app_client_id}",
 	  "ClientSecret": "{your_app_client_secret}",

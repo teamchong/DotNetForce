@@ -54,28 +54,58 @@ namespace DotNetForceTest
         {
             var expected = 100000;
             var client = await LoginTask;
+            
+            await client.LimitsAsync<JObject>();
+            var apiUsed1 = client.ApiUsed;
+
             var oppty = await client.QueryAsync<JObject>($@"
 SELECT Id FROM Opportunity ORDER BY Id LIMIT {expected}");
             var oppty2 = JToken.FromObject(oppty).ToObject<QueryResult<JObject>>();
+            var apiUsed2 = client.ApiUsed;
 
             var timer1 = System.Diagnostics.Stopwatch.StartNew();
             var opptyList = oppty.ToEnumerable(client).ToArray();
             timer1.Stop();
+            var apiUsed3 = client.ApiUsed;
 
             Assert.Equal(expected, opptyList.Length);
-            Assert.Equal(expected, opptyList.Select(o => o["Id"]?.ToObject<string>())
+            Assert.Equal(expected, opptyList.Select(o => o["Id"]?.ToString())
                 .Where(o => o?.StartsWith("006") == true).Count());
-            Assert.Equal(expected, opptyList.Select(o => o["Id"]?.ToObject<string>())
+            Assert.Equal(expected, opptyList.Select(o => o["Id"]?.ToString())
                 .Where(o => o?.StartsWith("006") == true)
                 .Distinct().Count());
 
             var timer2 = System.Diagnostics.Stopwatch.StartNew();
-            var opptyList2 = oppty2.ToEnumerable(client, false).ToArray();
+            var opptyList2 = oppty2.ToLazyEnumerable(client).ToArray();
             timer2.Stop();
+            var apiUsed4 = client.ApiUsed;
 
-            Output.WriteLine($"time1: {timer1.Elapsed.TotalSeconds}, time2: {timer2.Elapsed.TotalSeconds}.");
-            Assert.Equal(JArray.FromObject(opptyList.Select(o => o["Id"]?.ToObject<string>())).ToString(), JArray.FromObject(opptyList2.Select(o => o["Id"]?.ToObject<string>())).ToString());
-            WriteLine(JArray.FromObject(opptyList.Select(o => o["Id"]?.ToObject<string>())).ToString());
+            WriteLine($"time1: {timer1.Elapsed.TotalSeconds}, time2: {timer2.Elapsed.TotalSeconds}.");
+            WriteLine($"ApiUsage: {apiUsed1}, {apiUsed2}, {apiUsed3}, {apiUsed4}.");
+
+            Assert.Equal(JArray.FromObject(opptyList.Select(o => o["Id"]?.ToString())).ToString(), JArray.FromObject(opptyList2.Select(o => o["Id"]?.ToString())).ToString());
+            WriteLine(JArray.FromObject(opptyList.Select(o => o["Id"]?.ToString())).ToString());
+        }
+
+        [Fact]
+        public async Task ToLazyEnumerableTest()
+        {
+            var expected = 100000;
+            var client = await LoginTask;
+            
+            var apiUsed1 = client.ApiUsed;
+
+            await client.LimitsAsync<JObject>();
+            var apiUsed2 = client.ApiUsed;
+            
+            var oppty = await client.QueryAsync<JObject>($@"
+SELECT Id FROM Opportunity ORDER BY Id LIMIT {expected}");
+            var apiUsed3 = client.ApiUsed;
+            
+            var result = oppty.ToLazyEnumerable(client).Take(4000).ToArray();
+            var apiUsed4 = client.ApiUsed;
+            
+            WriteLine($"ApiUsage: {apiUsed1}, {apiUsed2}, {apiUsed3}, {apiUsed4}.");
         }
 
         [Fact]
@@ -90,7 +120,7 @@ SELECT Id FROM Opportunity LIMIT ", opptyCount));
 
             Assert.Equal(opptyCount, opptyFullList.Count);
             Assert.DoesNotContain(opptyFullList, o =>
-                o["Id"]?.ToObject<string>()?.StartsWith("006") != true);
+                o["Id"]?.ToString()?.StartsWith("006") != true);
         }
 
         [Fact]
@@ -114,19 +144,22 @@ SELECT Pricebook2Id, COUNT(Id)
 FROM Opportunity
 GROUP BY Pricebook2Id
 ORDER BY COUNT(Id) DESC
-LIMIT 1");
-            var linesList = lines.ToEnumerable(client)
-                .Select(l => l["Pricebook2Id"]?.ToObject<string>()).ToList();
-            var pricebooks = await client.QueryAsync<JObject>(string.Join("", @"
-SELECT Id, (SELECT Id FROM Opportunities)
+LIMIT 10000");
+            var result = lines.ToEnumerable(client).ToList();
+            var linesList = result.Select(l => l["Pricebook2Id"]?.ToString()).ToList();
+            var pricebooksResult = await client.QueryAsync<JObject>(string.Join("", @"
+SELECT Id, (SELECT Id FROM Opportunities), (SELECT Id FROM PricebookEntries)
 FROM Pricebook2
 WHERE Id IN(", string.Join(",", linesList.Select(l => DNF.SOQLString(l))), @")
-LIMIT 2000"));
-            Assert.Contains(pricebooks.Records, o =>
-                client.ToEnumerable(o, "Opportunities").Any());
-            Assert.DoesNotContain(pricebooks.Records, o =>
-                client.ToEnumerable(o, "Opportunities")
-                .All(l => l["Id"]?.ToObject<string>()?.StartsWith("006") != true));
+ORDER BY Id
+LIMIT 10"));
+            var pricebooks = pricebooksResult.ToEnumerable(client).ToArray();
+            Assert.All(pricebooks, o => {
+                var oppSize = (int?)o["Opportunities"]["totalSize"];
+                Assert.Equal(oppSize, client.ToEnumerable(o, "Opportunities").Count());
+                var peSize = (int?)o["PricebookEntries"]["totalSize"];
+                Assert.Equal(peSize, client.ToEnumerable(o, "PricebookEntries").Count());
+            });
         }
     }
 }

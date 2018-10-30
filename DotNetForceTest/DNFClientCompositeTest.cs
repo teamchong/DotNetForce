@@ -69,7 +69,7 @@ AND Source_Product_ID__c = '@{{2retrieve.Source_Product_ID__c}}'
 AND Venue_ID__c = 'U2'");
                 request.Delete("4delete", "Product2", $"@{{3_query.records[0].Id}}");
                 var result = await client.Composite.PostAsync(request);
-                Output.WriteLine(result.ToString());
+                WriteLine(result.ToString());
                 result.ThrowIfError();
             }
             finally
@@ -298,7 +298,7 @@ AND SuppliedName = 'D'");
                 await DeleteTestingRecords(client);
             }
 
-            try
+            await Assert.ThrowsAsync<AggregateException>(async () =>
             {
                 var request = new CompositeRequest(allOrNone: true);
                 request.Create("create", "Case", new JObject
@@ -319,11 +319,7 @@ AND Subject = '@{query.records[0].Subject}'");
                 request.Delete("delete", "Case", "@{updated.records[0].Id}");
                 var result = await client.Composite.PostAsync(request);
                 result.ThrowIfError();
-            }
-            finally
-            {
-                await DeleteTestingRecords(client);
-            }
+            });
         }
 
         [Fact]
@@ -379,7 +375,7 @@ WHERE Id = '@{{create.id}}'
 AND Subject = {DNF.SOQLString($"UnitTest {testName}")}");
                 request.Delete("delete", "Case", $"1@{{query2.records[0].Id}}");
                 var result = await client.Composite.PostAsync(request);
-                Output.WriteLine(result.ToString());
+                WriteLine(result.ToString());
                 Assert.NotNull(result.Errors("query3"));
                 Assert.Equal(
                     result.Requests().Count - 1,

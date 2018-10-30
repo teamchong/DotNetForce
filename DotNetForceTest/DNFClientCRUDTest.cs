@@ -137,8 +137,8 @@ SELECT Id FROM Case WHERE Subject LIKE 'UnitTest%'");
                 //var externalIds = Enumerable.Range(1, 4000).Select(i => new JObject { ["Source_Product_ID__c"] = $"UnitTest{i}" }).ToArray();
                 Assert.NotEmpty(result.Records);
                 //Assert.NotEmpty(result.Collections());
-                //var ids = result.Objects().Values.Select(c => c["Id"].ToObject<string>()).ToArray();
-                var result2 = await result.ToEnumerable(client).Select(c => c["Id"].ToObject<string>()).RetrieveAsync(client, "Case", "Subject");
+                //var ids = result.Objects().Values.Select(c => c["Id"].ToString()).ToArray();
+                var result2 = await result.ToEnumerable(client).Select(c => c["Id"].ToString()).RetrieveAsync(client, "Case", "Subject");
                 result2.ThrowIfError();
             }
             finally
@@ -175,7 +175,7 @@ SELECT Id FROM Case WHERE Subject LIKE 'UnitTest%' ORDER BY Id");
                     .UpdateAsync(client);
                 timer1.Stop();
 
-                Output.WriteLine($"time1: {timer1.Elapsed.TotalSeconds}.");
+                WriteLine($"time1: {timer1.Elapsed.TotalSeconds}.");
             }
             finally
             {
@@ -203,7 +203,7 @@ SELECT Id FROM Case WHERE Subject LIKE 'UnitTest%' ORDER BY Id");
                     new JObject { ["Name"] = $"UnitTest{uniqueText}" });
 
                 var updated = await client.RetrieveExternalAsync<JObject>("Product2", "Source_Product_ID__c", "UnitTest/0");
-                Assert.Equal($"UnitTest/0", updated?["Source_Product_ID__c"]?.ToObject<string>());
+                Assert.Equal($"UnitTest/0", updated?["Source_Product_ID__c"]?.ToString());
             }
             finally
             {
@@ -234,16 +234,16 @@ SELECT Id FROM Case WHERE Subject LIKE 'UnitTest%' ORDER BY Id");
 
                 var resultQuery = await client.QueryAsync<JObject>($@"
 SELECT Id FROM Product2 WHERE Source_Product_ID__c LIKE 'UnitTest%'");
-                Output.WriteLine($"total: {resultQuery.TotalSize}.");
+                WriteLine($"total: {resultQuery.TotalSize}.");
                 Assert.NotEmpty(resultQuery.Records);
 
                 var timer1 = System.Diagnostics.Stopwatch.StartNew();
                 var result2 = await resultQuery.ToEnumerable(client)
-                    .Select(r => r["Id"]?.ToObject<string>()).DeleteAsync(client);
+                    .Select(r => r["Id"]?.ToString()).DeleteAsync(client);
                 timer1.Stop();
                 result2.ThrowIfError();
 
-                Output.WriteLine($"time1: {timer1.Elapsed.TotalSeconds}.");
+                WriteLine($"time1: {timer1.Elapsed.TotalSeconds}.");
             }
             finally
             {

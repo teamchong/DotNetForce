@@ -39,11 +39,11 @@ namespace DotNetForceTest
                 jsonFile = Path.Combine(projectPath, "LoginProfiles.json");
             }
             var loginProfile = JObject.Parse(File.ReadAllText(jsonFile));
-            LoginUri = new Uri(loginProfile["DEV"]["LoginUrl"].ToObject<string>());
-            ClientId = loginProfile["DEV"]["ClientId"].ToObject<string>();
-            ClientSecret = loginProfile["DEV"]["ClientSecret"].ToObject<string>();
-            UserName = loginProfile["DEV"]["UserName"].ToObject<string>();
-            Password = loginProfile["DEV"]["Password"].ToObject<string>();
+            LoginUri = new Uri(loginProfile["DEV"]["LoginUrl"].ToString());
+            ClientId = loginProfile["DEV"]["ClientId"].ToString();
+            ClientSecret = loginProfile["DEV"]["ClientSecret"].ToString();
+            UserName = loginProfile["DEV"]["UserName"].ToString();
+            Password = loginProfile["DEV"]["Password"].ToString();
 
             LoginTask = Task.Run(async () =>
             {
@@ -56,16 +56,16 @@ namespace DotNetForceTest
         {
             (await (await client.QueryAsync<JObject>($@"
 SELECT Id FROM Case WHERE Subject LIKE 'UnitTest%'")).ToEnumerable(client)
-.Select(r => r["Id"]?.ToObject<string>()).DeleteAsync(client)).ThrowIfError();
+.Select(r => r["Id"]?.ToString()).DeleteAsync(client)).ThrowIfError();
             (await (await client.QueryAsync<JObject>($@"
 SELECT Id FROM Account WHERE Name LIKE 'UnitTest%'")).ToEnumerable(client)
-.Select(r => r["Id"]?.ToObject<string>()).DeleteAsync(client)).ThrowIfError();
+.Select(r => r["Id"]?.ToString()).DeleteAsync(client)).ThrowIfError();
             (await (await client.QueryAsync<JObject>($@"
 SELECT Id FROM Contact WHERE Name LIKE 'UnitTest%'")).ToEnumerable(client)
-.Select(r => r["Id"]?.ToObject<string>()).DeleteAsync(client)).ThrowIfError();
+.Select(r => r["Id"]?.ToString()).DeleteAsync(client)).ThrowIfError();
             (await (await client.QueryAsync<JObject>($@"
 SELECT Id FROM Product2 WHERE Source_Product_ID__c LIKE 'UnitTest%'")).ToEnumerable(client)
-.Select(r => r["Id"]?.ToObject<string>()).DeleteAsync(client)).ThrowIfError();
+.Select(r => r["Id"]?.ToString()).DeleteAsync(client)).ThrowIfError();
         }
 
         protected JObject GetTestProduct2()
