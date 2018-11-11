@@ -2,6 +2,7 @@
 async Task WriteJObjectExtensionAsync(string instanceName, SfModelGenerator generator)
 {
 #>using DotNetForce;
+using DotNetForce.Common;
 using DotNetForce.Common.Models.Json;
 using DotNetForce.Schema;
 using Newtonsoft.Json;
@@ -12,10 +13,15 @@ using System.Threading.Tasks;
 
 namespace DotNetForce.Schema.<#= instanceName #>
 {
-    public class JObjectWrapper : JObject
+    public class JObjectWrapper : IAttributedObject
     {
         [JsonExtensionData]
-        protected JObject Object { get => this; }
+        protected JObject Object { get; set; }
+
+        [JsonIgnore]
+        public ObjectAttributes Attributes { get => Object?["attributes"]?.ToObject<ObjectAttributes>(); set => Object["attributes"] = value == null ? null : JToken.FromObject(value); }
+
+        public JObjectWrapper(JObject obj) => Object = obj;
 
         public JObjectWrapper Spread()
         {
@@ -371,6 +377,9 @@ namespace DotNetForce.Schema.<#= instanceName #>
         {
             return Set(field?.ToString(), value);
         }
+
+        public static implicit operator JObjectWrapper(JObject obj) => new JObjectWrapper(obj);
+        public static implicit operator JObject(JObjectWrapper wrapper) => wrapper.Unwrap();
     }
 }
 <#+
