@@ -169,18 +169,18 @@ namespace DotNetForce
         public Task<QueryResult<T>> QueryAsync<T>(string query) => Force.QueryAsync<T>(query);
         public async Task<IEnumerable<JObject>> GetEnumerableAsync(string query) => GetEnumerable(await Force.QueryAsync<JObject>(query));
         public async Task<IEnumerable<T>> GetEnumerableAsync<T>(string query) => GetEnumerable(await Force.QueryAsync<T>(query));
-        public async Task<IEnumerable<JObject>> QueryLazyEnumerableAsync(string query) => GetLazyEnumerable(await Force.QueryAsync<JObject>(query));
-        public async Task<IEnumerable<T>> QueryLazyEnumerableAsync<T>(string query) => GetLazyEnumerable(await Force.QueryAsync<T>(query));
+        public async Task<IEnumerable<JObject>> GetLazyEnumerableAsync(string query) => GetLazyEnumerable(await Force.QueryAsync<JObject>(query));
+        public async Task<IEnumerable<T>> GetLazyEnumerableAsync<T>(string query) => GetLazyEnumerable(await Force.QueryAsync<T>(query));
 
         public Task<QueryResult<JObject>> QueryContinuationAsync(string nextRecordsUrl) => Force.QueryContinuationAsync<JObject>(nextRecordsUrl);
         public Task<QueryResult<T>> QueryContinuationAsync<T>(string nextRecordsUrl) => Force.QueryContinuationAsync<T>(nextRecordsUrl);
 
         public Task<QueryResult<JObject>> QueryAllAsync(string query) => Force.QueryAllAsync<JObject>(query);
         public Task<QueryResult<T>> QueryAllAsync<T>(string query) => Force.QueryAllAsync<T>(query);
-        public async Task<IEnumerable<JObject>> QueryAllEnumerableAsync(string query) => GetEnumerable(await Force.QueryAllAsync<JObject>(query));
-        public async Task<IEnumerable<T>> QueryAllEnumerableAsync<T>(string query) => GetEnumerable(await Force.QueryAllAsync<T>(query));
-        public async Task<IEnumerable<JObject>> QueryAllLazyEnumerableAsync(string query) => GetLazyEnumerable(await Force.QueryAllAsync<JObject>(query));
-        public async Task<IEnumerable<T>> QueryAllLazyEnumerableAsync<T>(string query) => GetLazyEnumerable(await Force.QueryAllAsync<T>(query));
+        public async Task<IEnumerable<JObject>> GetAllEnumerableAsync(string query) => GetEnumerable(await Force.QueryAllAsync<JObject>(query));
+        public async Task<IEnumerable<T>> GetAllEnumerableAsync<T>(string query) => GetEnumerable(await Force.QueryAllAsync<T>(query));
+        public async Task<IEnumerable<JObject>> GetAllLazyEnumerableAsync(string query) => GetLazyEnumerable(await Force.QueryAllAsync<JObject>(query));
+        public async Task<IEnumerable<T>> GetAllLazyEnumerableAsync<T>(string query) => GetLazyEnumerable(await Force.QueryAllAsync<T>(query));
 
         public Task<JObject> QueryByIdAsync(string objectName, string recordId) => Force.QueryByIdAsync<JObject>(objectName, recordId);
         public Task<T> QueryByIdAsync<T>(string objectName, string recordId) => Force.QueryByIdAsync<T>(objectName, recordId);
