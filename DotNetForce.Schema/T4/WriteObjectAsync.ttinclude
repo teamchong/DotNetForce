@@ -1,0 +1,293 @@
+﻿<#+
+async Task WriteObjectAsync(string instanceName, string objName, JToken objDescribe, SfModelGenerator generator)
+{
+#>using DotNetForce;
+using DotNetForce.Schema;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
+using System;
+using System.Linq.Expressions;
+
+namespace DotNetForce.Schema.<#= instanceName #>
+{
+	public class Sf<#= objName #> : SfObjectBase
+	{
+		public Sf<#= objName #>() : base("") { }
+		public Sf<#= objName #>(string path) : base(path) { }
+<#+
+    var references = new JArray();
+
+
+    if (objDescribe["fields"]?.Type == JTokenType.Array)
+    {
+        foreach (var field in ((JArray)objDescribe["fields"]))
+        {
+            var fieldName = field["name"]?.ToString();
+
+            if (string.IsNullOrEmpty(fieldName))
+            {
+                continue;
+            }
+
+            switch (field["type"]?.ToString() ?? "")
+            {
+                case "address":
+#>
+		public SfAddressField<Sf<#= objName #>> <#= fieldName #> { get => new SfAddressField<Sf<#= objName #>>(<#= FormatPath(fieldName) #>); }
+<#+
+                    break;
+                case "anyType":
+#>
+		public SfAnyTypeField<Sf<#= objName #>> <#= fieldName #> { get => new SfAnyTypeField<Sf<#= objName #>>(<#= FormatPath(fieldName) #>); }
+<#+
+                    break;
+                case "base64":
+#>
+		public SfBase64Field<Sf<#= objName #>> <#= fieldName #> { get => new SfBase64Field<Sf<#= objName #>>(<#= FormatPath(fieldName) #>); }
+<#+
+                    break;
+                case "boolean":
+#>
+		public SfBooleanField<Sf<#= objName #>> <#= fieldName #> { get => new SfBooleanField<Sf<#= objName #>>(<#= FormatPath(fieldName) #>); }
+<#+
+                    break;
+                case "combobox":
+#>
+		public SfComboBoxField<Sf<#= objName #>> <#= fieldName #> { get => new SfComboBoxField<Sf<#= objName #>>(<#= FormatPath(fieldName) #>, <#+ OutputPicklistDefaultValue(field); #>, <#+ OutputPicklists(field); #>); }
+<#+
+                    break;
+                case "complexvalue":
+#>
+		public SfComplexValueField<Sf<#= objName #>> <#= fieldName #> { get => new SfComplexValueField<Sf<#= objName #>>(<#= FormatPath(fieldName) #>); }
+<#+
+                    break;
+                case "currency":
+#>
+		public SfCurrencyField<Sf<#= objName #>> <#= fieldName #> { get => new SfCurrencyField<Sf<#= objName #>>(<#= FormatPath(fieldName) #>); }
+<#+
+                    break;
+                case "date":
+#>
+		public SfDateField<Sf<#= objName #>> <#= fieldName #> { get => new SfDateField<Sf<#= objName #>>(<#= FormatPath(fieldName) #>); }
+<#+
+                    break;
+                case "datetime":
+#>
+		public SfDateTimeField<Sf<#= objName #>> <#= fieldName #> { get => new SfDateTimeField<Sf<#= objName #>>(<#= FormatPath(fieldName) #>); }
+<#+
+                    break;
+                case "double":
+#>
+		public SfDoubleField<Sf<#= objName #>> <#= fieldName #> { get => new SfDoubleField<Sf<#= objName #>>(<#= FormatPath(fieldName) #>); }
+<#+
+                    break;
+                case "email":
+#>
+		public SfEmailField<Sf<#= objName #>> <#= fieldName #> { get => new SfEmailField<Sf<#= objName #>>(<#= FormatPath(fieldName) #>); }
+<#+
+                    break;
+                case "id":
+#>
+		public SfIdField<Sf<#= objName #>> <#= fieldName #> { get => new SfIdField<Sf<#= objName #>>(<#= FormatPath(fieldName) #>); }
+<#+
+                    break;
+                case "int":
+#>
+		public SfIntField<Sf<#= objName #>> <#= fieldName #> { get => new SfIntField<Sf<#= objName #>>(<#= FormatPath(fieldName) #>); }
+<#+
+                    break;
+                case "location":
+#>
+		public SfLocationField<Sf<#= objName #>> <#= fieldName #> { get => new SfLocationField<Sf<#= objName #>>(<#= FormatPath(fieldName) #>); }
+<#+
+                    break;
+                case "multipicklist":
+#>
+		public SfMultiPicklistField<Sf<#= objName #>> <#= fieldName #> { get => new SfMultiPicklistField<Sf<#= objName #>>(<#= FormatPath(fieldName) #>, <#+ OutputPicklistDefaultValue(field); #>, <#+ OutputPicklists(field); #>); }
+<#+
+                    break;
+                case "percent":
+#>
+		public SfPercentField<Sf<#= objName #>> <#= fieldName #> { get => new SfPercentField<Sf<#= objName #>>(<#= FormatPath(fieldName) #>); }
+<#+
+                    break;
+                case "phone":
+#>
+		public SfPhoneField<Sf<#= objName #>> <#= fieldName #> { get => new SfPhoneField<Sf<#= objName #>>(<#= FormatPath(fieldName) #>); }
+<#+
+                    break;
+                case "picklist":
+#>
+		public SfPicklistField<Sf<#= objName #>> <#= fieldName #> { get => new SfPicklistField<Sf<#= objName #>>(<#= FormatPath(fieldName) #>, <#+ OutputPicklistDefaultValue(field); #>, <#+ OutputPicklists(field); #>); }
+<#+
+                    break;
+                case "reference":
+                    if (((JArray)field["referenceTo"])?.Count != 1)
+						{
+#>
+	/* referenceTo.Count != 1 <#= field["referenceTo"] #> */
+<#+
+                        continue;
+                    }
+                    var relationshipName = field["relationshipName"]?.ToString();
+                    var referenceTo = field["referenceTo"]?[0]?.ToString();
+
+                    if (string.IsNullOrEmpty(relationshipName) || string.IsNullOrEmpty(referenceTo))
+                    {
+                        continue;
+                    }
+                    references.Add(field);
+#>
+		public SfIdField<Sf<#= objName #>> <#= fieldName #> { get => new SfIdField<Sf<#= objName #>>(<#= FormatPath(fieldName) #>); }
+<#+
+                    break;
+                case "string":
+#>
+		public SfStringField<Sf<#= objName #>> <#= fieldName #> { get => new SfStringField<Sf<#= objName #>>(<#= FormatPath(fieldName) #>); }
+<#+
+                    break;
+                case "textarea":
+#>
+		public SfTextAreaField<Sf<#= objName #>> <#= fieldName #> { get => new SfTextAreaField<Sf<#= objName #>>(<#= FormatPath(fieldName) #>); }
+<#+
+                    break;
+                case "time":
+#>
+		public SfTimeField<Sf<#= objName #>> <#= fieldName #> { get => new SfTimeField<Sf<#= objName #>>(<#= FormatPath(fieldName) #>); }
+<#+
+                    break;
+                case "url":
+#>
+		public SfUrlField<Sf<#= objName #>> <#= fieldName #> { get => new SfUrlField<Sf<#= objName #>>(<#= FormatPath(fieldName) #>); }
+<#+
+                    break;
+                default:
+#>
+		/* unknown type: <#= field["type"]?.ToString() ?? "" #> */
+		public SfTextField<Sf<#= objName #>> <#= fieldName #> { get => new SfTextField<Sf<#= objName #>>(<#= FormatPath(fieldName) #>); }
+<#+
+                    break;
+            }
+        }
+    }
+
+    if (references.Count > 0)
+    {
+#>
+
+#region References
+
+<#+
+		
+        foreach (var field in references)
+        {
+            var fieldName = field["name"]?.ToString();
+            var relationshipName = field["relationshipName"]?.ToString();
+            var referenceTo = field["referenceTo"]?[0]?.ToString();
+#>
+		public Sf<#= referenceTo #> <#= relationshipName #> { get => new Sf<#= referenceTo #>(<#= FormatPath(relationshipName) #>); }
+<#+
+		}
+#>
+
+#endregion References
+
+<#+
+    }
+
+    var childRelationships = new JArray();
+
+    if (objDescribe["childRelationships"]?.Type == JTokenType.Array && ((JArray)objDescribe["childRelationships"]).Count > 0)
+    {
+        foreach (var childRelationship in ((JArray)objDescribe["childRelationships"]))
+        {
+            var relationshipName = childRelationship["relationshipName"]?.ToString();
+            var childSObject = childRelationship["childSObject"]?.ToString();
+
+            if (string.IsNullOrEmpty(relationshipName) || string.IsNullOrEmpty(childSObject))
+            {
+                continue;
+            }
+
+            childRelationships.Add(childRelationship);
+        }
+    }
+
+    if (childRelationships.Count > 0)
+    {
+#>
+
+#region ChildRelationships
+
+<#+
+        foreach (var childRelationship in childRelationships)
+        {
+            var relationshipName = childRelationship["relationshipName"]?.ToString();
+            var childSObject = childRelationship["childSObject"]?.ToString();
+#>
+		public SfChildRelationship<Sf<#= objName #>, Sf<#= childSObject #>> <#= relationshipName #>
+		{
+			get => new SfChildRelationship<Sf<#= objName #>, Sf<#= childSObject #>>(<#= FormatPath(relationshipName) #>);
+		}
+<#+
+		}
+#>
+
+#endregion ChildRelationships
+
+<#+
+	}
+#>
+
+		public override string ToString() => string.IsNullOrEmpty(_Path) ? <#= Json(objName) #> : _Path;
+	}
+}
+<#+
+    await generator.GenerateFileAsync("Sf" + objName + ".cs").ConfigureAwait(false);
+}
+#>
+<#+
+string FormatPath(string fieldName)
+{
+	return "string.IsNullOrEmpty(_Path) ? " + Json(fieldName) + " : _Path + " + Json("." + fieldName);
+}
+#>
+<#+
+string Json(Object obj) => JsonConvert.SerializeObject(obj);
+#>
+<#+
+void OutputPicklistDefaultValue(JToken field)
+{
+	var picklistValues = (JArray)field["picklistValues"];
+	if (picklistValues?.Count > 0)
+	{
+		foreach (var picklist in picklistValues)
+		{
+			if ((bool?)picklist["active"] == true && (bool?)picklist["defaultValue"] == true)
+			{
+				#><#=Json(picklist["value"].ToString())#><#+
+				return;
+			}
+		}
+	}
+	#>null<#+
+}
+#>
+<#+
+void OutputPicklists(JToken field)
+{
+#>new SfPicklistValue[] {<#+
+	var picklistValues = (JArray)field["picklistValues"];
+	if (picklistValues?.Count > 0)
+	{
+		foreach (var picklist in picklistValues)
+		{
+			if ((bool?)picklist["active"] == true)
+			{
+#> new SfPicklistValue(<#= Json(picklist["value"].ToString()) #>, <#= Json(picklist["label"]?.ToString() ?? picklist["value"].ToString()) #>),<#+
+			}
+		}
+	}
+#>}<#+
+}
+#>

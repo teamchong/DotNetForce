@@ -309,10 +309,9 @@ namespace DotNetForce.Common
         // Get/Post/Patch/Delete
         private static JToken DeserializeJson(System.IO.StreamReader streamReader)
         {
-            var serializer = new JsonSerializer();
             using (var jsonReader = new JsonTextReader(streamReader))
             {
-                return serializer.Deserialize<JToken>(jsonReader);
+                return new JsonSerializer().Deserialize<JToken>(jsonReader);
             }
         }
 

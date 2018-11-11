@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reactive.Linq;
 using System.Text.RegularExpressions;
+using System.Web;
 
 namespace DotNetForce
 {
@@ -84,8 +85,8 @@ namespace DotNetForce
         {
             if (string.IsNullOrEmpty(referenceId)) throw new ArgumentNullException("referenceId");
 
-            var sdt = Uri.EscapeDataString(startDateTime.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ss+00:00", System.Globalization.CultureInfo.InvariantCulture));
-            var edt = Uri.EscapeDataString(endDateTime.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ss+00:00", System.Globalization.CultureInfo.InvariantCulture));
+            var sdt = HttpUtility.UrlEncode(startDateTime.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ss+00:00", System.Globalization.CultureInfo.InvariantCulture));
+            var edt = HttpUtility.UrlEncode(endDateTime.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ss+00:00", System.Globalization.CultureInfo.InvariantCulture));
 
             var request = new CompositeSubrequest
             {
@@ -101,8 +102,8 @@ namespace DotNetForce
         {
             if (string.IsNullOrEmpty(referenceId)) throw new ArgumentNullException("referenceId");
 
-            var sdt = Uri.EscapeDataString(startDateTime.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ss+00:00", System.Globalization.CultureInfo.InvariantCulture));
-            var edt = Uri.EscapeDataString(endDateTime.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ss+00:00", System.Globalization.CultureInfo.InvariantCulture));
+            var sdt = HttpUtility.UrlEncode(startDateTime.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ss+00:00", System.Globalization.CultureInfo.InvariantCulture));
+            var edt = HttpUtility.UrlEncode(endDateTime.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ss+00:00", System.Globalization.CultureInfo.InvariantCulture));
 
             var request = new CompositeSubrequest
             {
@@ -122,7 +123,7 @@ namespace DotNetForce
 
             var request = new CompositeSubrequest
             {
-                Body = JObject.FromObject(record).UnFlatten(),
+                Body = DNF.UnFlatten(JObject.FromObject(record)),
                 Method = "POST",
                 ReferenceId = referenceId,
                 Url = $"sobjects/{objectName}"
@@ -147,7 +148,7 @@ namespace DotNetForce
                 Method = "GET",
                 ReferenceId = referenceId,
                 Url = fields?.Length > 0
-                    ? $"sobjects/{objectName}/{recordId}?fields={string.Join(",", fields.Select(field => Uri.EscapeDataString(field)))}"
+                    ? $"sobjects/{objectName}/{recordId}?fields={string.Join(",", fields.Select(field => HttpUtility.UrlEncode(field)))}"
                     : $"sobjects/{objectName}/{recordId}"
             };
             CompositeRequests.Add(request);
@@ -160,8 +161,8 @@ namespace DotNetForce
             if (string.IsNullOrEmpty(objectName)) throw new ArgumentNullException("objectName");
             if (record == null) throw new ArgumentNullException("record");
 
-            var body = JObject.FromObject(record).UnFlatten();
-            return Update(referenceId, objectName, body["Id"]?.ToString(), body.Omit("Id"));
+            var body = DNF.UnFlatten(JObject.FromObject(record));
+            return Update(referenceId, objectName, body["Id"]?.ToString(), DNF.Omit(body, "Id"));
         }
 
         public CompositeSubrequest Update(string referenceId, string objectName, string recordId, object record)
@@ -171,10 +172,10 @@ namespace DotNetForce
             if (string.IsNullOrEmpty(recordId)) throw new ArgumentNullException("recordId");
             if (record == null) throw new ArgumentNullException("record");
 
-            var body = JObject.FromObject(record).UnFlatten();
+            var body = DNF.UnFlatten(JObject.FromObject(record));
             var request = new CompositeSubrequest
             {
-                Body = body.Omit("Id"),
+                Body = DNF.Omit(body, "Id"),
                 Method = "PATCH",
                 ReferenceId = referenceId,
                 Url = $"sobjects/{objectName}{recordId}"
@@ -189,8 +190,8 @@ namespace DotNetForce
             if (string.IsNullOrEmpty(objectName)) throw new ArgumentNullException("objectName");
             if (record == null) throw new ArgumentNullException("record");
 
-            var body = JObject.FromObject(record).UnFlatten();
-            return UpsertExternal(referenceId, objectName, externalFieldName, body[externalFieldName]?.ToString(), body.Omit(externalFieldName));
+            var body = DNF.UnFlatten(JObject.FromObject(record));
+            return UpsertExternal(referenceId, objectName, externalFieldName, body[externalFieldName]?.ToString(), DNF.Omit(body, externalFieldName));
         }
 
         public CompositeSubrequest UpsertExternal(string referenceId, string objectName, string externalFieldName, string externalId, object record)
@@ -200,13 +201,13 @@ namespace DotNetForce
             if (string.IsNullOrEmpty(externalId)) throw new ArgumentNullException("externalId");
             if (record == null) throw new ArgumentNullException("record");
 
-            var body = JObject.FromObject(record).UnFlatten();
+            var body = DNF.UnFlatten(JObject.FromObject(record));
             var request = new CompositeSubrequest
             {
-                Body = body.Omit(externalFieldName),
+                Body = DNF.Omit(body, externalFieldName),
                 Method = "PATCH",
                 ReferenceId = referenceId,
-                Url = $"sobjects/{objectName}/{externalFieldName}/{Uri.EscapeDataString(externalId)}"
+                Url = $"sobjects/{objectName}/{externalFieldName}/{HttpUtility.UrlEncode(externalId)}"
             };
             CompositeRequests.Add(request);
             return request;
@@ -238,7 +239,7 @@ namespace DotNetForce
                 ResponseType = "query",
                 Method = "GET",
                 ReferenceId = referenceId,
-                Url = $"query?q={Uri.EscapeDataString(query)}"
+                Url = $"query?q={HttpUtility.UrlEncode(query)}"
             };
             CompositeRequests.Add(request);
             return request;

@@ -31,50 +31,51 @@ namespace DotNetForceTest
                 {
                     ["Subject"] = $"UnitTest0"
                 });
-                result1.ThrowIfError();
+                DNF.ThrowIfError(result1);
 
                 var caseList = Enumerable.Range(1, 40).Select(i => new AttributedObject("Case")
                 {
                     ["Subject"] = $"UnitTest{i}",
                 }).ToArray();
-                var result = await caseList.CreateAsync(client, true);
-                result.ThrowIfError();
+                var result = await client.Composite.CreateAsync(caseList, true);
+                DNF.ThrowIfError(result);
                 Assert.NotEmpty(result.SuccessResponses());
 
                 var expected = 200 * 26;
                 var existingCase = await client.QueryAsync<JObject>($@"
 SELECT Name FROM Opportunity ORDER BY Id LIMIT {expected}");
 
-                var newCase = await existingCase.ToEnumerable(client)
-                    .Select(c => new AttributedObject("Case") { ["Subject"] = $"UnitTest{c["Name"]}" })
-                    .CreateAsync(client);
-                newCase.ThrowIfError();
+                var newCase = await client.Composite.CreateAsync(client.GetEnumerable(existingCase)
+                    .Select(c => new AttributedObject("Case") { ["Subject"] = $"UnitTest{c["Name"]}" }));
+                DNF.ThrowIfError(newCase);
                 Assert.NotEmpty(newCase.SuccessResponses());
 
                 var obj = new AttributedObject("Account", $"acc{Guid.NewGuid():N}")
                 {
                     ["Name"] = $"UnitTest Account {Guid.NewGuid():N}",
+                    ["BillingCountry"] = "Hong Kong",
                     ["Contacts"] = new RecordsObject(Enumerable.Range(1, 2).Select(j =>
                          new AttributedObject("Contact", $"cont{Guid.NewGuid():N}")
-                         { ["Name"] = $"UnitTest Contact{Guid.NewGuid():N}" }
+                         { ["LastName"] = $"UnitTest Contact{Guid.NewGuid():N}", ["MailingCountry"] = "Hong Kong" }
                          ))
                 };
                 var createTreeResult = await client
                     .CreateAsync($"Account", new RecordsObject(new[] { obj }).ToCreateRequest());
-                createTreeResult.ThrowIfError();
+                DNF.ThrowIfError(createTreeResult);
                 Assert.NotEmpty(createTreeResult.Results);
 
                 var accounts =
                     Enumerable.Range(1, 6).Select(i => new AttributedObject("Account", $"acc{i}")
                     {
                         ["Name"] = $"UnitTest Account {i}",
+                        ["BillingCountry"] = "Hong Kong",
                         ["Contacts"] = new RecordsObject(Enumerable.Range(1, 2).Select(j =>
-                            new AttributedObject("Contact", $"cont{i}[{j}]")
-                            { ["Name"] = $"UnitTest Contact {i}-{j}" }))
+                            new AttributedObject("Contact", $"cont{Guid.NewGuid():N}")
+                            { ["LastName"] = $"UnitTest Contact{Guid.NewGuid():N}", ["MailingCountry"] = "Hong Kong" }))
                     });
 
                 var accountsResult = await client.Composite.CreateTreeAsync("Account", accounts);
-                accountsResult.ThrowIfError();
+                DNF.ThrowIfError(accountsResult);
                 Assert.NotEmpty(accountsResult.Results);
             }
             finally
@@ -94,20 +95,20 @@ SELECT Name FROM Opportunity ORDER BY Id LIMIT {expected}");
                 await Assert.ThrowsAsync<ForceException>(async () =>
                 {
                     var result = await client.CreateAsync($"Account", new JObject());
-                    result.ThrowIfError();
+                    DNF.ThrowIfError(result);
                 });
                 await Assert.ThrowsAsync<ForceException>(async () =>
                 {
                     var obj = new AttributedObject($"UnknownObject{Guid.NewGuid():N}");
                     var request = new CreateRequest { Records = new List<IAttributedObject> { obj } };
                     var result = await client.CreateAsync($"UnknownObject{Guid.NewGuid():N}", request);
-                    result.ThrowIfError();
+                    DNF.ThrowIfError(result);
                 });
                 await Assert.ThrowsAsync<AggregateException>(async () =>
                 {
                     var prd2List = Enumerable.Range(1, 4000).Select(i => new AttributedObject($"UnknownObject{Guid.NewGuid():N}"));
                     var result = await client.Composite.CreateAsync(prd2List);
-                    result.ThrowIfError();
+                    DNF.ThrowIfError(result);
                 });
             }
             finally
@@ -128,8 +129,8 @@ SELECT Name FROM Opportunity ORDER BY Id LIMIT {expected}");
                 {
                     ["Subject"] = $"UnitTest{i}",
                 }).ToArray();
-                var result1 = await caseList.CreateAsync(client);
-                result1.ThrowIfError();
+                var result1 = await client.Composite.CreateAsync(caseList);
+                DNF.ThrowIfError(result1);
 
                 //var externalIds = Enumerable.Range(1, 4000).Select(i => $"UnitTest{i}").ToArray();
                 var result = await client.QueryAsync<JObject>($@"
@@ -138,8 +139,8 @@ SELECT Id FROM Case WHERE Subject LIKE 'UnitTest%'");
                 Assert.NotEmpty(result.Records);
                 //Assert.NotEmpty(result.Collections());
                 //var ids = result.Objects().Values.Select(c => c["Id"].ToString()).ToArray();
-                var result2 = await result.ToEnumerable(client).Select(c => c["Id"].ToString()).RetrieveAsync(client, "Case", "Subject");
-                result2.ThrowIfError();
+                var result2 = await client.Composite.RetrieveAsync("Case", client.GetEnumerable(result).Select(c => c["Id"].ToString()), "Subject");
+                DNF.ThrowIfError(result2);
             }
             finally
             {
@@ -159,8 +160,8 @@ SELECT Id FROM Case WHERE Subject LIKE 'UnitTest%'");
                 {
                     ["Subject"] = $"UnitTest{i}",
                 }).ToArray();
-                var result1 = await caseList.CreateAsync(client);
-                result1.ThrowIfError();
+                var result1 = await client.Composite.CreateAsync(caseList);
+                DNF.ThrowIfError(result1);
 
                 await client.UpdateAsync("Case",
                     result1.SuccessResponses().Select(r => r.Value.Id).FirstOrDefault(),
@@ -170,9 +171,8 @@ SELECT Id FROM Case WHERE Subject LIKE 'UnitTest%'");
 SELECT Id FROM Case WHERE Subject LIKE 'UnitTest%' ORDER BY Id");
 
                 var timer1 = System.Diagnostics.Stopwatch.StartNew();
-                var result2 = await resultQuery.ToEnumerable(client)
-                    .Select((c, i) => c.Assign(new JObject { ["Description"] = $"UnitTest{i}" }))
-                    .UpdateAsync(client);
+                var result2 = await client.Composite.UpdateAsync(client.GetEnumerable(resultQuery)
+                    .Select((c, i) => DNF.Assign(c, new JObject { ["Description"] = $"UnitTest{i}" })));
                 timer1.Stop();
 
                 WriteLine($"time1: {timer1.Elapsed.TotalSeconds}.");
@@ -191,11 +191,11 @@ SELECT Id FROM Case WHERE Subject LIKE 'UnitTest%' ORDER BY Id");
             await DeleteTestingRecords(client);
             try
             {
-                var createResult = await client.CreateAsync("Product2", GetTestProduct2().Assign(new JObject
+                var createResult = await client.CreateAsync("Product2", DNF.Assign(GetTestProduct2(), new JObject
                 {
                     ["Source_Product_ID__c"] = $"UnitTest/0"
                 }));
-                createResult.ThrowIfError();
+                DNF.ThrowIfError(createResult);
 
                 var uniqueText = $"{Guid.NewGuid():N}";
 
@@ -219,12 +219,12 @@ SELECT Id FROM Case WHERE Subject LIKE 'UnitTest%' ORDER BY Id");
             await DeleteTestingRecords(client);
             try
             {
-                var caseList = Enumerable.Range(1, 100000).Select(i => GetTestProduct2().Assign(new JObject
+                var caseList = Enumerable.Range(1, 100000).Select(i => DNF.Assign(GetTestProduct2(), new JObject
                 {
                     ["Source_Product_ID__c"] = $"UnitTest/{i}",
                 })).ToArray();
-                var resultCreate = await caseList.CreateAsync(client);
-                resultCreate.ThrowIfError();
+                var resultCreate = await client.Composite.CreateAsync(caseList);
+                DNF.ThrowIfError(resultCreate);
 
                 var del1Result = await client.DeleteAsync("Product2", resultCreate.SuccessResponses().Select(r => r.Value.Id).FirstOrDefault());
                 Assert.True(del1Result);
@@ -238,10 +238,9 @@ SELECT Id FROM Product2 WHERE Source_Product_ID__c LIKE 'UnitTest%'");
                 Assert.NotEmpty(resultQuery.Records);
 
                 var timer1 = System.Diagnostics.Stopwatch.StartNew();
-                var result2 = await resultQuery.ToEnumerable(client)
-                    .Select(r => r["Id"]?.ToString()).DeleteAsync(client);
+                var result2 = await client.Composite.DeleteAsync(client.GetEnumerable(resultQuery).Select(r => r["Id"]?.ToString()));
                 timer1.Stop();
-                result2.ThrowIfError();
+                DNF.ThrowIfError(result2);
 
                 WriteLine($"time1: {timer1.Elapsed.TotalSeconds}.");
             }

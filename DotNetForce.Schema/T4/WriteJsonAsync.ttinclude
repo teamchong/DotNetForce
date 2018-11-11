@@ -1,0 +1,7 @@
+﻿<#+
+async Task WriteJsonAsync(string objName, JToken objDescribe, SfModelGenerator generator)
+{
+    #><#= objDescribe #><#+
+    await generator.GenerateFileAsync("Json\\" + objName + ".json").ConfigureAwait(false);
+}
+#>

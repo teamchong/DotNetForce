@@ -5,47 +5,54 @@ using System.Reactive.Linq;
 
 namespace DotNetForce
 {
-    public static class JObjectExtension
+    internal class JObjectHelper<T> where T : JObject, new()
     {
-        public static T UnFlatten<T>(this T source) where T : JObject, new()
+        public T Source { get; set; }
+        
+        internal JObjectHelper(T src)
         {
-            if (source == null)
+            Source = src;
+        }
+
+        public T UnFlatten() 
+        {
+            if (Source == null)
             {
-                return source;
+                return Source;
             }
 
             var result = new T();
-            foreach (var prop in source.Properties())
+            foreach (var prop in Source.Properties())
             {
                 var propName = prop.Name.Split(new[] { ':' }, 2);
                 result[propName[0]] = prop?.Type == JTokenType.Object
-                    ? ((JObject)prop.Value).UnFlatten(propName.Skip(1).FirstOrDefault())
+                    ? new JObjectHelper<T>((T)prop.Value).UnFlatten(propName.Skip(1).FirstOrDefault())
                     : prop.Value;
             }
             return result;
         }
 
-        public static T UnFlatten<T>(this T value, string name) where T : JObject, new()
+        public T UnFlatten(string name)
         {
-            if (value == null || string.IsNullOrEmpty(name))
+            if (Source == null || string.IsNullOrEmpty(name))
             {
-                return value;
+                return Source;
             }
 
             var names = name.Split(new[] { ':' }, 2);
             if (names.Length > 1)
             {
-                return new T { [names[0]] = value.UnFlatten(names[1]) };
+                return new T { [names[0]] = UnFlatten(names[1]) };
             }
 
-            return new T { [name] = value };
+            return new T { [name] = Source };
         }
 
-        public static T Assign<T>(this T source, params JObject[] others) where T : JObject
+        public T Assign(params JObject[] others)
         {
-            if (source == null)
+            if (Source == null)
             {
-                return source;
+                return Source;
             }
 
             if (others?.Length > 0)
@@ -54,31 +61,31 @@ namespace DotNetForce
                 {
                     foreach (var prop in other.Properties())
                     {
-                        source[prop.Name] = prop.Value;
+                        Source[prop.Name] = prop.Value;
                     }
                 }
             }
-            return source;
+            return Source;
         }
 
-        public static T Pick<T>(this T source, params string[] colNames) where T : JObject, new()
+        public T Pick(params string[] colNames)
         {
-            if (source == null)
+            if (Source == null)
             {
-                return source;
+                return Source;
             }
 
             var result = new T();
             if ((colNames?.Length ?? 0) == 0)
             {
-                foreach (var prop in source.Properties())
+                foreach (var prop in Source.Properties())
                 {
                     result[prop.Name] = prop.Value;
                 }
             }
             else
             {
-                foreach (var prop in source.Properties())
+                foreach (var prop in Source.Properties())
                 {
                     if (colNames.Contains(prop.Name))
                     {
@@ -89,24 +96,24 @@ namespace DotNetForce
             return result;
         }
 
-        public static T Omit<T>(this T source, params string[] colNames) where T : JObject, new()
+        public T Omit(params string[] colNames)
         {
-            if (source == null)
+            if (Source == null)
             {
-                return source;
+                return Source;
             }
 
             var result = new T();
             if ((colNames?.Length ?? 0) == 0)
             {
-                foreach (var prop in source.Properties())
+                foreach (var prop in Source.Properties())
                 {
                     result[prop.Name] = prop.Value;
                 }
             }
             else
             {
-                foreach (var prop in source.Properties())
+                foreach (var prop in Source.Properties())
                 {
                     if (!colNames.Contains(prop.Name))
                     {

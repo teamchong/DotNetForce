@@ -27,6 +27,9 @@ namespace DotNetForceTest
         public DNFClientTestBase(ITestOutputHelper output)
         {
             Output = output;
+	        System.Net.ServicePointManager.DefaultConnectionLimit = int.MaxValue;
+	        System.Net.ServicePointManager.Expect100Continue = true;
+	        System.Net.ServicePointManager.SecurityProtocol = System.Net.SecurityProtocolType.Tls12;
 
             var dirPath = new FileInfo(Assembly.GetExecutingAssembly().Location).Directory;
             while (dirPath.Name != "bin" && dirPath.Parent != null) dirPath = dirPath.Parent;
@@ -54,18 +57,14 @@ namespace DotNetForceTest
 
         protected async Task DeleteTestingRecords(DNFClient client)
         {
-            (await (await client.QueryAsync<JObject>($@"
-SELECT Id FROM Case WHERE Subject LIKE 'UnitTest%'")).ToEnumerable(client)
-.Select(r => r["Id"]?.ToString()).DeleteAsync(client)).ThrowIfError();
-            (await (await client.QueryAsync<JObject>($@"
-SELECT Id FROM Account WHERE Name LIKE 'UnitTest%'")).ToEnumerable(client)
-.Select(r => r["Id"]?.ToString()).DeleteAsync(client)).ThrowIfError();
-            (await (await client.QueryAsync<JObject>($@"
-SELECT Id FROM Contact WHERE Name LIKE 'UnitTest%'")).ToEnumerable(client)
-.Select(r => r["Id"]?.ToString()).DeleteAsync(client)).ThrowIfError();
-            (await (await client.QueryAsync<JObject>($@"
-SELECT Id FROM Product2 WHERE Source_Product_ID__c LIKE 'UnitTest%'")).ToEnumerable(client)
-.Select(r => r["Id"]?.ToString()).DeleteAsync(client)).ThrowIfError();
+            DNF.ThrowIfError(await client.Composite.DeleteAsync((await client.GetEnumerableAsync($@"
+SELECT Id FROM Case WHERE Subject LIKE 'UnitTest%'")).Select(r => r["Id"]?.ToString())));
+            DNF.ThrowIfError(await client.Composite.DeleteAsync((await client.GetEnumerableAsync($@"
+SELECT Id FROM Account WHERE Name LIKE 'UnitTest%'")).Select(r => r["Id"]?.ToString())));
+            DNF.ThrowIfError(await client.Composite.DeleteAsync((await client.GetEnumerableAsync($@"
+SELECT Id FROM Contact WHERE Name LIKE 'UnitTest%'")).Select(r => r["Id"]?.ToString())));
+            DNF.ThrowIfError(await client.Composite.DeleteAsync((await client.GetEnumerableAsync($@"
+SELECT Id FROM Product2 WHERE Source_Product_ID__c LIKE 'UnitTest%'")).Select(r => r["Id"]?.ToString())));
         }
 
         protected JObject GetTestProduct2()

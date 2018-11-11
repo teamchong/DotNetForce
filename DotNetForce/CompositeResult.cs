@@ -205,24 +205,6 @@ namespace DotNetForce
             }
         }
 
-        public void ThrowIfError()
-        {
-            var exList = new List<ForceException>();
-            foreach (var errors in _Errors)
-            {
-                var request = _Requests.Where(req => req.ReferenceId == errors.Key).FirstOrDefault();
-                exList.Add(new ForceException(
-                    errors.Value.Select(error => error.ErrorCode).FirstOrDefault() ?? $"{Error.Unknown}",
-                    (request == null ? $"{errors.Key}:" : $"{request}") + Environment.NewLine +
-                    string.Join(Environment.NewLine, errors.Value.Select(error => error.Message))
-                ));
-            }
-            if (exList.Count > 0)
-            {
-                throw new AggregateException(exList);
-            }
-        }
-
         public override string ToString()
         {
             var output = new JObject();

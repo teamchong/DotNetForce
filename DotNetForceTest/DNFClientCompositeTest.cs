@@ -38,7 +38,7 @@ namespace DotNetForceTest
                 var testSubject = "UnitTest @!~-.,=_[]()*`";
 
                 var request = new CompositeRequest(allOrNone: true);
-                request.Create("1create", "Product2", GetTestProduct2().Assign(new JObject
+                request.Create("1create", "Product2", DNF.Assign(GetTestProduct2(), new JObject
                 {
                     ["Name"] = $"UnitTest{Guid.NewGuid():N}",
                     ["Source_Product_ID__c"] = $"{testSubject}",
@@ -70,7 +70,7 @@ AND Venue_ID__c = 'U2'");
                 request.Delete("4delete", "Product2", $"@{{3_query.records[0].Id}}");
                 var result = await client.Composite.PostAsync(request);
                 WriteLine(result.ToString());
-                result.ThrowIfError();
+                DNF.ThrowIfError(result);
             }
             finally
             {
@@ -89,7 +89,7 @@ AND Venue_ID__c = 'U2'");
                 await Assert.ThrowsAsync<AggregateException>(async () =>
                 {
                     var request = new CompositeRequest(allOrNone: true);
-                    request.Create("create", "Product2", GetTestProduct2().Assign(new JObject
+                    request.Create("create", "Product2", DNF.Assign(GetTestProduct2(), new JObject
                     {
                         ["Name"] = $"UnitTest/",
                         ["Source_Product_ID__c"] = $"UnitTest/",
@@ -115,7 +115,7 @@ AND Source_Product_ID__c = '@{query2.records[0].Source_Product_ID__c}2");
                     });
                     request.Delete("delete", "Product2", "@{updated.records[0].Id}");
                     var result = await client.Composite.PostAsync(request);
-                    result.ThrowIfError();
+                    DNF.ThrowIfError(result);
                 });
             }
             finally
@@ -134,7 +134,7 @@ AND Source_Product_ID__c = '@{query2.records[0].Source_Product_ID__c}2");
             {
                 var testText = $"UnitTest' AND Name != '";
                 var request = new CompositeRequest();
-                request.Create("create", "Product2", GetTestProduct2().Assign(new JObject
+                request.Create("create", "Product2", DNF.Assign(GetTestProduct2(), new JObject
                 {
                     ["Source_Product_ID__c"] = testText,
                 }));
@@ -163,7 +163,7 @@ AND Source_Product_ID__c = {DNF.SOQLString(testText)}");
 
                 request.Delete("delete", "Product2", "@{create.id}");
                 var result = await client.Composite.PostAsync(request);
-                result.ThrowIfError();
+                DNF.ThrowIfError(result);
                 Assert.Equal(testText, result.Results("created")?["Source_Product_ID__c"]);
                 Assert.Equal(0, result.Queries("query")?.TotalSize);
                 Assert.Equal(testText, result.Queries("upserted")?.Records?[0]?["Name"]);
@@ -177,7 +177,7 @@ AND Source_Product_ID__c = {DNF.SOQLString(testText)}");
             {
                 var testText = $"Uni\\nt\\tTe\\\\ns\\\\ts\\\\\\nt\\\\\\tt";
                 var request = new CompositeRequest();
-                request.Create("create", "Product2", GetTestProduct2().Assign(new JObject
+                request.Create("create", "Product2", DNF.Assign(GetTestProduct2(), new JObject
                 {
                     ["Source_Product_ID__c"] = testText,
                 }));
@@ -205,7 +205,7 @@ AND Name = {DNF.SOQLString(testText)}");
 
                 request.Delete("delete", "Product2", "@{create.id}");
                 var result = await client.Composite.PostAsync(request);
-                //result.ThrowIfError();
+                //DNF.ThrowIfError(result);
                 Assert.Equal(testText, result.Results("created")?["Source_Product_ID__c"]);
                 Assert.Equal(0, result.Queries("query")?.TotalSize);
                 Assert.Equal(0, result.Queries("upserted").TotalSize);
@@ -226,7 +226,7 @@ AND Name = {DNF.SOQLString(testText)}");
             try
             {
                 var request = new CompositeRequest(allOrNone: true);
-                request.Create("create", "Product2", GetTestProduct2().Assign(new JObject
+                request.Create("create", "Product2", DNF.Assign(GetTestProduct2(), new JObject
                 {
                     ["Name"] = $"UnitTest' AND Name != '",
                     ["Source_Product_ID__c"] = $"UnitTest' AND Name != '",
@@ -252,7 +252,7 @@ AND Source_Product_ID__c = {DNF.SOQLString("UnitTest' AND Name != '2")}");
                 });
                 request.Delete("delete", "Product2", "@{updated.records[0].Id}");
                 var result = await client.Composite.PostAsync(request);
-                result.ThrowIfError();
+                DNF.ThrowIfError(result);
                 Assert.Equal(0, result.Queries("query2")?.TotalSize);
             }
             finally
@@ -291,7 +291,7 @@ AND Subject = 'UnitTest'
 AND SuppliedName = 'D'");
                 request.Delete("delete", "Case", "@{updated.records[0].Id}");
                 var result = await client.Composite.PostAsync(request);
-                result.ThrowIfError();
+                DNF.ThrowIfError(result);
             }
             finally
             {
@@ -318,7 +318,7 @@ AND Subject = '@{query.records[0].Subject}'");
                 });
                 request.Delete("delete", "Case", "@{updated.records[0].Id}");
                 var result = await client.Composite.PostAsync(request);
-                result.ThrowIfError();
+                DNF.ThrowIfError(result);
             });
         }
 
@@ -381,7 +381,7 @@ AND Subject = {DNF.SOQLString($"UnitTest {testName}")}");
                     result.Requests().Count - 1,
                     result.Errors().Values
                     .Count(errs => errs.Any(err => err.Message == "The transaction was rolled back since another operation in the same transaction failed.")));
-                result.ThrowIfError();
+                DNF.ThrowIfError(result);
             });
         }
     }

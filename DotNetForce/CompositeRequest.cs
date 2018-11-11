@@ -109,7 +109,7 @@ namespace DotNetForce
 
             var request = new CompositeSubrequest
             {
-                Body = JObject.FromObject(record).UnFlatten(),
+                Body = DNF.UnFlatten(JObject.FromObject(record)),
                 Method = "POST",
                 ReferenceId = referenceId,
                 Url = $"sobjects/{objectName}"
@@ -180,8 +180,8 @@ namespace DotNetForce
             if (string.IsNullOrEmpty(objectName)) throw new ArgumentNullException("objectName");
             if (record == null) throw new ArgumentNullException("record");
 
-            var body = JObject.FromObject(record).UnFlatten();
-            return Update(referenceId, objectName, body["Id"]?.ToString(), body.Omit("Id"));
+            var body = DNF.UnFlatten(JObject.FromObject(record));
+            return Update(referenceId, objectName, body["Id"]?.ToString(), DNF.Omit(body, "Id"));
         }
 
         public CompositeSubrequest Update(string referenceId, string objectName, string recordId, object record)
@@ -191,10 +191,10 @@ namespace DotNetForce
             if (string.IsNullOrEmpty(recordId)) throw new ArgumentNullException("recordId");
             if (record == null) throw new ArgumentNullException("record");
 
-            var body = JObject.FromObject(record).UnFlatten();
+            var body = DNF.UnFlatten(JObject.FromObject(record));
             var request = new CompositeSubrequest
             {
-                Body = body.Omit("Id"),
+                Body = DNF.Omit(body, "Id"),
                 Method = "PATCH",
                 ReferenceId = referenceId,
                 Url = $"sobjects/{objectName}/{recordId}"
@@ -209,8 +209,8 @@ namespace DotNetForce
             if (string.IsNullOrEmpty(objectName)) throw new ArgumentNullException("objectName");
             if (record == null) throw new ArgumentNullException("record");
 
-            var body = JObject.FromObject(record).UnFlatten();
-            return UpsertExternal(referenceId, objectName, externalFieldName, body[externalFieldName]?.ToString(), body.Omit(externalFieldName));
+            var body = DNF.UnFlatten(JObject.FromObject(record));
+            return UpsertExternal(referenceId, objectName, externalFieldName, body[externalFieldName]?.ToString(), DNF.Omit(body, externalFieldName));
         }
 
         public CompositeSubrequest UpsertExternal(string referenceId, string objectName, string externalFieldName, string externalId, object record)
@@ -220,10 +220,10 @@ namespace DotNetForce
             if (string.IsNullOrEmpty(externalId)) throw new ArgumentNullException("externalId");
             if (record == null) throw new ArgumentNullException("record");
 
-            var body = JObject.FromObject(record).UnFlatten();
+            var body = DNF.UnFlatten(JObject.FromObject(record));
             var request = new CompositeSubrequest
             {
-                Body = body.Omit(externalFieldName),
+                Body = DNF.Omit(body, externalFieldName),
                 Method = "PATCH",
                 ReferenceId = referenceId,
                 Url = $"sobjects/{objectName}/{externalFieldName}/{Uri.EscapeDataString(externalId)}"
@@ -401,9 +401,9 @@ namespace DotNetForce
             
             var result = new List<CompositeSubrequest>();
             
-            foreach (var (chunk, chunkIdx) in records.Chunk(200).Select((chunk, chunkIdx) => (chunk, chunkIdx)))
+            foreach (var (chunk, chunkIdx) in DNF.Chunk(records, 200).Select((chunk, chunkIdx) => (chunk, chunkIdx)))
             {
-                var bodyRecords = JArray.FromObject(chunk.Select(record => JObject.FromObject(record).UnFlatten()));
+                var bodyRecords = JArray.FromObject(chunk.Select(record => DNF.UnFlatten(JObject.FromObject(record))));
                 var request = new CompositeSubrequest
                 {
                     ResponseType = "collections",
@@ -431,7 +431,7 @@ namespace DotNetForce
             
             var result = new List<CompositeSubrequest>();
 
-            foreach (var (chunk, chunkIdx) in ids.Chunk(2000).Select((chunk, chunkIdx) => (chunk, chunkIdx)))
+            foreach (var (chunk, chunkIdx) in DNF.Chunk(ids, 2000).Select((chunk, chunkIdx) => (chunk, chunkIdx)))
             {
                 var request = new CompositeSubrequest
                 {
@@ -461,7 +461,7 @@ namespace DotNetForce
 
             var result = new List<CompositeSubrequest>();
 
-            foreach (var (chunk, chunkIdx) in externalIds.Chunk(2000).Select((chunk, chunkIdx) => (chunk, chunkIdx)))
+            foreach (var (chunk, chunkIdx) in DNF.Chunk(externalIds, 2000).Select((chunk, chunkIdx) => (chunk, chunkIdx)))
             {
                 var request = new CompositeSubrequest
                 {
@@ -489,9 +489,9 @@ namespace DotNetForce
             if (allOrNone && records.Count() > 200) throw new ArgumentOutOfRangeException("records");
                         var result = new List<CompositeSubrequest>();
 
-            foreach (var (chunk, chunkIdx) in records.Chunk(200).Select((chunk, chunkIdx) => (chunk, chunkIdx)))
+            foreach (var (chunk, chunkIdx) in DNF.Chunk(records, 200).Select((chunk, chunkIdx) => (chunk, chunkIdx)))
             {
-                var bodyRecords = JArray.FromObject(chunk.Select(record => JObject.FromObject(record).UnFlatten()));
+                var bodyRecords = JArray.FromObject(chunk.Select(record => DNF.UnFlatten(JObject.FromObject(record))));
                 var request = new CompositeSubrequest
                 {
                     ResponseType = "collections",
@@ -524,9 +524,9 @@ namespace DotNetForce
 
         //    if (allOrNone && records.Count() > 200) throw new ArgumentOutOfRangeException("records");
 
-        //    foreach (var (chunk, chunkIdx) in records.Chunk(200).Select((chunk, chunkIdx) => (chunk, chunkIdx)))
+        //    foreach (var (chunk, chunkIdx) in DNF.Chunk(records, 200).Select((chunk, chunkIdx) => (chunk, chunkIdx)))
         //    {
-        //        var bodyRecords = JArray.FromObject(chunk.Select(record => JObject.FromObject(record).UnFlatten()));
+        //        var bodyRecords = JArray.FromObject(chunk.Select(record => DNF.UnFlatten(JObject.FromObject(record))));
         //        var request = new CompositeSubrequest
         //        {
         //            ResponseType = "collections",
@@ -554,7 +554,7 @@ namespace DotNetForce
             
             var result = new List<CompositeSubrequest>();
 
-            foreach (var (chunk, chunkIdx) in ids.Chunk(200).Select((chunk, chunkIdx) => (chunk, chunkIdx)))
+            foreach (var (chunk, chunkIdx) in DNF.Chunk(ids, 200).Select((chunk, chunkIdx) => (chunk, chunkIdx)))
             {
                 var request = new CompositeSubrequest
                 {
@@ -581,7 +581,7 @@ namespace DotNetForce
                 ResponseType = "query",
                 Method = "GET",
                 ReferenceId = referenceId,
-                Url = $@"query?q={Uri.EscapeDataString(query)}"
+                Url = $@"query?q={System.Web.HttpUtility.UrlEncode(query)}"
             };
             CompositeRequests.Add(request);
             return request;

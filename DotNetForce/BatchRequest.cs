@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reactive.Linq;
+using System.Web;
 
 namespace DotNetForce
 {
@@ -72,8 +73,8 @@ namespace DotNetForce
 
         public BatchSubrequest GetDeleted(string objectName, DateTime startDateTime, DateTime endDateTime)
         {
-            var sdt = Uri.EscapeDataString(startDateTime.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ss+00:00", System.Globalization.CultureInfo.InvariantCulture));
-            var edt = Uri.EscapeDataString(endDateTime.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ss+00:00", System.Globalization.CultureInfo.InvariantCulture));
+            var sdt = HttpUtility.UrlEncode(startDateTime.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ss+00:00", System.Globalization.CultureInfo.InvariantCulture));
+            var edt = HttpUtility.UrlEncode(endDateTime.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ss+00:00", System.Globalization.CultureInfo.InvariantCulture));
 
             var request = new BatchSubrequest
             {
@@ -86,8 +87,8 @@ namespace DotNetForce
 
         public BatchSubrequest GetUpdated(string objectName, DateTime startDateTime, DateTime endDateTime)
         {
-            var sdt = Uri.EscapeDataString(startDateTime.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ss+00:00", System.Globalization.CultureInfo.InvariantCulture));
-            var edt = Uri.EscapeDataString(endDateTime.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ss+00:00", System.Globalization.CultureInfo.InvariantCulture));
+            var sdt = HttpUtility.UrlEncode(startDateTime.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ss+00:00", System.Globalization.CultureInfo.InvariantCulture));
+            var edt = HttpUtility.UrlEncode(endDateTime.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ss+00:00", System.Globalization.CultureInfo.InvariantCulture));
 
             var request = new BatchSubrequest
             {
@@ -105,7 +106,7 @@ namespace DotNetForce
 
             var request = new BatchSubrequest
             {
-                RichInput = JObject.FromObject(record).UnFlatten(),
+                RichInput = DNF.UnFlatten(JObject.FromObject(record)),
                 Url = $"sobjects/{objectName}"
             };
             BatchRequests.Add(request);
@@ -121,7 +122,7 @@ namespace DotNetForce
             {
                 Method = "GET",
                 Url = fields?.Length > 0
-                    ? $"sobjects/{objectName}/{recordId}?fields={string.Join(",", fields.Select(field => Uri.EscapeDataString(field)))}"
+                    ? $"sobjects/{objectName}/{recordId}?fields={string.Join(",", fields.Select(field => HttpUtility.UrlEncode(field)))}"
                     : $"sobjects/{objectName}/{recordId}"
             };
             BatchRequests.Add(request);
@@ -138,7 +139,7 @@ namespace DotNetForce
             {
                 Method = "GET",
                 Url = fields?.Length > 0
-                    ? $"sobjects/{objectName}/{externalFieldName}/{Uri.EscapeDataString(externalId)}?fields={string.Join(",", fields.Select(field => Uri.EscapeDataString(field)))}"
+                    ? $"sobjects/{objectName}/{externalFieldName}/{HttpUtility.UrlEncode(externalId)}?fields={string.Join(",", fields.Select(field => HttpUtility.UrlEncode(field)))}"
                     : $"sobjects/{objectName}/{externalFieldName}"
             };
             BatchRequests.Add(request);
@@ -155,7 +156,7 @@ namespace DotNetForce
             {
                 Method = "GET",
                 Url = fields?.Length > 0
-                    ? $"sobjects/{objectName}/{recordId}/{relationshipFieldName}?fields={string.Join(",", fields.Select(field => Uri.EscapeDataString(field)))}"
+                    ? $"sobjects/{objectName}/{recordId}/{relationshipFieldName}?fields={string.Join(",", fields.Select(field => HttpUtility.UrlEncode(field)))}"
                     : $"sobjects/{objectName}/{recordId}/{relationshipFieldName}"
             };
             BatchRequests.Add(request);
@@ -167,8 +168,8 @@ namespace DotNetForce
             if (string.IsNullOrEmpty(objectName)) throw new ArgumentNullException("objectName");
             if (record == null) throw new ArgumentNullException("record");
 
-            var richInput = JObject.FromObject(record).UnFlatten();
-            return Update(objectName, richInput["Id"]?.ToString(), richInput.Omit("Id"));
+            var richInput = DNF.UnFlatten(JObject.FromObject(record));
+            return Update(objectName, richInput["Id"]?.ToString(), DNF.Omit(richInput, "Id"));
         }
 
         public BatchSubrequest Update(string objectName, string recordId, object record)
@@ -177,10 +178,10 @@ namespace DotNetForce
             if (string.IsNullOrEmpty(recordId)) throw new ArgumentNullException("recordId");
             if (record == null) throw new ArgumentNullException("record");
 
-            var richInput = JObject.FromObject(record).UnFlatten();
+            var richInput = DNF.UnFlatten(JObject.FromObject(record));
             var request = new BatchSubrequest
             {
-                RichInput = richInput.Omit("Id"),
+                RichInput = DNF.Omit(richInput, "Id"),
                 Method = "PATCH",
                 Url = $"sobjects/{objectName}/{recordId}"
             };
@@ -193,8 +194,8 @@ namespace DotNetForce
             if (string.IsNullOrEmpty(objectName)) throw new ArgumentNullException("objectName");
             if (record == null) throw new ArgumentNullException("record");
 
-            var richInput = JObject.FromObject(record).UnFlatten();
-            return UpsertExternal(objectName, externalFieldName, richInput[externalFieldName]?.ToString(), richInput.Omit(externalFieldName));
+            var richInput = DNF.UnFlatten(JObject.FromObject(record));
+            return UpsertExternal(objectName, externalFieldName, richInput[externalFieldName]?.ToString(), DNF.Omit(richInput, externalFieldName));
         }
 
         public BatchSubrequest UpsertExternal(string objectName, string externalFieldName, string externalId, object record)
@@ -203,12 +204,12 @@ namespace DotNetForce
             if (string.IsNullOrEmpty(externalId)) throw new ArgumentNullException("externalId");
             if (record == null) throw new ArgumentNullException("record");
 
-            var richInput = JObject.FromObject(record).UnFlatten();
+            var richInput = DNF.UnFlatten(JObject.FromObject(record));
             var request = new BatchSubrequest
             {
-                RichInput = richInput.Omit(externalFieldName),
+                RichInput = DNF.Omit(richInput, externalFieldName),
                 Method = "PATCH",
-                Url = $"sobjects/{objectName}/{externalFieldName}/{Uri.EscapeDataString(externalId)}"
+                Url = $"sobjects/{objectName}/{externalFieldName}/{HttpUtility.UrlEncode(externalId)}"
             };
             BatchRequests.Add(request);
             return request;
@@ -237,7 +238,7 @@ namespace DotNetForce
             var request = new BatchSubrequest
             {
                 Method = "DELETE",
-                Url = $"sobjects/{objectName}/{externalFieldName}/{Uri.EscapeDataString(externalId)}"
+                Url = $"sobjects/{objectName}/{externalFieldName}/{HttpUtility.UrlEncode(externalId)}"
             };
             BatchRequests.Add(request);
             return request;
@@ -359,7 +360,7 @@ namespace DotNetForce
             {
                 ResponseType = "query",
                 Method = "GET",
-                Url = $"query?q={Uri.EscapeDataString(query)}"
+                Url = $"query?q={HttpUtility.UrlEncode(query)}"
             };
             BatchRequests.Add(request);
             return request;
@@ -373,7 +374,7 @@ namespace DotNetForce
             {
                 ResponseType = "query",
                 Method = "GET",
-                Url = $"queryAll?q={Uri.EscapeDataString(query)}"
+                Url = $"queryAll?q={HttpUtility.UrlEncode(query)}"
             };
             BatchRequests.Add(request);
             return request;
@@ -390,7 +391,7 @@ namespace DotNetForce
             {
                 ResponseType = "query",
                 Method = "GET",
-                Url = $"search?q={Uri.EscapeDataString(query)}"
+                Url = $"search?q={HttpUtility.UrlEncode(query)}"
             };
             BatchRequests.Add(request);
             return request;

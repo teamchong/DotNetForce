@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
+using System.Web;
 
 namespace DotNetForce.Force
 {
@@ -53,7 +54,7 @@ namespace DotNetForce.Force
         {
             if (string.IsNullOrEmpty(query)) throw new ArgumentNullException("query");
 
-            return _jsonHttpClient.HttpGetAsync<QueryResult<T>>(string.Format("query?q={0}", Uri.EscapeDataString(query)));
+            return _jsonHttpClient.HttpGetAsync<QueryResult<T>>(string.Format("query?q={0}", HttpUtility.UrlEncode(query)));
         }
 
         public Task<QueryResult<T>> QueryContinuationAsync<T>(string nextRecordsUrl)
@@ -67,7 +68,7 @@ namespace DotNetForce.Force
         {
             if (string.IsNullOrEmpty(query)) throw new ArgumentNullException("query");
 
-            return _jsonHttpClient.HttpGetAsync<QueryResult<T>>(string.Format("queryAll/?q={0}", Uri.EscapeDataString(query)));
+            return _jsonHttpClient.HttpGetAsync<QueryResult<T>>(string.Format("queryAll/?q={0}", HttpUtility.UrlEncode(query)));
         }
 
         public async Task<System.IO.Stream> GetBlobAsync(String objectName, String objectId, String fieldName)
@@ -122,11 +123,11 @@ namespace DotNetForce.Force
             if (request == null)
                 throw new ArgumentNullException("request");
             
-            return await DNF.TryDeserializeObject(async () =>
+            return await DNF.TryDeserializeObject(Task.Run(async () =>
             {
                 var result = await _jsonHttpClient.HttpPostAsync<SaveResponse>(request, string.Format("composite/tree/{0}", objectName)).ConfigureAwait(false);
                 return result;
-            });
+            }));
         }
 
         public Task<SuccessResponse> UpdateAsync(string objectName, string recordId, object record)
@@ -197,16 +198,16 @@ namespace DotNetForce.Force
 
         public Task<T> GetDeleted<T>(string objectName, DateTime startDateTime, DateTime endDateTime)
         {
-            var sdt = Uri.EscapeDataString(startDateTime.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ss+00:00", System.Globalization.CultureInfo.InvariantCulture));
-            var edt = Uri.EscapeDataString(endDateTime.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ss+00:00", System.Globalization.CultureInfo.InvariantCulture));
+            var sdt = HttpUtility.UrlEncode(startDateTime.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ss+00:00", System.Globalization.CultureInfo.InvariantCulture));
+            var edt = HttpUtility.UrlEncode(endDateTime.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ss+00:00", System.Globalization.CultureInfo.InvariantCulture));
 
             return _jsonHttpClient.HttpGetAsync<T>(string.Format("sobjects/{0}/deleted/?start={1}&end={2}", objectName, sdt, edt));
         }
 
         public Task<T> GetUpdated<T>(string objectName, DateTime startDateTime, DateTime endDateTime)
         {
-            var sdt = Uri.EscapeDataString(startDateTime.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ss+00:00", System.Globalization.CultureInfo.InvariantCulture));
-            var edt = Uri.EscapeDataString(endDateTime.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ss+00:00", System.Globalization.CultureInfo.InvariantCulture));
+            var sdt = HttpUtility.UrlEncode(startDateTime.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ss+00:00", System.Globalization.CultureInfo.InvariantCulture));
+            var edt = HttpUtility.UrlEncode(endDateTime.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ss+00:00", System.Globalization.CultureInfo.InvariantCulture));
 
             return _jsonHttpClient.HttpGetAsync<T>(string.Format("sobjects/{0}/updated/?start={1}&end={2}", objectName, sdt, edt));
         }
@@ -236,7 +237,7 @@ namespace DotNetForce.Force
             if (!query.Contains("FIND")) throw new ArgumentException("query does not contain FIND");
             if (!query.Contains("{") || !query.Contains("}")) throw new ArgumentException("search term must be wrapped in braces");
 
-            return _jsonHttpClient.HttpGetAsync<List<T>>(string.Format("search?q={0}", Uri.EscapeDataString(query)));
+            return _jsonHttpClient.HttpGetAsync<List<T>>(string.Format("search?q={0}", HttpUtility.UrlEncode(query)));
         }
 
         public async Task<T> UserInfo<T>(string url)

@@ -1,0 +1,64 @@
+﻿<#@ template debug="false" hostspecific="true" language="C#" #>
+<#@ assembly name="$(ProjectDir)DotNetForce.dll" #>
+<#@ assembly name="$(ProjectDir)netstandard.dll" #>
+<#@ assembly name="$(ProjectDir)Newtonsoft.Json.dll" #>
+<#@ assembly name="$(ProjectDir)System.Reactive.dll" #>
+<#@ assembly name="System.Core" #>
+<#@ import namespace="DotNetForce" #>
+<#@ import namespace="Newtonsoft.Json" #>
+<#@ import namespace="Newtonsoft.Json.Linq" #>
+<#@ import namespace="System" #>
+<#@ import namespace="System.Collections.Generic" #>
+<#@ import namespace="System.Diagnostics" #>
+<#@ import namespace="System.IO" #>
+<#@ import namespace="System.Linq" #>
+<#@ import namespace="System.Text" #>
+<#@ import namespace="System.Threading" #>
+<#@ import namespace="System.Threading.Tasks" #>
+<#@ include file="T4\SfModelGenerator.ttinclude" once="true" #>
+<#@ include file="T4\WriteJObjectWrapperAsync.ttinclude" once="true" #>
+<#@ include file="T4\WriteJsonAsync.ttinclude" once="true" #>
+<#@ include file="T4\WriteObjectAsync.ttinclude" once="true" #>
+<#@ include file="T4\WriteSchemaAsync.ttinclude" once="true" #>
+<#@ output extension="log" #>
+<#
+	var throttler = new SemaphoreSlim(1, 1);
+	RunTransformAsync(throttler).Wait();
+#>
+<#+
+async Task RunTransformAsync(SemaphoreSlim throttler) {
+	var output = new StringBuilder();
+	try {
+		Warning(Host.ResolvePath(".."));
+		var instanceName = Path.GetFileNameWithoutExtension(Host.TemplateFile);
+		var projectDir = Path.GetDirectoryName(Host.TemplateFile);
+		var solutionDir = Path.GetDirectoryName(projectDir);
+		var devDir = Path.GetDirectoryName(solutionDir);
+
+		var generator = new SfModelGenerator(
+			projectDir, instanceName, GenerationEnvironment,
+			msg => output.AppendLine(msg), msg => Warning(msg));
+		var devProfileFile = Path.Combine(devDir, "LoginProfiles.json");
+		var profileFile = Path.Combine(projectDir, "LoginProfiles.json");
+		var loginProfiles = generator.ReadProfile(devProfileFile) ?? generator.ReadProfile(profileFile) ?? throw new Exception("profile not found " + profileFile + ".");
+		var loginProfile = loginProfiles[instanceName] ?? throw new Exception("instance " + instanceName + " not found in profile.");
+		var loginUri = new Uri(loginProfile["LoginUrl"]?.ToString() ?? throw new Exception("LoginUrl is null."));
+		var clientId = loginProfile["ClientId"]?.ToString() ?? throw new Exception("ClientId is null.");
+		var clientSecret = loginProfile["ClientSecret"]?.ToString() ?? throw new Exception("ClientSecret is null.");
+		var userName = loginProfile["UserName"]?.ToString() ?? throw new Exception("UserName is null.");
+		var password = loginProfile["Password"]?.ToString() ?? throw new Exception("Password is null.");
+		var objects = await generator.GenerateAsync(loginUri, clientId, clientSecret, userName, password);
+
+		await WriteSchemaAsync(instanceName, objects, generator).ConfigureAwait(false);
+		await WriteJObjectExtensionAsync(instanceName, generator).ConfigureAwait(false);
+
+		foreach (var prop in objects.Properties())
+		{
+			await WriteJsonAsync(prop.Name, prop.Value, generator).ConfigureAwait(false);
+			await WriteObjectAsync(instanceName, prop.Name, prop.Value, generator).ConfigureAwait(false);
+		}
+	} finally {
+		Warning(output.ToString());
+	}
+}
+#>

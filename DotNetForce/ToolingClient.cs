@@ -51,7 +51,7 @@ namespace DotNetForce
         {
             if (string.IsNullOrEmpty(q)) throw new ArgumentNullException("q");
 
-            var urlSuffix = $"tooling/query?q={Uri.EscapeDataString(q)}";
+            var urlSuffix = $"tooling/query?q={HttpUtility.UrlEncode(q)}";
             return await JsonHttp.HttpGetAsync<QueryResult<T>>(urlSuffix).ConfigureAwait(false);
         }
 
@@ -59,7 +59,7 @@ namespace DotNetForce
         {
             if (string.IsNullOrEmpty(q)) throw new ArgumentNullException("q");
 
-            var urlSuffix = $"tooling/search?q={Uri.EscapeDataString(q)}";
+            var urlSuffix = $"tooling/search?q={HttpUtility.UrlEncode(q)}";
             return await JsonHttp.HttpGetAsync<QueryResult<T>>(urlSuffix).ConfigureAwait(false);
         }
 
@@ -79,7 +79,7 @@ namespace DotNetForce
         public async Task<T> RetreiveAsync<T>(MetadataType metadataType, string recordId, string[] fields)
         {
             var urlSuffix = fields?.Length > 0
-                ? $"tooling/sobjects/{metadataType}/{recordId}?fields={string.Join(",", fields.Select(field => Uri.EscapeDataString(field)))}"
+                ? $"tooling/sobjects/{metadataType}/{recordId}?fields={string.Join(",", fields.Select(field => HttpUtility.UrlEncode(field)))}"
                 : $"tooling/sobjects/{metadataType}/{recordId}";
             return await JsonHttp.HttpGetAsync<T>(urlSuffix).ConfigureAwait(false);
         }
@@ -89,7 +89,7 @@ namespace DotNetForce
             if (record == null) throw new ArgumentNullException("record");
 
             var body = JObject.FromObject(record);
-            return UpdateAsync(metadataType, body["Id"]?.ToString(), body.Omit("Id"));
+            return UpdateAsync(metadataType, body["Id"]?.ToString(), DNF.Omit(body, "Id"));
         }
 
         public async Task<SuccessResponse> UpdateAsync(MetadataType metadataType, string recordId, object record)
@@ -114,7 +114,7 @@ namespace DotNetForce
         {
             if (string.IsNullOrEmpty(type)) throw new ArgumentNullException("type");
 
-            var urlSuffix = $"tooling/completions?type={Uri.EscapeDataString(type)}";
+            var urlSuffix = $"tooling/completions?type={HttpUtility.UrlEncode(type)}";
             return await JsonHttp.HttpGetAsync<JToken>(urlSuffix).ConfigureAwait(false);
         }
 
@@ -122,7 +122,7 @@ namespace DotNetForce
         {
             if (string.IsNullOrEmpty(anonymousBody)) throw new ArgumentNullException("anonymousBody");
 
-            var urlSuffix = $"tooling/executeAnonymous?anonymousBody={Uri.EscapeDataString(anonymousBody)}";
+            var urlSuffix = $"tooling/executeAnonymous?anonymousBody={HttpUtility.UrlEncode(anonymousBody)}";
             return await JsonHttp.HttpGetAsync<ExecuteAnonymousResult>(urlSuffix).ConfigureAwait(false);
         }
 

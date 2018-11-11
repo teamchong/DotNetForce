@@ -15,7 +15,7 @@ namespace DotNetForce.Common
         public string Id { get; set; }
         public string ApiVersion { get; set; }
 
-        private const string UserAgent = "forcedotcom-toolkit-dotnet";
+        private const string UserAgent = "dotnetforce";
         private const string TokenRequestEndpointUrl = "https://login.salesforce.com/services/oauth2/token";
         private readonly HttpClient _httpClient;
 
