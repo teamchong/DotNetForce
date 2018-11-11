@@ -29,7 +29,7 @@
   </ItemGroup>
 
   <Target Name="PreBuild" BeforeTargets="PreBuildEvent">
-    <Exec Command="copy /Y &quot;$(SolutionDir)DotNetForce\bin\Debug\netstandard2.0\DotNetForce.dll&quot; &quot;$(ProjectDir)&quot;&#xD;&#xA;copy /Y &quot;$(SolutionDir)packages\Newtonsoft.Json.11.0.2\lib\netstandard2.0\Newtonsoft.Json.dlll&quot; &quot;$(ProjectDir)&quot;&#xD;&#xA;copy /Y &quot;$(SolutionDir)packages\System.Reactive.4.1.1\lib\netstandard2.0\System.Reactive.dll&quot; &quot;$(ProjectDir)&quot;" />
+    <Exec Command="copy /Y &quot;$(SolutionDir)DotNetForce\bin\Debug\netstandard2.0\DotNetForce.dll&quot;" />
   </Target>
 
 </Project>
