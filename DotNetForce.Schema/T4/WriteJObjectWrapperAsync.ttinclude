@@ -12,15 +12,10 @@ using System.Threading.Tasks;
 
 namespace DotNetForce.Schema.<#= instanceName #>
 {
-    public class JObjectWrapper
+    public class JObjectWrapper : JObject
     {
         [JsonExtensionData]
-        protected JObject Object { get; set; }
-
-        public JObjectWrapper(JObject obj)
-        {
-            Object = obj;
-        }
+        protected JObject Object { get => this; }
 
         public JObjectWrapper Spread()
         {
@@ -43,15 +38,15 @@ namespace DotNetForce.Schema.<#= instanceName #>
                     {
                         var subObj = (JObject)result[prop.Name];
                         subObj[splits[1]] = prop.Value;
-                        result[splits[0]] = new JObjectWrapper(subObj).Spread().Unwrap();
+                        result[splits[0]] = ((JObjectWrapper)subObj).Spread();
                     }
                     else
                     {
-                        result[splits[0]] = new JObjectWrapper(new JObject { [splits[1]] = prop.Value }).Spread().Unwrap();
+                        result[splits[0]] = ((JObjectWrapper)new JObject { [splits[1]] = prop.Value }).Spread();
                     }
                 }
             }
-            return new JObjectWrapper(result);
+            return (JObjectWrapper)result;
         }
 
         public JObject Unwrap() => Object;
