@@ -1,5 +1,34 @@
 # DotNetForce
 
+V2.0.0
+I have updated the library, but don't have time to document the changes, please check the TestClass
+new "DotNetForce.Schema" created by T4 template.
+
+i.e.
+var opp = Schema.Of(s => s.Opportunity);
+var line = Schema.Of(s => s.OpportunityLineItem);
+or
+var (opp, line) = Schema.Of(s => (s.Opportunity, s.OpportunityLineItem));
+
+var oppties = await Schema.Wrap(Client.GetEnumerableAsync($@"
+SELECT {opp.Id}, {opp.Account.CreatedBy.Name}, (SELECT {line.ListPrice} FROM {opp.OpportunityLineItems})
+FROM {opp}
+WHERE {opp.Name} LIKE 'Test'
+"));
+foreach (var oppObj in oppties)
+{
+    var id = oppObj.Get(opp.Id);
+    var createdByName = oppObj.Get(opp.CreatedBy.Name);
+    var oppLines = Schema.Wrap(Client.GetEnumerable(oppObj.Get(opp.OpportunityLineItems)));
+    foreach (var oppLine in oppLines)
+    {
+        var listPrice = oppLine.Get(line.ListPrice);
+    }
+}
+
+I plan to create this libaray for TypeScript later.
+--------------------------------------------------------------------------------
+
 Original repository https://github.com/developerforce/Force.com-Toolkit-for-NET
 
 Currently it support the following
@@ -94,16 +123,15 @@ var record = await client.QueryByIdAsync<JObject>("Opportunity", oppId);
 
 Query 
 ```cs
-var result = await client.QueryAsync<JObject>($@"
+var records = await client.GetEnumerableAsync<JObject>($@"
 SELECT Id FROM Opportunity WHERE LastModifiedDate > {DNF.SOQLDateTime(new DateTime(2018, 1, 1))}");
-var records = result.ToEnumerable(client);
 ```
 
 Query (included deleted)
 ```cs
-var result = await client.QueryAllAsync<JObject>($@"
+var result = await client.GetAllEnumerableAsync<JObject>($@"
 SELECT Id FROM Opportunity WHERE LastModifiedDate > {DNF.SOQLDateTime(new DateTime(2018, 1, 1))}");
-var records = result.ToEnumerable(client);
+var records = result.GetEnumerable(client);
 ```
 
 Query Sub-query
@@ -111,7 +139,7 @@ Query Sub-query
 var result = await client.QueryAsync<JObject>($@"
 SELECT Id, (SELECT Id FROM Opportunities) FROM Account LIMIT 1");
 for (var acc in result.Records) {
-   var records = result.ToEnumerable(acc, "Opportunities");
+   var records = result.GetEnumerable(acc, "Opportunities");
 }
 ```
 
@@ -123,29 +151,29 @@ var caseList = Enumerable.Range(1, 40).Select(i => new AttributedObject("Case")
 {
   ["Subject"] = $"UnitTest{i}",
 }).ToArray();
-var result = await caseList.CreateAsync(client, true);
+var result = await client.Composite.CreateAsync(caseList, true);
 result.ThrowIfError();
 Assert.NotEmpty(result.SuccessResponses());
 ```
 
- Create mutlipls records (in transaction, allOrNone: true, up to 25 records can be created)
+ Create multiple records (in transaction, allOrNone: true, up to 25 records can be created)
 ```cs
  var caseList = Enumerable.Range(1, 40).Select(i => new AttributedObject("Case")
  {
      ["Subject"] = $"UnitTest{i}",
  }).ToArray();
- var result = await caseList.CreateAsync(client, true);
+ var result = await client.Composite.CreateAsync(caseList, true);
  result.ThrowIfError();
  Assert.NotEmpty(result.SuccessResponses());
  ```
  
- Create mutlipls records (no transaction, no limit)
+ Create multiple records (no transaction, no limit)
 ```cs
  var expected = 200 * 26;
- var existingCase = await client.QueryAsync<JObject>($@"
+ var existingCase = await client.GetEnumerableAsync<JObject>($@"
 SELECT Name FROM Opportunity ORDER BY Id LIMIT {expected}");
 
- var newCase = await existingCase.ToEnumerable(client)
+ var newCase = await existingCase
      .Select(c => new AttributedObject("Case") { ["Subject"] = $"UnitTest{c["Name"]}" })
      .CreateAsync(client);
  newCase.ThrowIfError();
