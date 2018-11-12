@@ -22,6 +22,9 @@
 <#@ include file="T4\WriteSchemaAsync.ttinclude" once="true" #>
 <#@ output extension="log" #>
 <#
+	System.Net.ServicePointManager.DefaultConnectionLimit = int.MaxValue;
+	System.Net.ServicePointManager.Expect100Continue = true;
+	System.Net.ServicePointManager.SecurityProtocol = System.Net.SecurityProtocolType.Tls12;
 	var throttler = new SemaphoreSlim(1, 1);
 	RunTransformAsync(throttler).Wait();
 #>

@@ -444,10 +444,12 @@ namespace DotNetForce
         
         public static IEnumerable<string> ChunkIds(IEnumerable<string> source, string soql, string template)
         {
+            soql = soql.Trim().Replace("\r\n", "\n");
             var soqlMaxLen = 20000;
             var nonTemplateLength = soql.Replace(template, "").Length;
             var idsTextLen = soqlMaxLen - nonTemplateLength;
-            var numOfId = (int)Math.Floor((double)idsTextLen / 18.0);;
+            var numOfTemplate = (int)Math.Ceiling((soql.Length - nonTemplateLength) / (double)template.Length);
+            var numOfId = (int)Math.Max(1, Math.Floor(idsTextLen / (18.0 * numOfTemplate)));
             return new EnumerableChunk<string>(source, numOfId).GetEnumerable()
                 .Select(l => soql.Replace(template, string.Join(",", l.Select(id => DNF.SOQLString(DNF.ToID15(id))))));
         }

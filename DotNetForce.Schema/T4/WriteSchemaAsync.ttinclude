@@ -30,9 +30,9 @@ namespace DotNetForce.Schema.<#= instanceName #>
         public static T Of<T>(Func<Schema, T> func) => func(Instance);
         public static void Of<T>(Func<Schema, T> func, Action<T> action) => action(func(Instance));
         public static TOut Of<T, TOut>(Func<Schema, T> func, Func<T, TOut> getter) => getter(func(Instance));
-        public static JObjectWrapper Wrap(JObject obj) => (JObjectWrapper)obj;
+        public static JObjectWrapper Wrap(JObject obj) => new JObjectWrapper(obj);
+        public static async Task<IEnumerable<JObjectWrapper>> Wrap(Task<IEnumerable<JObject>> objs) => Wrap(await objs);
         public static IEnumerable<JObjectWrapper> Wrap(IEnumerable<JObject> objs) => objs?.Select(o => new JObjectWrapper(o));
-        public static async Task<IEnumerable<JObjectWrapper>> Wrap(Task<IEnumerable<JObject>> objs) => (await objs)?.Select(o => new JObjectWrapper(o));
 
 <#+
 		foreach (var prop in objects.Properties())

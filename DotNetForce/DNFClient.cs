@@ -379,6 +379,13 @@ namespace DotNetForce
             return await JsonHttp.HttpGetAsync<T>($"sobjects/{objectName}/{recordId}/{relationshipFieldName}" +
                 (fields?.Length > 0 ? $"?fields={string.Join(",", fields.Select(field => HttpUtility.UrlEncode(field)))}" : "")).ConfigureAwait(false);
         }
+        
+        public async Task<IEnumerable<JObject>> GetEnumerableByIdsAsync(IEnumerable<string> source, string soql, string template)
+        {
+            var soqlList = DNF.ChunkIds(source, soql, template);
+            var result = await Task.WhenAll(soqlList.Select(soqlChunk => GetEnumerableAsync(soqlChunk)));
+            return result.SelectMany(r => r);
+        }
 
         #endregion
 
