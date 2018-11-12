@@ -4,7 +4,7 @@ I have updated the library, but don't have time to document the changes, please 
 
 V2.0.6
 1) increase query string limit to 20000 characters
-2) new DNF.ChunkIds static function
+2) new DNF.ChunkIds static function to query data using lots of ids
 usages:
 ```cs
 var opp = Schema.Of(s => s.Opportunity);
@@ -20,7 +20,7 @@ WHERE {opp.Id} IN(<ids>)", "<ids>").Select(soql =>
 ```
 
 V2.0.0
-1) new "DotNetForce.Schema" created by T4 template.
+1) new "DotNetForce.Schema" created by T4 template, please fill in LoginProfiles.json, and run the T4 template "DEV.tt" using Visual Studio
 
 usages
 ```cs
