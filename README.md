@@ -1,15 +1,38 @@
 # DotNetForce
 
-V2.0.0
 I have updated the library, but don't have time to document the changes, please check the TestClass
-new "DotNetForce.Schema" created by T4 template.
 
-i.e.
+V2.0.6
+1) increase query string limit to 20000 characters
+2) new DNF.ChunkIds static function
+usages:
+```cs
+var opp = Schema.Of(s => s.Opportunity);
+var lotsofIds = new [] { "0060I00000QkwK5"... x 100000 };
+
+var results = (await Task.WhenAll(DNF.ChunkIds(lotsofIds, $@"
+SELECT {line.Opportunity.AccountId}
+FROM {opp}
+WHERE {opp.Id} IN(<ids>)", "<ids>").Select(soql =>
+{
+   return Schema.Wrap(Client.GetEnumerableAsync(soql));
+}))).SelectMany(r => r).ToList();
+```
+
+V2.0.0
+1) new "DotNetForce.Schema" created by T4 template.
+
+usages
+```cs
 var opp = Schema.Of(s => s.Opportunity);
 var line = Schema.Of(s => s.OpportunityLineItem);
+```
 or
+```cs
 var (opp, line) = Schema.Of(s => (s.Opportunity, s.OpportunityLineItem));
+```
 
+```cs
 var oppties = await Schema.Wrap(Client.GetEnumerableAsync($@"
 SELECT {opp.Id}, {opp.Account.CreatedBy.Name}, (SELECT {line.ListPrice} FROM {opp.OpportunityLineItems})
 FROM {opp}
@@ -25,6 +48,9 @@ foreach (var oppObj in oppties)
         var listPrice = oppLine.Get(line.ListPrice);
     }
 }
+```
+
+I plan to create this libaray for TypeScript later.
 
 I plan to create this libaray for TypeScript later.
 --------------------------------------------------------------------------------
