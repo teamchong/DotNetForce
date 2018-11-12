@@ -65,9 +65,9 @@ namespace DotNetForce
 
                 foreach (var (batch, batchNo) in DNF.Chunk(records, 200 * DNF.COMPOSITE_QUERY_LIMIT).Select((batch, batchNo) => (batch, batchNo)))
                 {
+                    await throttler.WaitAsync().ConfigureAwait(false);
                     tasks.Add(Task.Run(async () =>
                     {
-                        await throttler.WaitAsync().ConfigureAwait(false);
                         try
                         {
                             var request = new CompositeRequest();
@@ -110,9 +110,9 @@ namespace DotNetForce
 
             foreach (var (batch, batchNo) in DNF.Chunk(ids, 2000 * DNF.COMPOSITE_QUERY_LIMIT).Select((batch, batchNo) => (batch, batchNo)))
             {
+                await throttler.WaitAsync().ConfigureAwait(false);
                 tasks.Add(Task.Run(async () =>
                 {
-                    await throttler.WaitAsync().ConfigureAwait(false);
                     try
                     {
                         var request = new CompositeRequest();
@@ -155,9 +155,9 @@ namespace DotNetForce
 
             foreach (var (batch, batchNo) in DNF.Chunk(externalIds, 2000 * DNF.COMPOSITE_QUERY_LIMIT).Select((batch, batchNo) => (batch, batchNo)))
             {
+                await throttler.WaitAsync().ConfigureAwait(false);
                 tasks.Add(Task.Run(async () =>
                 {
-                    await throttler.WaitAsync().ConfigureAwait(false);
                     try
                     {
                         var request = new CompositeRequest();
@@ -201,7 +201,7 @@ namespace DotNetForce
                 if (records.Count() > 200 * DNF.COMPOSITE_QUERY_LIMIT) throw new ArgumentOutOfRangeException("records");
 
                 var request = new CompositeRequest();
-                foreach (var (chunk, chunkIdx) in  DNF.Chunk(records, 200).Select((chunk, chunkIdx) => (chunk, chunkIdx)))
+                foreach (var (chunk, chunkIdx) in DNF.Chunk(records, 200).Select((chunk, chunkIdx) => (chunk, chunkIdx)))
                 {
                     request.Update($"{chunkIdx}", allOrNone, chunk);
                 }
@@ -218,9 +218,9 @@ namespace DotNetForce
 
                 foreach (var (batch, batchNo) in DNF.Chunk(records, 200 * DNF.COMPOSITE_QUERY_LIMIT).Select((batch, batchNo) => (batch, batchNo)))
                 {
+                    await throttler.WaitAsync().ConfigureAwait(false);
                     tasks.Add(Task.Run(async () =>
                     {
-                        await throttler.WaitAsync().ConfigureAwait(false);
                         try
                         {
                             var request = new CompositeRequest();
@@ -282,9 +282,9 @@ namespace DotNetForce
 
         //        foreach (var (batch, batchNo) in DNF.Chunk(records, 200 * DNF.COMPOSITE_QUERY_LIMIT).Select((batch, batchNo) => (batch, batchNo)))
         //        {
+        //            await throttler.WaitAsync().ConfigureAwait(false);
         //            tasks.Add(Task.Run(async () =>
         //            {
-        //                await throttler.WaitAsync().ConfigureAwait(false);
         //                try
         //                {
         //                    var request = new CompositeRequest();
@@ -346,9 +346,9 @@ namespace DotNetForce
 
                 foreach (var (batch, batchNo) in DNF.Chunk(ids, 200 * DNF.COMPOSITE_QUERY_LIMIT).Select((batch, batchNo) => (batch, batchNo)))
                 {
+                    await throttler.WaitAsync().ConfigureAwait(false);
                     tasks.Add(Task.Run(async () =>
                     {
-                        await throttler.WaitAsync().ConfigureAwait(false);
                         try
                         {
                             var request = new CompositeRequest();
@@ -436,38 +436,44 @@ namespace DotNetForce
                         }
                     }
 
+                    var tasks = new List<Task>();
+
                     foreach (var requests in chunks)
                     {
                         await throttler.WaitAsync().ConfigureAwait(false);
-                        try
+                        tasks.Add(Task.Run(async () =>
                         {
-                            var inputObject = new JObject
+                            try
                             {
-                                ["compositeRequest"] = JArray.FromObject(requests.Select(req => DNF.Assign(JObject.FromObject(req), new JObject
+                                var inputObject = new JObject
                                 {
-                                    ["url"] = DecodeReference($"/services/data/{ApiVersion}/{request.Prefix}{req.Url.TrimStart('/')}")
-                                })))
-                            };
+                                    ["compositeRequest"] = JArray.FromObject(requests.Select(req => DNF.Assign(JObject.FromObject(req), new JObject
+                                    {
+                                        ["url"] = DecodeReference($"/services/data/{ApiVersion}/{request.Prefix}{req.Url.TrimStart('/')}")
+                                    })))
+                                };
 
-                            var result = await JsonHttp.HttpPostAsync<CompositeResultBody>(inputObject, urlSuffix).ConfigureAwait(false);
-                            results.Add(requests, result.CompositeResponse);
-                        }
-                        catch (Exception ex)
-                        {
-                            var body = new JArray { ex.Message };
-                            var responses = requests.Select(req => new CompositeSubrequestResult
+                                var result = await JsonHttp.HttpPostAsync<CompositeResultBody>(inputObject, urlSuffix).ConfigureAwait(false);
+                                results.Add(requests, result.CompositeResponse);
+                            }
+                            catch (Exception ex)
                             {
-                                Body = body,
-                                ReferenceId = req.ReferenceId,
-                                HttpStatusCode = 500
-                            }).ToList();
-                            results.Add(requests, responses);
-                        }
-                        finally
-                        {
-                            throttler.Release();
-                        }
+                                var body = new JArray { ex.Message };
+                                var responses = requests.Select(req => new CompositeSubrequestResult
+                                {
+                                    Body = body,
+                                    ReferenceId = req.ReferenceId,
+                                    HttpStatusCode = 500
+                                }).ToList();
+                                results.Add(requests, responses);
+                            }
+                            finally
+                            {
+                                throttler.Release();
+                            }
+                        }));
                     }
+                    await Task.WhenAll(tasks).ConfigureAwait(false);
                     return results;
                 }
             }
@@ -540,38 +546,44 @@ namespace DotNetForce
                         }
                     }
 
+                    var tasks = new List<Task>();
+
                     foreach (var requests in chunks)
                     {
                         await throttler.WaitAsync().ConfigureAwait(false);
-                        try
+                        tasks.Add(Task.Run(async () =>
                         {
-                            var inputObject = new JObject
+                            try
                             {
-                                ["batchRequests"] = JArray.FromObject(requests.Select(req => DNF.Assign(JObject.FromObject(req), new JObject
+                                var inputObject = new JObject
                                 {
-                                    ["url"] = DecodeReference($"/services/data/{ApiVersion}/{request.Prefix}{req.Url.TrimStart('/')}")
-                                })))
-                            };
+                                    ["batchRequests"] = JArray.FromObject(requests.Select(req => DNF.Assign(JObject.FromObject(req), new JObject
+                                    {
+                                        ["url"] = DecodeReference($"/services/data/{ApiVersion}/{request.Prefix}{req.Url.TrimStart('/')}")
+                                    })))
+                                };
 
 
-                            var result = await JsonHttp.HttpPostAsync<BatchResultBody>(inputObject, urlSuffix).ConfigureAwait(false);
-                            results.Add(requests, result.Results);
-                        }
-                        catch (Exception ex)
-                        {
-                            var body = new JArray { ex.Message };
-                            var responses = requests.Select(req => new BatchSubrequestResult
+                                var result = await JsonHttp.HttpPostAsync<BatchResultBody>(inputObject, urlSuffix).ConfigureAwait(false);
+                                results.Add(requests, result.Results);
+                            }
+                            catch (Exception ex)
                             {
-                                Result = body,
-                                StatusCode = 500
-                            }).ToList();
-                            results.Add(requests, responses);
-                        }
-                        finally
-                        {
-                            throttler.Release();
-                        }
+                                var body = new JArray { ex.Message };
+                                var responses = requests.Select(req => new BatchSubrequestResult
+                                {
+                                    Result = body,
+                                    StatusCode = 500
+                                }).ToList();
+                                results.Add(requests, responses);
+                            }
+                            finally
+                            {
+                                throttler.Release();
+                            }
+                        }));
                     }
+                    await Task.WhenAll(tasks).ConfigureAwait(false);
                     return results;
                 }
             }

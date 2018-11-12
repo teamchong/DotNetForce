@@ -4,7 +4,9 @@ using DotNetForce.Common;
 using DotNetForce.Common.Models.Json;
 using DotNetForce.Common.Models.Xml;
 using DotNetForce.Force;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -648,19 +650,19 @@ namespace DotNetForce
                         });
                     }
 
-                    Logger?.Invoke($"Query Start {JArray.FromObject(request.CompositeRequests)}");
+                    Logger?.Invoke($@"Query Start {JsonConvert.SerializeObject(request.CompositeRequests)}");
                     var result = await Composite.PostAsync(request).ConfigureAwait(false);
 
                     DNF.ThrowIfError(result);
 
-                    Logger?.Invoke("Query End " + JArray.FromObject(result.Queries().Select(que => new
+                    Logger?.Invoke($@"Query End {JsonConvert.SerializeObject(result.Queries().Select(que => new
                     {
                         ReferenceId = que.Key,
                         que.Value.Done,
                         que.Value.TotalSize,
                         que.Value.NextRecordsUrl,
                         RecordsCount = que.Value.Records.Count
-                    })));
+                    }))}");
 
                     foreach (var (offset, size, nextUrl, referenceId) in batchChunk)
                     {
