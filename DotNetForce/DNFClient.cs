@@ -167,28 +167,42 @@ namespace DotNetForce
 
 
         #region STANDARD
-        public Task<QueryResult<JObject>> QueryAsync(string query) => Force.QueryAsync<JObject>(query);
-        public Task<QueryResult<T>> QueryAsync<T>(string query) => Force.QueryAsync<T>(query);
-        public async Task<IEnumerable<JObject>> GetEnumerableAsync(string query) => GetEnumerable(await Force.QueryAsync<JObject>(query));
-        public async Task<IEnumerable<T>> GetEnumerableAsync<T>(string query) => GetEnumerable(await Force.QueryAsync<T>(query));
-        public async Task<IEnumerable<JObject>> GetLazyEnumerableAsync(string query) => GetLazyEnumerable(await Force.QueryAsync<JObject>(query));
-        public async Task<IEnumerable<T>> GetLazyEnumerableAsync<T>(string query) => GetLazyEnumerable(await Force.QueryAsync<T>(query));
+        public Task<QueryResult<JObject>> QueryAsync(string query) => QueryAsync<JObject>(query);
+        public async Task<QueryResult<T>> QueryAsync<T>(string query)
+        {
+            var request = new CompositeRequest();
+            request.Query("q", query);
+            var result = await Composite.PostAsync(request).ConfigureAwait(false);
+            DNF.ThrowIfError(result);
+            return result.Queries<T>("q");
+        }
+        public async Task<IEnumerable<JObject>> GetEnumerableAsync(string query) => GetEnumerable(await QueryAsync<JObject>(query));
+        public async Task<IEnumerable<T>> GetEnumerableAsync<T>(string query) => GetEnumerable(await QueryAsync<T>(query));
+        public async Task<IEnumerable<JObject>> GetLazyEnumerableAsync(string query) => GetLazyEnumerable(await QueryAsync<JObject>(query));
+        public async Task<IEnumerable<T>> GetLazyEnumerableAsync<T>(string query) => GetLazyEnumerable(await QueryAsync<T>(query));
 
-        public Task<QueryResult<JObject>> QueryContinuationAsync(string nextRecordsUrl) => Force.QueryContinuationAsync<JObject>(nextRecordsUrl);
+        public Task<QueryResult<JObject>> QueryContinuationAsync(string nextRecordsUrl) => QueryContinuationAsync<JObject>(nextRecordsUrl);
         public Task<QueryResult<T>> QueryContinuationAsync<T>(string nextRecordsUrl) => Force.QueryContinuationAsync<T>(nextRecordsUrl);
 
-        public Task<QueryResult<JObject>> QueryAllAsync(string query) => Force.QueryAllAsync<JObject>(query);
-        public Task<QueryResult<T>> QueryAllAsync<T>(string query) => Force.QueryAllAsync<T>(query);
-        public async Task<IEnumerable<JObject>> GetAllEnumerableAsync(string query) => GetEnumerable(await Force.QueryAllAsync<JObject>(query));
-        public async Task<IEnumerable<T>> GetAllEnumerableAsync<T>(string query) => GetEnumerable(await Force.QueryAllAsync<T>(query));
-        public async Task<IEnumerable<JObject>> GetAllLazyEnumerableAsync(string query) => GetLazyEnumerable(await Force.QueryAllAsync<JObject>(query));
-        public async Task<IEnumerable<T>> GetAllLazyEnumerableAsync<T>(string query) => GetLazyEnumerable(await Force.QueryAllAsync<T>(query));
+        public Task<QueryResult<JObject>> QueryAllAsync(string query) => QueryAllAsync<JObject>(query);
+        public async Task<QueryResult<T>> QueryAllAsync<T>(string query)
+        {
+            var request = new CompositeRequest();
+            request.QueryAll("q", query);
+            var result = await Composite.PostAsync(request).ConfigureAwait(false);
+            DNF.ThrowIfError(result);
+            return result.Results("q").ToObject<QueryResult<T>>();
+        }
+        public async Task<IEnumerable<JObject>> GetAllEnumerableAsync(string query) => GetEnumerable(await QueryAllAsync<JObject>(query));
+        public async Task<IEnumerable<T>> GetAllEnumerableAsync<T>(string query) => GetEnumerable(await QueryAllAsync<T>(query));
+        public async Task<IEnumerable<JObject>> GetAllLazyEnumerableAsync(string query) => GetLazyEnumerable(await QueryAllAsync<JObject>(query));
+        public async Task<IEnumerable<T>> GetAllLazyEnumerableAsync<T>(string query) => GetLazyEnumerable(await QueryAllAsync<T>(query));
 
-        public Task<JObject> QueryByIdAsync(string objectName, string recordId) => Force.QueryByIdAsync<JObject>(objectName, recordId);
+        public Task<JObject> QueryByIdAsync(string objectName, string recordId) => QueryByIdAsync<JObject>(objectName, recordId);
         public Task<T> QueryByIdAsync<T>(string objectName, string recordId) => Force.QueryByIdAsync<T>(objectName, recordId);
-        public Task<JObject> ExecuteRestApiAsync(string apiName) => Force.ExecuteRestApiAsync<JObject>(apiName);
+        public Task<JObject> ExecuteRestApiAsync(string apiName) => ExecuteRestApiAsync<JObject>(apiName);
         public Task<T> ExecuteRestApiAsync<T>(string apiName) => Force.ExecuteRestApiAsync<T>(apiName);
-        public Task<JObject> ExecuteRestApiAsync(string apiName, object inputObject) => Force.ExecuteRestApiAsync<JObject>(apiName, inputObject);
+        public Task<JObject> ExecuteRestApiAsync(string apiName, object inputObject) => ExecuteRestApiAsync<JObject>(apiName, inputObject);
         public Task<T> ExecuteRestApiAsync<T>(string apiName, object inputObject) => Force.ExecuteRestApiAsync<T>(apiName, inputObject);
         public Task<SuccessResponse> CreateAsync(string objectName, object record) => Force.CreateAsync(objectName, record);
         public Task<SaveResponse> CreateAsync(string objectName, CreateRequest request) => Force.CreateAsync(objectName, request);
@@ -197,25 +211,25 @@ namespace DotNetForce
         public Task<SuccessResponse> UpsertExternalAsync(string objectName, string externalFieldName, string externalId, object record, bool ignoreNull) => Force.UpsertExternalAsync(objectName, externalFieldName, HttpUtility.UrlEncode(externalId), record, ignoreNull);
         public Task<bool> DeleteAsync(string objectName, string recordId) => Force.DeleteAsync(objectName, recordId);
         public Task<bool> DeleteExternalAsync(string objectName, string externalFieldName, string externalId) => Force.DeleteExternalAsync(objectName, externalFieldName, HttpUtility.UrlEncode(externalId));
-        public Task<DescribeGlobalResult<JObject>> GetObjectsAsync() => Force.GetObjectsAsync<JObject>();
+        public Task<DescribeGlobalResult<JObject>> GetObjectsAsync() => GetObjectsAsync<JObject>();
         public Task<DescribeGlobalResult<T>> GetObjectsAsync<T>() => Force.GetObjectsAsync<T>();
-        public Task<JObject> BasicInformationAsync(string objectName) => Force.BasicInformationAsync<JObject>(objectName);
+        public Task<JObject> BasicInformationAsync(string objectName) => BasicInformationAsync<JObject>(objectName);
         public Task<T> BasicInformationAsync<T>(string objectName) => Force.BasicInformationAsync<T>(objectName);
-        public Task<JObject> DescribeAsync(string objectName) => Force.DescribeAsync<JObject>(objectName);
+        public Task<JObject> DescribeAsync(string objectName) => DescribeAsync<JObject>(objectName);
         public Task<T> DescribeAsync<T>(string objectName) => Force.DescribeAsync<T>(objectName);
-        public Task<JObject> GetDeleted(string objectName, DateTime startDateTime, DateTime endDateTime) => Force.GetDeleted<JObject>(objectName, startDateTime, endDateTime);
+        public Task<JObject> GetDeleted(string objectName, DateTime startDateTime, DateTime endDateTime) => GetDeleted<JObject>(objectName, startDateTime, endDateTime);
         public Task<T> GetDeleted<T>(string objectName, DateTime startDateTime, DateTime endDateTime) => Force.GetDeleted<T>(objectName, startDateTime, endDateTime);
-        public Task<JObject> GetUpdated(string objectName, DateTime startDateTime, DateTime endDateTime) => Force.GetUpdated<JObject>(objectName, startDateTime, endDateTime);
+        public Task<JObject> GetUpdated(string objectName, DateTime startDateTime, DateTime endDateTime) => GetUpdated<JObject>(objectName, startDateTime, endDateTime);
         public Task<T> GetUpdated<T>(string objectName, DateTime startDateTime, DateTime endDateTime) => Force.GetUpdated<T>(objectName, startDateTime, endDateTime);
-        public Task<JObject> DescribeLayoutAsync(string objectName) => Force.DescribeLayoutAsync<JObject>(objectName);
+        public Task<JObject> DescribeLayoutAsync(string objectName) => DescribeLayoutAsync<JObject>(objectName);
         public Task<T> DescribeLayoutAsync<T>(string objectName) => Force.DescribeLayoutAsync<T>(objectName);
-        public Task<JObject> DescribeLayoutAsync(string objectName, string recordTypeId) => Force.DescribeLayoutAsync<JObject>(objectName, recordTypeId);
+        public Task<JObject> DescribeLayoutAsync(string objectName, string recordTypeId) => DescribeLayoutAsync<JObject>(objectName, recordTypeId);
         public Task<T> DescribeLayoutAsync<T>(string objectName, string recordTypeId) => Force.DescribeLayoutAsync<T>(objectName, recordTypeId);
-        public Task<JObject> RecentAsync(int limit = 200) => Force.RecentAsync<JObject>(limit);
+        public Task<JObject> RecentAsync(int limit = 200) => RecentAsync<JObject>(limit);
         public Task<T> RecentAsync<T>(int limit = 200) => Force.RecentAsync<T>(limit);
-        public Task<List<JObject>> SearchAsync(string query) => Force.SearchAsync<JObject>(query);
+        public Task<List<JObject>> SearchAsync(string query) => SearchAsync<JObject>(query);
         public Task<List<T>> SearchAsync<T>(string query) => Force.SearchAsync<T>(query);
-        public Task<JObject> UserInfo(string url) => Force.UserInfo<JObject>(url);
+        public Task<JObject> UserInfo(string url) => UserInfo<JObject>(url);
         public Task<T> UserInfo<T>(string url) => Force.UserInfo<T>(url);
         #endregion
 
@@ -234,7 +248,7 @@ namespace DotNetForce
         public Task<BatchResultList> GetBatchResultAsync(BatchInfoResult batchInfo) => Force.GetBatchResultAsync(batchInfo);
         public Task<BatchResultList> GetBatchResultAsync(string batchId, string jobId) => Force.GetBatchResultAsync(batchId, jobId);
         #endregion
-        
+
         public Task<JObject> LimitsAsync() => LimitsAsync<JObject>();
         public async Task<T> LimitsAsync<T>()
         {
@@ -254,7 +268,7 @@ namespace DotNetForce
         }
 
         #region sobjects
-        
+
         public Task<JObject> NamedLayoutsAync(string objectName, string layoutName) => NamedLayoutsAync<JObject>(objectName, layoutName);
         public async Task<T> NamedLayoutsAync<T>(string objectName, string layoutName)
         {
@@ -263,7 +277,7 @@ namespace DotNetForce
 
             return await JsonHttp.HttpGetAsync<T>($"sobjects/{objectName}/describe/namedLayouts/{layoutName}").ConfigureAwait(false);
         }
-        
+
         public Task<JObject> ApprovalLayoutsAync(string objectName, string approvalProcessName = "") => ApprovalLayoutsAync<JObject>(objectName, approvalProcessName);
         public async Task<T> ApprovalLayoutsAync<T>(string objectName, string approvalProcessName = "")
         {
@@ -272,7 +286,7 @@ namespace DotNetForce
 
             return await JsonHttp.HttpGetAsync<T>($"sobjects/{objectName}/describe/approvalLayouts/{approvalProcessName}").ConfigureAwait(false);
         }
-        
+
         public Task<JObject> CompactLayoutsAync(string objectName) => CompactLayoutsAync<JObject>(objectName);
         public async Task<T> CompactLayoutsAync<T>(string objectName)
         {
@@ -280,7 +294,7 @@ namespace DotNetForce
 
             return await JsonHttp.HttpGetAsync<T>($"sobjects/{objectName}/describe/compactLayouts/").ConfigureAwait(false);
         }
-        
+
         public Task<JObject> DescribeLayoutsAync(string objectName = "Global") => DescribeLayoutAsync(objectName);
         public async Task<T> DescribeLayoutsAync<T>(string objectName = "Global")
         {
@@ -288,13 +302,13 @@ namespace DotNetForce
 
             return await JsonHttp.HttpGetAsync<T>($"sobjects/{objectName}/describe/layouts/").ConfigureAwait(false);
         }
-        
+
         public Task<JObject> PlatformActionAync() => PlatformActionAync<JObject>();
         public async Task<T> PlatformActionAync<T>()
         {
             return await JsonHttp.HttpGetAsync<T>($"sobjects/PlatformAction").ConfigureAwait(false);
         }
-        
+
         public Task<JObject> QuickActionsAync(string objectName, string actionName = "") => QuickActionsAync<JObject>(objectName, actionName);
         public async Task<T> QuickActionsAync<T>(string objectName, string actionName = "")
         {
@@ -302,7 +316,7 @@ namespace DotNetForce
 
             return await JsonHttp.HttpGetAsync<T>($"sobjects/{objectName}/quickActions/{actionName}").ConfigureAwait(false);
         }
-        
+
         public Task<JObject> QuickActionsDetailsAync(string objectName, string actionName) => QuickActionsDetailsAync<JObject>(objectName, actionName);
         public async Task<T> QuickActionsDetailsAync<T>(string objectName, string actionName)
         {
@@ -311,7 +325,7 @@ namespace DotNetForce
 
             return await JsonHttp.HttpGetAsync<T>($"sobjects/{objectName}/quickActions/{actionName}/describe/").ConfigureAwait(false);
         }
-        
+
         public Task<JObject> QuickActionsDefaultValuesAync(string objectName, string actionName, string contextId) => QuickActionsDefaultValuesAync<JObject>(objectName, actionName, contextId);
         public async Task<T> QuickActionsDefaultValuesAync<T>(string objectName, string actionName, string contextId)
         {
@@ -333,7 +347,7 @@ namespace DotNetForce
 
             return await JsonHttp.HttpGetBlobAsync($"sobjects/{objectName}/{recordId}/{blobField}").ConfigureAwait(false);
         }
-        
+
         public Task<JObject> RetrieveExternalAsync(string objectName, string externalFieldName, string externalId, params string[] fields) => RetrieveExternalAsync(objectName, externalFieldName, externalId, fields);
         public async Task<T> RetrieveExternalAsync<T>(string objectName, string externalFieldName, string externalId, params string[] fields)
         {
@@ -354,7 +368,7 @@ namespace DotNetForce
 
             return await JsonHttp.HttpGetBlobAsync($"sobjects/{objectName}/{recordId}/richTextImageFields/{fieldName}/{contentReferenceId}").ConfigureAwait(false);
         }
-        
+
         public Task<JObject> RelationshipsAync(string objectName, string recordId, string relationshipFieldName, string[] fields = null) => RelationshipsAync(objectName, recordId, relationshipFieldName, fields = null);
         public async Task<T> RelationshipsAync<T>(string objectName, string recordId, string relationshipFieldName, string[] fields = null)
         {
@@ -372,13 +386,13 @@ namespace DotNetForce
         {
             return await Force.UserInfo<UserInfo>(Id).ConfigureAwait(false);
         }
-        
+
         public Task<List<JObject>> VersionsAsync() => VersionsAsync<JObject>();
         public async Task<List<T>> VersionsAsync<T>()
         {
             return await JsonHttp.HttpGetAsync<List<T>>(new Uri(new Uri(InstanceUrl), "/services/data")).ConfigureAwait(false);
         }
-        
+
         public Task<JObject> ResourcesAsync() => ResourcesAsync<JObject>(ApiVersion);
         public Task<T> ResourcesAsync<T>() => ResourcesAsync<T>(ApiVersion);
         public Task<JObject> ResourcesAsync(string apiVersion) => ResourcesAsync<JObject>(apiVersion);
@@ -429,7 +443,7 @@ namespace DotNetForce
 
         //    return ToLazyEnumerable(objParent[field].ToObject<QueryResult<TChild>>());
         //}
-        
+
         public IEnumerable<T> GetEnumerable<T>(QueryResult<T> queryResult)
         {
             if (queryResult == null)
@@ -438,7 +452,7 @@ namespace DotNetForce
             }
 
             var batchSize = GetBatchSize(queryResult.NextRecordsUrl);
-            
+
             foreach (var row in queryResult.Records)
             {
                 //subscribe.OnNext(await IncludeRelationships(row).ConfigureAwait(false));
@@ -630,7 +644,7 @@ namespace DotNetForce
                 }
             })).ToEnumerable();
         }
-        
+
         private IEnumerable<(T record, string referenceId)> QueryByBatch<T>(List<(int offset, int size, string nextUrl, string referenceId)> batchChunk)
         {
             return Observable.Create<(T record, string referenceId)>(subscribe => Task.Run(async () =>

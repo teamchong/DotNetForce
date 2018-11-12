@@ -441,6 +441,16 @@ namespace DotNetForce
 #endregion JObjectHelper
         
         public static IEnumerable<List<T>> Chunk<T>(IEnumerable<T> source, int size) => new EnumerableChunk<T>(source, size).GetEnumerable();
+        
+        public static IEnumerable<string> ChunkIds(IEnumerable<string> source, string soql, string template)
+        {
+            var soqlMaxLen = 20000;
+            var nonTemplateLength = soql.Replace(template, "").Length;
+            var idsTextLen = soqlMaxLen - nonTemplateLength;
+            var numOfId = (int)Math.Floor((double)idsTextLen / 18.0);;
+            return new EnumerableChunk<string>(source, numOfId).GetEnumerable()
+                .Select(l => soql.Replace(template, string.Join(",", l.Select(id => DNF.SOQLString(DNF.ToID15(id))))));
+        }
 
     }
 }

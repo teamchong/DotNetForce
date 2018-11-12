@@ -19,12 +19,14 @@ namespace DotNetForce
         {
             return !_Errors.TryGetValue(referenceId, out ErrorResponses value) ? null : value;
         }
-
-        protected Dictionary<string, QueryResult<JObject>> _Queries = new Dictionary<string, QueryResult<JObject>>();
-        public Dictionary<string, QueryResult<JObject>> Queries() => _Queries;
-        public QueryResult<JObject> Queries(string referenceId)
+        
+        protected Dictionary<string, JObject> _Queries = new Dictionary<string, JObject>();
+        public Dictionary<string, QueryResult<JObject>> Queries() => Queries<JObject>();
+        public Dictionary<string, QueryResult<T>> Queries<T>() => _Queries.ToDictionary(q => q.Key, q => q.Value.ToObject<QueryResult<T>>());
+        public QueryResult<JObject> Queries(string referenceId) => Queries<JObject>(referenceId);
+        public QueryResult<T> Queries<T>(string referenceId)
         {
-            return !_Queries.TryGetValue(referenceId, out QueryResult<JObject> value) ? null : value;
+            return !_Queries.TryGetValue(referenceId, out JObject value) ? null : value.ToObject<QueryResult<T>>();
         }
 
         protected Dictionary<string, JToken> _Results = new Dictionary<string, JToken>();
@@ -101,7 +103,7 @@ namespace DotNetForce
                             {
                                 if (DNF.IsQueryResult(response.Result))
                                 {
-                                    _Queries.Add(refId, response.Result?.ToObject<QueryResult<JObject>>() ?? new QueryResult<JObject>());
+                                    _Queries.Add(refId, (JObject)response.Result ?? new JObject());
                                 }
                                 else if (response.Result?.Type == JTokenType.Array)
                                 {

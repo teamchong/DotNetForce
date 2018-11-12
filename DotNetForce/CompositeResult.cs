@@ -31,11 +31,13 @@ namespace DotNetForce
             return !_Errors.TryGetValue(referenceId, out ErrorResponses value) ? null : value;
         }
 
-        protected Dictionary<string, QueryResult<JObject>> _Queries = new Dictionary<string, QueryResult<JObject>>();
-        public Dictionary<string, QueryResult<JObject>> Queries() => _Queries;
-        public QueryResult<JObject> Queries(string referenceId)
+        protected Dictionary<string, JObject> _Queries = new Dictionary<string, JObject>();
+        public Dictionary<string, QueryResult<JObject>> Queries() => Queries<JObject>();
+        public Dictionary<string, QueryResult<T>> Queries<T>() => _Queries.ToDictionary(q => q.Key, q => q.Value.ToObject<QueryResult<T>>());
+        public QueryResult<JObject> Queries(string referenceId) => Queries<JObject>(referenceId);
+        public QueryResult<T> Queries<T>(string referenceId)
         {
-            return !_Queries.TryGetValue(referenceId, out QueryResult<JObject> value) ? null : value;
+            return !_Queries.TryGetValue(referenceId, out JObject value) ? null : value.ToObject<QueryResult<T>>();
         }
 
         protected Dictionary<string, JToken> _Results = new Dictionary<string, JToken>();
@@ -113,30 +115,39 @@ namespace DotNetForce
                                 {
                                     var refId = $"{subrequest.ReferenceId}_{j}";
 
-                                    if (DNF.IsQueryResult(response.Body))
+                                    if (row?.Type == JTokenType.Object)
                                     {
-                                        _Queries.Add(refId, row.ToObject<QueryResult<JObject>>());
+                                        if (DNF.IsQueryResult(row))
+                                        {
+                                            _Queries.Add(refId, (JObject)row ?? new JObject());
+                                        }
+                                        else if (DNF.IsSuccessResponse(row))
+                                        {
+                                            _Results.Add(refId, row);
+                                        }
+                                        else if (row["attributes"]?.Type == JTokenType.Object)
+                                        {
+                                            _Results.Add(refId, row);
+                                        }
+                                        else if ((bool?)row["success"] == true)
+                                        {
+                                            _Results.Add(refId, row);
+                                        }
+                                        else if (row["errors"]?.Type != JTokenType.Array)
+                                        {
+                                            _Errors.Add(refId, DNF.GetErrorResponses(row));
+                                        }
                                     }
-                                    else if (DNF.IsSuccessResponse(row))
+                                    else if (row["errors"]?.Type == JTokenType.Array)
                                     {
-                                        _Results.Add(refId, row);
+                                        if (((JArray)row["errors"]).Count > 0)
+                                        {
+                                            _Errors.Add(refId, DNF.GetErrorResponses(row["errors"]));
+                                        }
                                     }
-                                    else if (row["attributes"]?.Type == JTokenType.Object)
-                                    {
-                                        _Results.Add(refId, row);
-                                    }
-                                    else if ((bool?)row["success"] == true)
-                                    {
-                                        _Results.Add(refId, row);
-                                    }
-                                    else if (row["errors"]?.Type != JTokenType.Array)
+                                    else
                                     {
                                         _Errors.Add(refId, DNF.GetErrorResponses(row));
-                                    }
-
-                                    if (row["errors"]?.Type == JTokenType.Array && ((JArray)row["errors"]).Count > 0)
-                                    {
-                                        _Errors.Add(refId, DNF.GetErrorResponses(row["errors"]));
                                     }
                                 }
                             }
@@ -157,7 +168,7 @@ namespace DotNetForce
                             {
                                 if (DNF.IsQueryResult(response.Body))
                                 {
-                                    _Queries.Add(subrequest.ReferenceId, response.Body?.ToObject<QueryResult<JObject>>() ?? new QueryResult<JObject>());
+                                    _Queries.Add(subrequest.ReferenceId, (JObject)response.Body ?? new JObject());
                                 }
                                 else if (response.Body?.Type == JTokenType.Array)
                                 {
