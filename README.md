@@ -1,15 +1,38 @@
 # DotNetForce
 
-V2.0.0
 I have updated the library, but don't have time to document the changes, please check the TestClass
-new "DotNetForce.Schema" created by T4 template.
 
-i.e.
+V2.0.6
+1) increase query string limit to 20000 characters
+2) new DNF.ChunkIds static function to query data using lots of ids
+usages:
+```cs
+var opp = Schema.Of(s => s.Opportunity);
+var lotsofIds = new [] { "0060I00000QkwK5"... x 100000 };
+
+var results = (await Task.WhenAll(DNF.ChunkIds(lotsofIds, $@"
+SELECT {line.Opportunity.AccountId}
+FROM {opp}
+WHERE {opp.Id} IN(<ids>)", "<ids>").Select(soql =>
+{
+   return Schema.Wrap(Client.GetEnumerableAsync(soql));
+}))).SelectMany(r => r).ToList();
+```
+
+V2.0.0
+1) new "DotNetForce.Schema" created by T4 template, please fill in LoginProfiles.json, and run the T4 template "DEV.tt" using Visual Studio
+
+usages
+```cs
 var opp = Schema.Of(s => s.Opportunity);
 var line = Schema.Of(s => s.OpportunityLineItem);
+```
 or
+```cs
 var (opp, line) = Schema.Of(s => (s.Opportunity, s.OpportunityLineItem));
+```
 
+```cs
 var oppties = await Schema.Wrap(Client.GetEnumerableAsync($@"
 SELECT {opp.Id}, {opp.Account.CreatedBy.Name}, (SELECT {line.ListPrice} FROM {opp.OpportunityLineItems})
 FROM {opp}
@@ -25,6 +48,9 @@ foreach (var oppObj in oppties)
         var listPrice = oppLine.Get(line.ListPrice);
     }
 }
+```
+
+I plan to create this libaray for TypeScript later.
 
 I plan to create this libaray for TypeScript later.
 --------------------------------------------------------------------------------
@@ -111,35 +137,35 @@ await client.TokenRefreshAsync();
 Query 1 records
 ```cs
 var name = "abc";
-var record = (await client.QueryAsync<JObject>($@"
+var record = (await client.QueryAsync($@"
 SELECT ID FROM Opportunity WHERE Name = {DNF.SOQLString(name)}" LIMIT 1")).Records.FirstOrDefault();
 ```
 
 Query By Id
 ```cs
 var oppId = "006xxxx";
-var record = await client.QueryByIdAsync<JObject>("Opportunity", oppId);
+var record = await client.QueryByIdAsync("Opportunity", oppId);
 ```
 
 Query 
 ```cs
-var records = await client.GetEnumerableAsync<JObject>($@"
+var records = await client.GetEnumerableAsync($@"
 SELECT Id FROM Opportunity WHERE LastModifiedDate > {DNF.SOQLDateTime(new DateTime(2018, 1, 1))}");
 ```
 
 Query (included deleted)
 ```cs
-var result = await client.GetAllEnumerableAsync<JObject>($@"
+var result = await client.GetAllEnumerableAsync($@"
 SELECT Id FROM Opportunity WHERE LastModifiedDate > {DNF.SOQLDateTime(new DateTime(2018, 1, 1))}");
 var records = result.GetEnumerable(client);
 ```
 
 Query Sub-query
 ```cs
-var result = await client.QueryAsync<JObject>($@"
+var result = await client.GetAllEnumerableAsync($@"
 SELECT Id, (SELECT Id FROM Opportunities) FROM Account LIMIT 1");
-for (var acc in result.Records) {
-   var records = result.GetEnumerable(acc, "Opportunities");
+for (var acc in result) {
+   var records = client.GetEnumerable((QueryResult<JObject>)acc["Opportunities"]);
 }
 ```
 
@@ -152,7 +178,7 @@ var caseList = Enumerable.Range(1, 40).Select(i => new AttributedObject("Case")
   ["Subject"] = $"UnitTest{i}",
 }).ToArray();
 var result = await client.Composite.CreateAsync(caseList, true);
-result.ThrowIfError();
+DNF.ThrowIfError(result);
 Assert.NotEmpty(result.SuccessResponses());
 ```
 
@@ -163,20 +189,20 @@ Assert.NotEmpty(result.SuccessResponses());
      ["Subject"] = $"UnitTest{i}",
  }).ToArray();
  var result = await client.Composite.CreateAsync(caseList, true);
- result.ThrowIfError();
+ DNF.ThrowIfError(result);
  Assert.NotEmpty(result.SuccessResponses());
  ```
  
  Create multiple records (no transaction, no limit)
 ```cs
  var expected = 200 * 26;
- var existingCase = await client.GetEnumerableAsync<JObject>($@"
+ var existingCase = await client.GetEnumerableAsync($@"
 SELECT Name FROM Opportunity ORDER BY Id LIMIT {expected}");
 
  var newCase = await existingCase
      .Select(c => new AttributedObject("Case") { ["Subject"] = $"UnitTest{c["Name"]}" })
      .CreateAsync(client);
- newCase.ThrowIfError();
+ DNF.ThrowIfError(newCase);
  Assert.NotEmpty(newCase.SuccessResponses());
  ```
  
@@ -192,7 +218,7 @@ var accounts =
    });
 
 var accountsResult = await client.Composite.CreateTreeAsync("Account", accounts);
-accountsResult.ThrowIfError();
+DNF.ThrowIfError(accountsResult);
 Assert.NotEmpty(accountsResult.Results);
 ```
 
