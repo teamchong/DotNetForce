@@ -44,15 +44,15 @@ namespace DotNetForce.Schema.<#= instanceName #>
                     {
                         var subObj = (JObject)result[prop.Name];
                         subObj[splits[1]] = prop.Value;
-                        result[splits[0]] = ((JObjectWrapper)subObj).Spread();
+                        result[splits[0]] = new JObjectWrapper(subObj).Spread();
                     }
                     else
                     {
-                        result[splits[0]] = ((JObjectWrapper)new JObject { [splits[1]] = prop.Value }).Spread();
+                        result[splits[0]] = new JObjectWrapper(new JObject { [splits[1]] = prop.Value }).Spread();
                     }
                 }
             }
-            return (JObjectWrapper)result;
+            return new JObjectWrapper(result);
         }
 
         public JObject Unwrap() => Object;
@@ -84,7 +84,7 @@ namespace DotNetForce.Schema.<#= instanceName #>
             {
                 if (Object[paths[0]]?.Type == JTokenType.Object)
                 {
-                    return Get(paths[1]);
+                    return new JObjectWrapper((JObject)Object[paths[0]]).Get(paths[1]);
                 }
             }
             return null;
@@ -376,6 +376,16 @@ namespace DotNetForce.Schema.<#= instanceName #>
         public JObjectWrapper Set<T>(SfUrlField<T> field, string value) where T : SfObjectBase
         {
             return Set(field?.ToString(), value);
+        }
+
+        public override string ToString()
+        {
+            return Object?.ToString();
+        }
+
+        public string ToString(Formatting formatting, params JsonConverter[] converters)
+        {
+            return Object?.ToString(formatting, converters);
         }
 
         public static implicit operator JObjectWrapper(JObject obj) => new JObjectWrapper(obj);
