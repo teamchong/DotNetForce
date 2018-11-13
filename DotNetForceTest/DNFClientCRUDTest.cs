@@ -42,7 +42,7 @@ namespace DotNetForceTest
                 Assert.NotEmpty(result.SuccessResponses());
 
                 var expected = 200 * 26;
-                var existingCase = await client.QueryAsync<JObject>($@"
+                var existingCase = await client.QueryAsync($@"
 SELECT Name FROM Opportunity ORDER BY Id LIMIT {expected}");
 
                 var newCase = await client.Composite.CreateAsync(client.GetEnumerable(existingCase)
@@ -133,7 +133,7 @@ SELECT Name FROM Opportunity ORDER BY Id LIMIT {expected}");
                 DNF.ThrowIfError(result1);
 
                 //var externalIds = Enumerable.Range(1, 4000).Select(i => $"UnitTest{i}").ToArray();
-                var result = await client.QueryAsync<JObject>($@"
+                var result = await client.QueryAsync($@"
 SELECT Id FROM Case WHERE Subject LIKE 'UnitTest%'");
                 //var externalIds = Enumerable.Range(1, 4000).Select(i => new JObject { ["Source_Product_ID__c"] = $"UnitTest{i}" }).ToArray();
                 Assert.NotEmpty(result.Records);
@@ -167,7 +167,7 @@ SELECT Id FROM Case WHERE Subject LIKE 'UnitTest%'");
                     result1.SuccessResponses().Select(r => r.Value.Id).FirstOrDefault(),
                     new JObject { ["Description"] = "UnitTest0" });
 
-                var resultQuery = await client.QueryAsync<JObject>($@"
+                var resultQuery = await client.QueryAsync($@"
 SELECT Id FROM Case WHERE Subject LIKE 'UnitTest%' ORDER BY Id");
 
                 var timer1 = System.Diagnostics.Stopwatch.StartNew();
@@ -202,7 +202,7 @@ SELECT Id FROM Case WHERE Subject LIKE 'UnitTest%' ORDER BY Id");
                 var upserted = await client.UpsertExternalAsync("Product2", "Source_Product_ID__c", "UnitTest/0",
                     new JObject { ["Name"] = $"UnitTest{uniqueText}" });
 
-                var updated = await client.RetrieveExternalAsync<JObject>("Product2", "Source_Product_ID__c", "UnitTest/0");
+                var updated = await client.RetrieveExternalAsync("Product2", "Source_Product_ID__c", "UnitTest/0");
                 Assert.Equal($"UnitTest/0", updated?["Source_Product_ID__c"]?.ToString());
             }
             finally
@@ -232,7 +232,7 @@ SELECT Id FROM Case WHERE Subject LIKE 'UnitTest%' ORDER BY Id");
                 var delExtResult = await client.DeleteExternalAsync("Product2", "Source_Product_ID__c", "UnitTest/2");
                 Assert.True(delExtResult);
 
-                var resultQuery = await client.QueryAsync<JObject>($@"
+                var resultQuery = await client.QueryAsync($@"
 SELECT Id FROM Product2 WHERE Source_Product_ID__c LIKE 'UnitTest%'");
                 WriteLine($"total: {resultQuery.TotalSize}.");
                 Assert.NotEmpty(resultQuery.Records);

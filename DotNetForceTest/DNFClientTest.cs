@@ -56,19 +56,22 @@ namespace DotNetForceTest
             var expected = 100000;
             var client = await LoginTask;
 
-            await client.LimitsAsync<JObject>();
+            await client.LimitsAsync();
             var apiUsed1 = client.ApiUsed;
 
-            var oppty = await client.QueryAsync<JObject>($@"
+            var oppty = await client.QueryAsync($@"
 SELECT Id FROM Opportunity ORDER BY Id LIMIT {expected}");
             var oppty2 = JToken.FromObject(oppty).ToObject<QueryResult<JObject>>();
+            var oppty3 = (await client.GetEnumerableAsync($@"
+SELECT Id FROM Opportunity ORDER BY Id LIMIT {expected}")).ToList();
             var apiUsed2 = client.ApiUsed;
 
             var timer1 = Stopwatch.StartNew();
             var opptyList = client.GetEnumerable(oppty).ToArray();
             timer1.Stop();
             var apiUsed3 = client.ApiUsed;
-
+            
+            Assert.Equal(expected, oppty3.Count);
             Assert.Equal(expected, opptyList.Length);
             Assert.Equal(expected, opptyList.Select(o => o["Id"]?.ToString())
                 .Where(o => o?.StartsWith("006") == true).Count());
@@ -96,10 +99,10 @@ SELECT Id FROM Opportunity ORDER BY Id LIMIT {expected}");
 
             var apiUsed1 = client.ApiUsed;
 
-            await client.LimitsAsync<JObject>();
+            await client.LimitsAsync();
             var apiUsed2 = client.ApiUsed;
 
-            var oppty = await client.QueryAsync<JObject>($@"
+            var oppty = await client.QueryAsync($@"
 SELECT Id FROM Opportunity ORDER BY Id LIMIT {expected}");
             var apiUsed3 = client.ApiUsed;
 
@@ -114,7 +117,7 @@ SELECT Id FROM Opportunity ORDER BY Id LIMIT {expected}");
         {
             decimal opptyCount = 10000;
             var client = await LoginTask;
-            var oppty = await client.QueryAsync<JObject>(string.Join("", @"
+            var oppty = await client.QueryAsync(string.Join("", @"
 SELECT Id FROM Opportunity LIMIT ", opptyCount));
             var opptyList = client.GetEnumerable(oppty);
             var opptyFullList = JArray.FromObject(opptyList);
@@ -127,10 +130,10 @@ SELECT Id FROM Opportunity LIMIT ", opptyCount));
         [Fact]
         public async Task QueryFailTest()
         {
-            await Assert.ThrowsAsync<ForceException>(async () =>
+            await Assert.ThrowsAsync<AggregateException>(async () =>
             {
                 var client = await LoginTask;
-                var oppty = await client.QueryAsync<JObject>($@"
+                var oppty = await client.QueryAsync($@"
 SELECT Id, UnkownField FROM Opportunity LIMIT 1");
                 var opptyList = client.GetEnumerable(oppty).ToArray();
             });
