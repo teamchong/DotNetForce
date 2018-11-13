@@ -2,21 +2,18 @@
 
 I have updated the library, but don't have time to document the changes, please check the TestClass
 
-V2.0.6
+V2.0.7
 1) increase query string limit to 20000 characters
-2) new DNF.ChunkIds static function to query data using lots of ids
+2) new Client.GetEnumerableByIdsAsync
 usages:
 ```cs
 var opp = Schema.Of(s => s.Opportunity);
 var lotsofIds = new [] { "0060I00000QkwK5"... x 100000 };
 
-var results = (await Task.WhenAll(DNF.ChunkIds(lotsofIds, $@"
+var results = (await Client.GetEnumerableByIdsAsync(lotsofIds, $@"
 SELECT {line.Opportunity.AccountId}
 FROM {opp}
-WHERE {opp.Id} IN(<ids>)", "<ids>").Select(soql =>
-{
-   return Schema.Wrap(Client.GetEnumerableAsync(soql));
-}))).SelectMany(r => r).ToList();
+WHERE {opp.Id} IN(<ids>)", "<ids>")).ToList();
 ```
 
 V2.0.0
