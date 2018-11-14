@@ -54,13 +54,11 @@ public class SchemaGenerator
     {
         var folder = Path.Combine(ProjectDir, InstanceName);
         var solutionDir = Path.GetDirectoryName(ProjectDir);
-        var namespacePrefix = $"DotNetForce.{InstanceName}";
 
         Logger?.Invoke($"instance: {InstanceName}");
         Logger?.Invoke($"projectDir: {ProjectDir}");
         Logger?.Invoke($"solutionDir: {solutionDir}");
         Logger?.Invoke($"folder: {folder}");
-        Logger?.Invoke($"namespacePrefix: {namespacePrefix}");
 
         if (!Directory.Exists(folder)) Directory.CreateDirectory(folder);
         foreach (var dir in Directory.GetDirectories(folder, "*", SearchOption.TopDirectoryOnly))
@@ -119,16 +117,15 @@ public class SchemaGenerator
         await GenerateFileAsync("Json\\" + objName + ".json").ConfigureAwait(false);
     }
 
-    public async Task WriteObjectAsync(string instanceName, string objName, JToken objDescribe)
+    public async Task WriteObjectAsync(string objNamespace, string objName, JToken objDescribe)
     {
         GenerationEnvironment.Append(@"using DotNetForce;
-using DotNetForce.Schema;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Linq.Expressions;
 
-namespace DotNetForce.Schema.").Append(instanceName).Append(@"
+namespace ").Append(objNamespace).Append(@"
 {
 	public class Sf").Append(objName).Append(@" : SfObjectBase
 	{

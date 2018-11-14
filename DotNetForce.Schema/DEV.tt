@@ -23,7 +23,7 @@
 	RunTransformAsync().Wait();
 #>
 ﻿<#+
-async Task WriteSchemaAsync(string instanceName, JObject objects, SchemaGenerator generator)
+async Task WriteSchemaAsync(string objNamespace, JObject objects, SchemaGenerator generator)
 {
 #>using DotNetForce;
 using DotNetForce.Schema;
@@ -35,7 +35,7 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
 
-namespace DotNetForce.Schema.<#= instanceName #>
+namespace <#= objNamespace #>
 {
 	public class Schema
 	{
@@ -102,13 +102,14 @@ async Task RunTransformAsync() {
 		var userName = loginProfile["UserName"]?.ToString() ?? throw new Exception("UserName is null.");
 		var password = loginProfile["Password"]?.ToString() ?? throw new Exception("Password is null.");
 		var objects = await generator.GenerateAsync(loginUri, clientId, clientSecret, userName, password);
+		var objNamespace = "DotNetForce.Schema";
 
-		await WriteSchemaAsync(instanceName, objects, generator).ConfigureAwait(false);
+		await WriteSchemaAsync(objNamespace, objects, generator).ConfigureAwait(false);
 
 		foreach (var prop in objects.Properties())
 		{
-			await generator.WriteJsonAsync(prop.Name, prop.Value).ConfigureAwait(false);
-			await generator.WriteObjectAsync(instanceName, prop.Name, prop.Value).ConfigureAwait(false);
+			// await generator.WriteJsonAsync(prop.Name, prop.Value).ConfigureAwait(false);
+			await generator.WriteObjectAsync(objNamespace, prop.Name, prop.Value).ConfigureAwait(false);
 		}
 	} finally {
 		Warning(output.ToString());

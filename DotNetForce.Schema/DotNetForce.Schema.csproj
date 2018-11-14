@@ -35,14 +35,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Include="DEV.cs">
-      <DesignTime>True</DesignTime>
-      <AutoGen>True</AutoGen>
-      <DependentUpon>DEV.tt</DependentUpon>
-    </None>
-  </ItemGroup>
-
-  <ItemGroup>
     <ProjectReference Include="..\DotNetForce\DotNetForce.csproj" />
   </ItemGroup>
 
