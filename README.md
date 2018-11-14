@@ -1,6 +1,25 @@
 # DotNetForce
 
-I have updated the library, but don't have time to document the changes, please check the TestClass
+I have updated the library, but don't have time to document the changes, please check the TestClasses for code samples https://github.com/ste80/DotNetForce/tree/master/DotNetForceTest
+
+V3.0.0
+
+I tried put DotNetForce.Schema on nuget, but it doesn't work.
+
+
+following is the step by step guide to generate Schema for your org
+
+1) Download all the files from (Except DotNetForce.Schema.csproj) https://github.com/ste80/DotNetForce/tree/master/DotNetForce.Schema
+
+2) Place the files in the root of your project
+
+3) Open DEV.tt and update the your_app_client_id, your_app_client_secret, your_app_redirect_uri_for_server_flow_only, your_user_name_for_password_flow_only, your_password_for_password_flow_only https://raw.githubusercontent.com/ste80/DotNetForce/master/DotNetForce.Schema/DEV.tt
+
+4) Run the DEV.tt using T4
+
+5) a new folder DEV should be created which contains the Schema helper for your org.
+
+
 
 V2.0.7
 1) increase query string limit to 20000 characters
