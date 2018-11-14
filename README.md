@@ -6,7 +6,7 @@ V3.0.0
 I tried put DotNetForce.Schema on nuget, but it doesn't work.
 
 
-following is the step by step guid to generator Schema for your org
+following is the step by step guide to generate Schema for your org
 
 1) Download all the files from (Except DotNetForce.Schema.csproj) https://github.com/ste80/DotNetForce/tree/master/DotNetForce.Schema
 
