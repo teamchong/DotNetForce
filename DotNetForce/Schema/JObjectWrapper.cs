@@ -1,17 +1,13 @@
-﻿<#+
-async Task WriteJObjectExtensionAsync(string instanceName, SfModelGenerator generator)
-{
-#>using DotNetForce;
+using DotNetForce;
 using DotNetForce.Common;
 using DotNetForce.Common.Models.Json;
-using DotNetForce.Schema;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
-namespace DotNetForce.Schema.<#= instanceName #>
+namespace DotNetForce
 {
     public class JObjectWrapper : IAttributedObject
     {
@@ -392,7 +388,3 @@ namespace DotNetForce.Schema.<#= instanceName #>
         public static implicit operator JObject(JObjectWrapper wrapper) => wrapper.Unwrap();
     }
 }
-<#+
-    await generator.GenerateFileAsync("JObjectWrapper.cs").ConfigureAwait(false);
-}
-#>

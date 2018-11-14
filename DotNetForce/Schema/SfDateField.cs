@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace DotNetForce.Schema
+namespace DotNetForce
 {
     public class SfDateField<T> : SfFieldBase<T> where T: SfObjectBase
     {

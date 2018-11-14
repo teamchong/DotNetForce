@@ -2,13 +2,45 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
-    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <Version>2.0.8</Version>
+    <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
+    <Version>3.0.0</Version>
+    <Authors>Steven Chong</Authors>
+    <Company></Company>
+    <PackageProjectUrl>https://github.com/ste80/DotNetForce/blob/master/README.md</PackageProjectUrl>
+    <PackageIconUrl></PackageIconUrl>
+    <RepositoryUrl>https://github.com/ste80/DotNetForce</RepositoryUrl>
+    <PackageReleaseNotes>https://github.com/ste80/DotNetForce/blob/master/README.md</PackageReleaseNotes>
+    <Description>https://github.com/ste80/DotNetForce/blob/master/README.md</Description>
+    <PackageId>DotNetForce.Schema .Sources</PackageId>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
     <WarningLevel>1</WarningLevel>
   </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="DEV.log">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>DEV.tt</DependentUpon>
+    </Compile>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="DotNetForce.dll" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="DEV.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>DEV.tt</DependentUpon>
+    </None>
+  </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\DotNetForce\DotNetForce.csproj" />
@@ -31,7 +63,7 @@
   </ItemGroup>
 
   <Target Name="PreBuild" BeforeTargets="PreBuildEvent">
-    <Exec Command="copy /Y &quot;$(SolutionDir)DotNetForce\bin\Debug\netstandard2.0\DotNetForce.dll&quot; &quot;$(ProjectDir)&quot;" />
+    <Exec Command="copy /Y &quot;$(SolutionDir)DotNetForce\bin\Release\netstandard2.0\DotNetForce.dll&quot; &quot;$(ProjectDir)&quot;" />
   </Target>
 
 </Project>

@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace DotNetForce.Schema
+namespace DotNetForce
 {
     public class SfChildRelationship<T, TChild> where T: SfObjectBase where TChild: SfObjectBase, new()
     {

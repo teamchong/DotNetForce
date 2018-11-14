@@ -15,21 +15,66 @@
 <#@ import namespace="System.Text" #>
 <#@ import namespace="System.Threading" #>
 <#@ import namespace="System.Threading.Tasks" #>
-<#@ include file="T4\SfModelGenerator.ttinclude" once="true" #>
-<#@ include file="T4\WriteJObjectWrapperAsync.ttinclude" once="true" #>
-<#@ include file="T4\WriteJsonAsync.ttinclude" once="true" #>
-<#@ include file="T4\WriteObjectAsync.ttinclude" once="true" #>
-<#@ include file="T4\WriteSchemaAsync.ttinclude" once="true" #>
 <#@ output extension="log" #>
 <#
 	System.Net.ServicePointManager.DefaultConnectionLimit = int.MaxValue;
 	System.Net.ServicePointManager.Expect100Continue = true;
 	System.Net.ServicePointManager.SecurityProtocol = System.Net.SecurityProtocolType.Tls12;
-	var throttler = new SemaphoreSlim(1, 1);
-	RunTransformAsync(throttler).Wait();
+	RunTransformAsync().Wait();
+#>
+﻿<#+
+async Task WriteSchemaAsync(string instanceName, JObject objects, SchemaGenerator generator)
+{
+#>using DotNetForce;
+using DotNetForce.Schema;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Linq.Expressions;
+using System.Threading.Tasks;
+
+namespace DotNetForce.Schema.<#= instanceName #>
+{
+	public class Schema
+	{
+		private static Schema _Instance { get; set; }
+		public static Schema Instance
+        {
+            get
+            {
+                if (_Instance == null)
+                {
+                    _Instance = new Schema();
+                }
+                return _Instance;
+            }
+        }
+        public static T Of<T>(Func<Schema, T> func) => func(Instance);
+        public static void Of<T>(Func<Schema, T> func, Action<T> action) => action(func(Instance));
+        public static TOut Of<T, TOut>(Func<Schema, T> func, Func<T, TOut> getter) => getter(func(Instance));
+        public static JObjectWrapper Wrap(JObject obj) => new JObjectWrapper(obj);
+        public static async Task<IEnumerable<JObjectWrapper>> Wrap(Task<IEnumerable<JObject>> objs) => Wrap(await objs);
+        public static IEnumerable<JObjectWrapper> Wrap(IEnumerable<JObject> objs) => objs?.Select(o => new JObjectWrapper(o));
+
+<#+
+		foreach (var prop in objects.Properties())
+		{
+			var objName = prop.Name;
+#>
+		public Sf<#= objName #> <#= objName #> { get => new Sf<#= objName #>(); }
+<#+
+		}
+#>
+	}
+}
+<#+
+		await generator.GenerateFileAsync("Schema.cs").ConfigureAwait(false);
+	}
 #>
 <#+
-async Task RunTransformAsync(SemaphoreSlim throttler) {
+async Task RunTransformAsync() {
 	var output = new StringBuilder();
 	try {
 		Warning(Host.ResolvePath(".."));
@@ -38,13 +83,19 @@ async Task RunTransformAsync(SemaphoreSlim throttler) {
 		var solutionDir = Path.GetDirectoryName(projectDir);
 		var devDir = Path.GetDirectoryName(solutionDir);
 
-		var generator = new SfModelGenerator(
+		var generator = new SchemaGenerator(
 			projectDir, instanceName, GenerationEnvironment,
 			msg => output.AppendLine(msg), msg => Warning(msg));
 		var devProfileFile = Path.Combine(devDir, "LoginProfiles.json");
-		var profileFile = Path.Combine(projectDir, "LoginProfiles.json");
-		var loginProfiles = generator.ReadProfile(devProfileFile) ?? generator.ReadProfile(profileFile) ?? throw new Exception("profile not found " + profileFile + ".");
-		var loginProfile = loginProfiles[instanceName] ?? throw new Exception("instance " + instanceName + " not found in profile.");
+		var loginProfile = generator.ReadProfile(devProfileFile)?[instanceName] ?? new JObject
+{
+	["LoginUrl"] = "https://test.salesforce.com/services/oauth2/token",
+	["ClientId"] = "{your_app_client_id}",
+	["ClientSecret"] = "{your_app_client_secret}",
+	["RedirectUri"] = "{your_app_redirect_uri_for_server_flow_only}",
+	["UserName"] = "{your_user_name_for_password_flow_only}",
+	["Password"] = "{your_password_for_password_flow_only}"
+};
 		var loginUri = new Uri(loginProfile["LoginUrl"]?.ToString() ?? throw new Exception("LoginUrl is null."));
 		var clientId = loginProfile["ClientId"]?.ToString() ?? throw new Exception("ClientId is null.");
 		var clientSecret = loginProfile["ClientSecret"]?.ToString() ?? throw new Exception("ClientSecret is null.");
@@ -53,12 +104,11 @@ async Task RunTransformAsync(SemaphoreSlim throttler) {
 		var objects = await generator.GenerateAsync(loginUri, clientId, clientSecret, userName, password);
 
 		await WriteSchemaAsync(instanceName, objects, generator).ConfigureAwait(false);
-		await WriteJObjectExtensionAsync(instanceName, generator).ConfigureAwait(false);
 
 		foreach (var prop in objects.Properties())
 		{
-			await WriteJsonAsync(prop.Name, prop.Value, generator).ConfigureAwait(false);
-			await WriteObjectAsync(instanceName, prop.Name, prop.Value, generator).ConfigureAwait(false);
+			await generator.WriteJsonAsync(prop.Name, prop.Value).ConfigureAwait(false);
+			await generator.WriteObjectAsync(instanceName, prop.Name, prop.Value).ConfigureAwait(false);
 		}
 	} finally {
 		Warning(output.ToString());

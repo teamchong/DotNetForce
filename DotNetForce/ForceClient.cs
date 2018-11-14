@@ -11,7 +11,7 @@ using System.Web;
 
 namespace DotNetForce.Force
 {
-    public class ForceClient : IForceClient, IDisposable
+    internal class ForceClient : IForceClient, IDisposable
     {
         protected readonly XmlHttpClient _xmlHttpClient;
         protected readonly JsonHttpClient _jsonHttpClient;

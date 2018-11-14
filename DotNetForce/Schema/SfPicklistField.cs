@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace DotNetForce.Schema
+namespace DotNetForce
 {
     public class SfPicklistField<T> : SfFieldBase<T> where T : SfObjectBase
     {

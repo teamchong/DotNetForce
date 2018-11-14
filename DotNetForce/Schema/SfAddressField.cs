@@ -4,7 +4,7 @@ using System.Text;
 
 using Newtonsoft.Json.Linq;
 
-namespace DotNetForce.Schema
+namespace DotNetForce
 {
     public class SfAddressField<T> : SfFieldBase<T> where T : SfObjectBase
     {

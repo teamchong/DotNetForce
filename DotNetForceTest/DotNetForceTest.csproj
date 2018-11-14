@@ -5,20 +5,32 @@
 
     <IsPackable>false</IsPackable>
 
-    <Version>2.0.8</Version>
+    <Version>3.0.0</Version>
 
     <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
+
+    <Authors>Steven Chong</Authors>
+
+    <Company />
+
+    <RepositoryUrl>https://github.com/ste80/DotNetForce</RepositoryUrl>
+
+    <PackageProjectUrl>https://github.com/ste80/DotNetForce/blob/master/README.md</PackageProjectUrl>
+
+    <PackageReleaseNotes>https://github.com/ste80/DotNetForce/blob/master/README.md</PackageReleaseNotes>
+
+    <Description>https://github.com/ste80/DotNetForce/blob/master/README.md</Description>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="15.8.0" />
+    <PackageReference Include="DotNetForce" Version="2.0.8" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="15.9.0" />
     <PackageReference Include="Newtonsoft.Json" Version="11.0.2" />
-    <PackageReference Include="xunit" Version="2.3.1" />
-    <PackageReference Include="xunit.runner.visualstudio" Version="2.3.1" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <ProjectReference Include="..\DotNetForce\DotNetForce.csproj" />
+    <PackageReference Include="xunit" Version="2.4.1" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="2.4.1">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
+    </PackageReference>
   </ItemGroup>
 
 </Project>
