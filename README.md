@@ -38,7 +38,7 @@ var lotsofIds = lotsOfOpps.Select(o => o.Get(opp.AccountId)).ToList(); // new []
 var results = Schema.Wrap(await Client.GetEnumerableByIdsAsync(lotsofIds, $@"
 SELECT {acc.Id}, {acc.AccountNumber}, {acc.Owner.Email}
 FROM {acc}
-WHERE {acc.Id} IN(<ids>)", "<ids>")).ToList();
+WHERE {acc.Id} IN(<ids>)", "<ids>")).ToList(); // <ids> is a text template you defined, you have multiple template, it willl be replaced by '0010I00000QkwK5','0010I00000QkwK5' etc.
 ```
 
 V2.0.0
