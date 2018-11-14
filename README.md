@@ -28,13 +28,17 @@ V2.0.7
 2) new Client.GetEnumerableByIdsAsync
 usages:
 ```cs
-var opp = Schema.Of(s => s.Opportunity);
-var lotsofIds = new [] { "0060I00000QkwK5"... x 100000 };
-
-var results = (await Client.GetEnumerableByIdsAsync(lotsofIds, $@"
-SELECT {line.Opportunity.AccountId}
+var (opp, acc) = Schema.Of(s => (s.Opportunity, s.Account));
+var lotsOfOpps = Schema.Wrap(await client.GetEnumerableAsync($@"
+SELECT {opp.AccountId}
 FROM {opp}
-WHERE {opp.Id} IN(<ids>)", "<ids>")).ToList();
+LIMIT 100000")).ToList();
+var lotsofIds = lotsOfOpps.Select(o => o.Get(opp.AccountId)).ToList(); // new [] { "0010I00000QkwK5"... x 100000 };
+
+var results = Schema.Wrap(await Client.GetEnumerableByIdsAsync(lotsofIds, $@"
+SELECT {acc.Id}, {acc.AccountNumber}, {acc.Owner.Email}
+FROM {acc}
+WHERE {acc.Id} IN(<ids>)", "<ids>")).ToList();
 ```
 
 V2.0.0
