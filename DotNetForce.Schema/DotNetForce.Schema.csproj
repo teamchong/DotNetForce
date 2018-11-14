@@ -23,14 +23,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Include="DEV.log">
-      <DesignTime>True</DesignTime>
-      <AutoGen>True</AutoGen>
-      <DependentUpon>DEV.tt</DependentUpon>
-    </Compile>
-  </ItemGroup>
-
-  <ItemGroup>
     <Content Include="DotNetForce.dll" />
   </ItemGroup>
 
@@ -43,11 +35,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Update="DEV.log">
-      <DesignTime>True</DesignTime>
-      <AutoGen>True</AutoGen>
-      <DependentUpon>DEV.tt</DependentUpon>
-    </None>
     <None Update="DEV.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
       <LastGenOutput>DEV.log</LastGenOutput>
