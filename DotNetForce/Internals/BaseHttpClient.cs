@@ -9,7 +9,7 @@ namespace DotNetForce.Common.Internals
 {
     public abstract class BaseHttpClient : IDisposable
     {
-        private const string UserAgent = "forcedotcom-toolkit-dotnet";
+        private const string UserAgent = "dotnetforce";
         private readonly string _contentType;
 
         protected readonly string InstanceUrl;
