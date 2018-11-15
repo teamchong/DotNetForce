@@ -1,4 +1,5 @@
 # DotNetForce
+nuget package https://www.nuget.org/packages/DotNetForce
 
 I have updated the library, but don't have time to document the changes, please check the TestClasses for code samples https://github.com/ste80/DotNetForce/tree/master/DotNetForceTest
 
