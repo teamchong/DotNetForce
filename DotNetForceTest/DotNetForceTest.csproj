@@ -5,7 +5,7 @@
 
     <IsPackable>false</IsPackable>
 
-    <Version>3.0.0</Version>
+    <Version>4.0.0</Version>
 
     <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
 
@@ -15,11 +15,11 @@
 
     <RepositoryUrl>https://github.com/ste80/DotNetForce</RepositoryUrl>
 
-    <PackageProjectUrl>https://github.com/ste80/DotNetForce/blob/master/README.md</PackageProjectUrl>
+    <PackageProjectUrl>https://ste80.github.io/DotNetForce</PackageProjectUrl>
 
-    <PackageReleaseNotes>https://github.com/ste80/DotNetForce/blob/master/README.md</PackageReleaseNotes>
+    <PackageReleaseNotes>https://ste80.github.io/DotNetForce</PackageReleaseNotes>
 
-    <Description>https://github.com/ste80/DotNetForce/blob/master/README.md</Description>
+    <Description>https://ste80.github.io/DotNetForce</Description>
   </PropertyGroup>
 
   <ItemGroup>

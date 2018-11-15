@@ -7,11 +7,11 @@
     <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
     <Version>4.0.0</Version>
     <Company />
-    <Description>https://github.com/ste80/DotNetForce/blob/master/README.md</Description>
+    <Description>https://ste80.github.io/DotNetForce</Description>
     <RepositoryUrl>https://github.com/ste80/DotNetForce</RepositoryUrl>
     <PackageTags></PackageTags>
-    <PackageProjectUrl>https://github.com/ste80/DotNetForce/blob/master/README.md</PackageProjectUrl>
-    <PackageReleaseNotes>https://github.com/ste80/DotNetForce/blob/master/README.md</PackageReleaseNotes>
+    <PackageProjectUrl>https://ste80.github.io/DotNetForce</PackageProjectUrl>
+    <PackageReleaseNotes>https://ste80.github.io/DotNetForce</PackageReleaseNotes>
   </PropertyGroup>
 
   <ItemGroup>

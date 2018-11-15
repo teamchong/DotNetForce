@@ -6,11 +6,11 @@
     <Version>4.0.0</Version>
     <Authors>Steven Chong</Authors>
     <Company></Company>
-    <PackageProjectUrl>https://github.com/ste80/DotNetForce/blob/master/README.md</PackageProjectUrl>
+    <PackageProjectUrl>https://ste80.github.io/DotNetForce</PackageProjectUrl>
     <PackageIconUrl></PackageIconUrl>
     <RepositoryUrl>https://github.com/ste80/DotNetForce</RepositoryUrl>
     <PackageReleaseNotes>https://github.com/ste80/DotNetForce/blob/master/README.md</PackageReleaseNotes>
-    <Description>https://github.com/ste80/DotNetForce/blob/master/README.md</Description>
+    <Description>https://ste80.github.io/DotNetForce</Description>
     <PackageId>DotNetForce.Schema .Sources</PackageId>
   </PropertyGroup>
 
@@ -28,14 +28,6 @@
 
   <ItemGroup>
     <Service Include="{508349b6-6b84-4df5-91f0-309beebad82d}" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Compile Update="DEV.cs">
-      <DesignTime>True</DesignTime>
-      <AutoGen>True</AutoGen>
-      <DependentUpon>DEV.tt</DependentUpon>
-    </Compile>
   </ItemGroup>
 
   <ItemGroup>

@@ -8,62 +8,65 @@ using System.Threading.Tasks;
 
 public class SchemaGenerator
 {
-    public string ProjectDir { get; set; }
-    public string InstanceName { get; set; }
+    // public string ProjectDir { get; set; }
+    // public string InstanceName { get; set; }
     public StringBuilder GenerationEnvironment { get; set; }
-    public Action<string> Logger { get; set; }
-    public Action<string> ErrorLogger { get; set; }
+    // public Action<string> Logger { get; set; }
+    // public Action<string> ErrorLogger { get; set; }
 
-    public SchemaGenerator(string projectDir, string instanceName, StringBuilder generationEnvironment, Action<string> logger, Action<string> errorLogger)
+    public SchemaGenerator() : this(new StringBuilder()) { }
+
+    // public SchemaGenerator(string projectDir, string instanceName, StringBuilder generationEnvironment, Action<string> logger, Action<string> errorLogger)
+    public SchemaGenerator(StringBuilder generationEnvironment)
     {
-        ProjectDir = projectDir;
-        InstanceName = instanceName;
+        // ProjectDir = projectDir;
+        // InstanceName = instanceName;
         GenerationEnvironment = generationEnvironment;
-        Logger = logger;
-        ErrorLogger = errorLogger;
+        // Logger = logger;
+        // ErrorLogger = errorLogger;
     }
 
-    public JObject ReadProfile(string path)
-    {
-        try
-        {
-            if (File.Exists(path))
-            {
-                using (var stream = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
-                {
-                    using (var reader = new StreamReader(stream))
-                    {
-                        using (var jsonReader = new JsonTextReader(reader))
-                        {
-                            return new JsonSerializer().Deserialize<JObject>(jsonReader);
-                        }
-                    }
-                }
-            }
-        }
-        catch { }
-        return null;
-    }
+    //public JObject ReadProfile(string path)
+    //{
+    //    try
+    //    {
+    //        if (File.Exists(path))
+    //        {
+    //            using (var stream = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
+    //            {
+    //                using (var reader = new StreamReader(stream))
+    //                {
+    //                    using (var jsonReader = new JsonTextReader(reader))
+    //                    {
+    //                        return new JsonSerializer().Deserialize<JObject>(jsonReader);
+    //                    }
+    //                }
+    //            }
+    //        }
+    //    }
+    //    catch { }
+    //    return null;
+    //}
 
     public async Task<JObject> RetreiveSObjectsAsync(DNFClient client)
     {
-        var folder = Path.Combine(ProjectDir, InstanceName);
-        var solutionDir = Path.GetDirectoryName(ProjectDir);
+        //var folder = Path.Combine(ProjectDir, InstanceName);
+        //var solutionDir = Path.GetDirectoryName(ProjectDir);
 
-        Logger?.Invoke($"instance: {InstanceName}");
-        Logger?.Invoke($"projectDir: {ProjectDir}");
-        Logger?.Invoke($"solutionDir: {solutionDir}");
-        Logger?.Invoke($"folder: {folder}");
+        //Logger?.Invoke($"instance: {InstanceName}");
+        //Logger?.Invoke($"projectDir: {ProjectDir}");
+        //Logger?.Invoke($"solutionDir: {solutionDir}");
+        //Logger?.Invoke($"folder: {folder}");
 
-        if (!Directory.Exists(folder)) Directory.CreateDirectory(folder);
-        foreach (var dir in Directory.GetDirectories(folder, "*", SearchOption.TopDirectoryOnly))
-        {
-            Directory.Delete(dir, true);
-        }
-        foreach (var file in Directory.GetFiles(folder, "*", SearchOption.TopDirectoryOnly))
-        {
-            File.Delete(file);
-        }
+        //if (!Directory.Exists(folder)) Directory.CreateDirectory(folder);
+        //foreach (var dir in Directory.GetDirectories(folder, "*", SearchOption.TopDirectoryOnly))
+        //{
+        //    Directory.Delete(dir, true);
+        //}
+        //foreach (var file in Directory.GetFiles(folder, "*", SearchOption.TopDirectoryOnly))
+        //{
+        //    File.Delete(file);
+        //}
 
         // var client = await DNFClient.LoginAsync(loginUri, clientId, clientSecret, userName, password, Logger).ConfigureAwait(false);
         var describeGlobalResult = await client.GetObjectsAsync<JObject>().ConfigureAwait(false);
@@ -76,35 +79,35 @@ public class SchemaGenerator
             {
                 continue;
             }
-            Logger?.Invoke(objectName);
+            //Logger?.Invoke(objectName);
             request.Describe(objectName, objectName);
         }
 
         var describeResult = await client.Composite.PostAsync(request).ConfigureAwait(false);
 
-        foreach (var error in describeResult.Errors())
-        {
-            Logger?.Invoke($"{error.Key}\n{error.Value}");
-        }
+        //foreach (var error in describeResult.Errors())
+        //{
+        //    Logger?.Invoke($"{error.Key}\n{error.Value}");
+        //}
 
         var objects = JObject.FromObject(describeResult.Results());
         return objects;
     }
 
-    public async Task GenerateFileAsync(string filePath)
-    {
-        var path = Path.Combine(ProjectDir, InstanceName, filePath);
-        Directory.CreateDirectory(Directory.GetParent(path).FullName);
-        Logger?.Invoke($"Writing to {path}.");
-        using (var stream = File.Open(path, FileMode.Create, FileAccess.Write, FileShare.Read))
-        {
-            using (var writer = new StreamWriter(stream))
-            {
-                await writer.WriteAsync(GenerationEnvironment.ToString()).ConfigureAwait(false);
-            }
-        }
-        GenerationEnvironment.Clear();
-    }
+    //public async Task GenerateFileAsync(string filePath)
+    //{
+    //    var path = Path.Combine(ProjectDir, InstanceName, filePath);
+    //    Directory.CreateDirectory(Directory.GetParent(path).FullName);
+    //    Logger?.Invoke($"Writing to {path}.");
+    //    using (var stream = File.Open(path, FileMode.Create, FileAccess.Write, FileShare.Read))
+    //    {
+    //        using (var writer = new StreamWriter(stream))
+    //        {
+    //            await writer.WriteAsync(GenerationEnvironment.ToString()).ConfigureAwait(false);
+    //        }
+    //    }
+    //    GenerationEnvironment.Clear();
+    //}
 
     //public async Task WriteJsonAsync(string objName, JToken objDescribe)
     //{
@@ -112,7 +115,7 @@ public class SchemaGenerator
     //    await GenerateFileAsync("Json\\" + objName + ".json").ConfigureAwait(false);
     //}
     
-    public async Task GenerateAsync(DNFClient client, string objNamespace)
+    public async Task<string> GenerateAsync(DNFClient client, string objNamespace)
     {
         var objects = await RetreiveSObjectsAsync(client);
         
@@ -134,6 +137,7 @@ namespace ").Append(objNamespace).Append(@"
 		}
         GenerationEnvironment.Append(@"
 }");
+        return GenerationEnvironment.ToString();
     }
 
     public void GenerateSchema(string objNamespace, JObject objects)
@@ -153,19 +157,19 @@ namespace ").Append(objNamespace).Append(@"
                 return _Instance;
             }
         }
-        public static T Of<T>(Func<Schema, T> func) => func(Instance);
-        public static void Of<T>(Func<Schema, T> func, Action<T> action) => action(func(Instance));
-        public static TOut Of<T, TOut>(Func<Schema, T> func, Func<T, TOut> getter) => getter(func(Instance));
-        public static JObjectWrapper Wrap(JObject obj) => new JObjectWrapper(obj);
-        public static async Task<IEnumerable<JObjectWrapper>> Wrap(Task<IEnumerable<JObject>> objs) => Wrap(await objs);
-        public static IEnumerable<JObjectWrapper> Wrap(IEnumerable<JObject> objs) => objs?.Select(o => new JObjectWrapper(o));
+        public static T Of<T>(Func<Schema, T> func) { return func(Instance); }
+        public static void Of<T>(Func<Schema, T> func, Action<T> action) { action(func(Instance)); }
+        public static TOut Of<T, TOut>(Func<Schema, T> func, Func<T, TOut> getter) { return getter(func(Instance)); }
+        public static JObjectWrapper Wrap(JObject obj) { return new JObjectWrapper(obj); }
+        public static async Task<IEnumerable<JObjectWrapper>> Wrap(Task<IEnumerable<JObject>> objs) { return Wrap(await objs); }
+        public static IEnumerable<JObjectWrapper> Wrap(IEnumerable<JObject> objs) { return objs?.Select(o => new JObjectWrapper(o)); }
 
 ");
 		foreach (var prop in objects.Properties())
 		{
 			var objName = prop.Name;
             GenerationEnvironment.Append(@"
-		public Sf").Append(objName).Append(@" ").Append(objName).Append(@" { get => new Sf").Append(objName).Append(@"(); }
+		public Sf").Append(objName).Append(@" ").Append(objName).Append(@" { get { return new Sf").Append(objName).Append(@"(); } }
 ");
 		}
         GenerationEnvironment.Append(@"
@@ -200,104 +204,104 @@ namespace ").Append(objNamespace).Append(@"
                 {
                     case "address":
                         GenerationEnvironment.Append(@"
-		public SfAddressField<Sf").Append(objName).Append(@"> ").Append(fieldName).Append(@" { get => new SfAddressField<Sf").Append(objName).Append(@">(").Append(FormatPath(fieldName)).Append(@"); }
+		public SfAddressField<Sf").Append(objName).Append(@"> ").Append(fieldName).Append(@" { get { return new SfAddressField<Sf").Append(objName).Append(@">(").Append(FormatPath(fieldName)).Append(@"); } }
 ");
                         break;
                     case "anyType":
                         GenerationEnvironment.Append(@"
-		public SfAnyTypeField<Sf").Append(objName).Append(@"> ").Append(fieldName).Append(@" { get => new SfAnyTypeField<Sf").Append(objName).Append(@">(").Append(FormatPath(fieldName)).Append(@"); }
+		public SfAnyTypeField<Sf").Append(objName).Append(@"> ").Append(fieldName).Append(@" { get { return new SfAnyTypeField<Sf").Append(objName).Append(@">(").Append(FormatPath(fieldName)).Append(@"); } }
 ");
                         break;
                     case "base64":
                         GenerationEnvironment.Append(@"
-		public SfBase64Field<Sf").Append(objName).Append(@"> ").Append(fieldName).Append(@" { get => new SfBase64Field<Sf").Append(objName).Append(@">(").Append(FormatPath(fieldName)).Append(@"); }
+		public SfBase64Field<Sf").Append(objName).Append(@"> ").Append(fieldName).Append(@" { get { return new SfBase64Field<Sf").Append(objName).Append(@">(").Append(FormatPath(fieldName)).Append(@"); } }
 ");
                         break;
                     case "boolean":
                         GenerationEnvironment.Append(@"
-		public SfBooleanField<Sf").Append(objName).Append(@"> ").Append(fieldName).Append(@" { get => new SfBooleanField<Sf").Append(objName).Append(@">(").Append(FormatPath(fieldName)).Append(@"); }
+		public SfBooleanField<Sf").Append(objName).Append(@"> ").Append(fieldName).Append(@" { get { return new SfBooleanField<Sf").Append(objName).Append(@">(").Append(FormatPath(fieldName)).Append(@"); } }
 ");
                         break;
                     case "combobox":
                         GenerationEnvironment.Append(@"
-		public SfComboBoxField<Sf").Append(objName).Append(@"> ").Append(fieldName).Append(@" { get => new SfComboBoxField<Sf").Append(objName).Append(@">(").Append(FormatPath(fieldName)).Append(@", ");
+		public SfComboBoxField<Sf").Append(objName).Append(@"> ").Append(fieldName).Append(@" { get { return new SfComboBoxField<Sf").Append(objName).Append(@">(").Append(FormatPath(fieldName)).Append(@", ");
                         OutputPicklistDefaultValue(field);
                         GenerationEnvironment.Append(@", ");
                         OutputPicklists(field);
-                        GenerationEnvironment.Append(@"); }
+                        GenerationEnvironment.Append(@"); } }
 ");
                         break;
                     case "complexvalue":
                         GenerationEnvironment.Append(@"
-		public SfComplexValueField<Sf").Append(objName).Append(@"> ").Append(fieldName).Append(@" { get => new SfComplexValueField<Sf").Append(objName).Append(@">(").Append(FormatPath(fieldName)).Append(@"); }
+		public SfComplexValueField<Sf").Append(objName).Append(@"> ").Append(fieldName).Append(@" { get { return new SfComplexValueField<Sf").Append(objName).Append(@">(").Append(FormatPath(fieldName)).Append(@"); } }
 ");
                         break;
                     case "currency":
                         GenerationEnvironment.Append(@"
-		public SfCurrencyField<Sf").Append(objName).Append(@"> ").Append(fieldName).Append(@" { get => new SfCurrencyField<Sf").Append(objName).Append(@">(").Append(FormatPath(fieldName)).Append(@"); }
+		public SfCurrencyField<Sf").Append(objName).Append(@"> ").Append(fieldName).Append(@" { get { return new SfCurrencyField<Sf").Append(objName).Append(@">(").Append(FormatPath(fieldName)).Append(@"); } }
 ");
                         break;
                     case "date":
                         GenerationEnvironment.Append(@"
-		public SfDateField<Sf").Append(objName).Append(@"> ").Append(fieldName).Append(@" { get => new SfDateField<Sf").Append(objName).Append(@">(").Append(FormatPath(fieldName)).Append(@"); }
+		public SfDateField<Sf").Append(objName).Append(@"> ").Append(fieldName).Append(@" { get { return new SfDateField<Sf").Append(objName).Append(@">(").Append(FormatPath(fieldName)).Append(@"); } }
 ");
                         break;
                     case "datetime":
                         GenerationEnvironment.Append(@"
-		public SfDateTimeField<Sf").Append(objName).Append(@"> ").Append(fieldName).Append(@" { get => new SfDateTimeField<Sf").Append(objName).Append(@">(").Append(FormatPath(fieldName)).Append(@"); }
+		public SfDateTimeField<Sf").Append(objName).Append(@"> ").Append(fieldName).Append(@" { get { return new SfDateTimeField<Sf").Append(objName).Append(@">(").Append(FormatPath(fieldName)).Append(@"); } }
 ");
                         break;
                     case "double":
                         GenerationEnvironment.Append(@"
-		public SfDoubleField<Sf").Append(objName).Append(@"> ").Append(fieldName).Append(@" { get => new SfDoubleField<Sf").Append(objName).Append(@">(").Append(FormatPath(fieldName)).Append(@"); }
+		public SfDoubleField<Sf").Append(objName).Append(@"> ").Append(fieldName).Append(@" { get { return new SfDoubleField<Sf").Append(objName).Append(@">(").Append(FormatPath(fieldName)).Append(@"); } }
 ");
                         break;
                     case "email":
                         GenerationEnvironment.Append(@"
-		public SfEmailField<Sf").Append(objName).Append(@"> ").Append(fieldName).Append(@" { get => new SfEmailField<Sf").Append(objName).Append(@">(").Append(FormatPath(fieldName)).Append(@"); }
+		public SfEmailField<Sf").Append(objName).Append(@"> ").Append(fieldName).Append(@" { get { return new SfEmailField<Sf").Append(objName).Append(@">(").Append(FormatPath(fieldName)).Append(@"); } }
 ");
                         break;
                     case "id":
                         GenerationEnvironment.Append(@"
-		public SfIdField<Sf").Append(objName).Append(@"> ").Append(fieldName).Append(@" { get => new SfIdField<Sf").Append(objName).Append(@">(").Append(FormatPath(fieldName)).Append(@"); }
+		public SfIdField<Sf").Append(objName).Append(@"> ").Append(fieldName).Append(@" { get { return new SfIdField<Sf").Append(objName).Append(@">(").Append(FormatPath(fieldName)).Append(@"); } }
 ");
                         break;
                     case "int":
                         GenerationEnvironment.Append(@"
-		public SfIntField<Sf").Append(objName).Append(@"> ").Append(fieldName).Append(@" { get => new SfIntField<Sf").Append(objName).Append(@">(").Append(FormatPath(fieldName)).Append(@"); }
+		public SfIntField<Sf").Append(objName).Append(@"> ").Append(fieldName).Append(@" { get { return new SfIntField<Sf").Append(objName).Append(@">(").Append(FormatPath(fieldName)).Append(@"); } }
 ");
                         break;
                     case "location":
                         GenerationEnvironment.Append(@"
-		public SfLocationField<Sf").Append(objName).Append(@"> ").Append(fieldName).Append(@" { get => new SfLocationField<Sf").Append(objName).Append(@">(").Append(FormatPath(fieldName)).Append(@"); }
+		public SfLocationField<Sf").Append(objName).Append(@"> ").Append(fieldName).Append(@" { get { return new SfLocationField<Sf").Append(objName).Append(@">(").Append(FormatPath(fieldName)).Append(@"); } }
 ");
                         break;
                     case "multipicklist":
                         GenerationEnvironment.Append(@"
-		public SfMultiPicklistField<Sf").Append(objName).Append(@"> ").Append(fieldName).Append(@" { get => new SfMultiPicklistField<Sf").Append(objName).Append(@">(").Append(FormatPath(fieldName)).Append(@", ");
+		public SfMultiPicklistField<Sf").Append(objName).Append(@"> ").Append(fieldName).Append(@" { get { return new SfMultiPicklistField<Sf").Append(objName).Append(@">(").Append(FormatPath(fieldName)).Append(@", ");
                         OutputPicklistDefaultValue(field);
                         GenerationEnvironment.Append(@", ");
                         OutputPicklists(field);
-                        GenerationEnvironment.Append(@"); }
+                        GenerationEnvironment.Append(@"); } }
 ");
                         break;
                     case "percent":
                         GenerationEnvironment.Append(@"
-		public SfPercentField<Sf").Append(objName).Append(@"> ").Append(fieldName).Append(@" { get => new SfPercentField<Sf").Append(objName).Append(@">(").Append(FormatPath(fieldName)).Append(@"); }
+		public SfPercentField<Sf").Append(objName).Append(@"> ").Append(fieldName).Append(@" { get { return new SfPercentField<Sf").Append(objName).Append(@">(").Append(FormatPath(fieldName)).Append(@"); } }
 ");
                         break;
                     case "phone":
                         GenerationEnvironment.Append(@"
-		public SfPhoneField<Sf").Append(objName).Append(@"> ").Append(fieldName).Append(@" { get => new SfPhoneField<Sf").Append(objName).Append(@">(").Append(FormatPath(fieldName)).Append(@"); }
+		public SfPhoneField<Sf").Append(objName).Append(@"> ").Append(fieldName).Append(@" { get { return new SfPhoneField<Sf").Append(objName).Append(@">(").Append(FormatPath(fieldName)).Append(@"); } }
 ");
                         break;
                     case "picklist":
                         GenerationEnvironment.Append(@"
-		public SfPicklistField<Sf").Append(objName).Append(@"> ").Append(fieldName).Append(@" { get => new SfPicklistField<Sf").Append(objName).Append(@">(").Append(FormatPath(fieldName)).Append(@", ");
+		public SfPicklistField<Sf").Append(objName).Append(@"> ").Append(fieldName).Append(@" { get { return new SfPicklistField<Sf").Append(objName).Append(@">(").Append(FormatPath(fieldName)).Append(@", ");
                         OutputPicklistDefaultValue(field);
                         GenerationEnvironment.Append(@", ");
                         OutputPicklists(field);
-                        GenerationEnvironment.Append(@"); }
+                        GenerationEnvironment.Append(@"); } }
 ");
                         break;
                     case "reference":
@@ -316,33 +320,33 @@ namespace ").Append(objNamespace).Append(@"
                         }
                         references.Add(field);
                         GenerationEnvironment.Append(@"
-		public SfIdField<Sf").Append(objName).Append(@"> ").Append(fieldName).Append(@" { get => new SfIdField<Sf").Append(objName).Append(@">(").Append(FormatPath(fieldName)).Append(@"); }
+		public SfIdField<Sf").Append(objName).Append(@"> ").Append(fieldName).Append(@" { get { return new SfIdField<Sf").Append(objName).Append(@">(").Append(FormatPath(fieldName)).Append(@"); } }
 ");
                         break;
                     case "string":
                         GenerationEnvironment.Append(@"
-		public SfStringField<Sf").Append(objName).Append(@"> ").Append(fieldName).Append(@" { get => new SfStringField<Sf").Append(objName).Append(@">(").Append(FormatPath(fieldName)).Append(@"); }
+		public SfStringField<Sf").Append(objName).Append(@"> ").Append(fieldName).Append(@" { get { return new SfStringField<Sf").Append(objName).Append(@">(").Append(FormatPath(fieldName)).Append(@"); } }
 ");
                         break;
                     case "textarea":
                         GenerationEnvironment.Append(@"
-		public SfTextAreaField<Sf").Append(objName).Append(@"> ").Append(fieldName).Append(@" { get => new SfTextAreaField<Sf").Append(objName).Append(@">(").Append(FormatPath(fieldName)).Append(@"); }
+		public SfTextAreaField<Sf").Append(objName).Append(@"> ").Append(fieldName).Append(@" { get { return new SfTextAreaField<Sf").Append(objName).Append(@">(").Append(FormatPath(fieldName)).Append(@"); } }
 ");
                         break;
                     case "time":
                         GenerationEnvironment.Append(@"
-		public SfTimeField<Sf").Append(objName).Append(@"> ").Append(fieldName).Append(@" { get => new SfTimeField<Sf").Append(objName).Append(@">(").Append(FormatPath(fieldName)).Append(@"); }
+		public SfTimeField<Sf").Append(objName).Append(@"> ").Append(fieldName).Append(@" { get { return new SfTimeField<Sf").Append(objName).Append(@">(").Append(FormatPath(fieldName)).Append(@"); } }
 ");
                         break;
                     case "url":
                         GenerationEnvironment.Append(@"
-		public SfUrlField<Sf").Append(objName).Append(@"> ").Append(fieldName).Append(@" { get => new SfUrlField<Sf").Append(objName).Append(@">(").Append(FormatPath(fieldName)).Append(@"); }
+		public SfUrlField<Sf").Append(objName).Append(@"> ").Append(fieldName).Append(@" { get { return new SfUrlField<Sf").Append(objName).Append(@">(").Append(FormatPath(fieldName)).Append(@"); } }
 ");
                         break;
                     default:
                         GenerationEnvironment.Append(@"
 		/* unknown type: ").Append(field["type"]?.ToString() ?? "").Append(@" */
-		public SfTextField<Sf").Append(objName).Append(@"> ").Append(fieldName).Append(@" { get => new SfTextField<Sf").Append(objName).Append(@">(").Append(FormatPath(fieldName)).Append(@"); }
+		public SfTextField<Sf").Append(objName).Append(@"> ").Append(fieldName).Append(@" { get { return new SfTextField<Sf").Append(objName).Append(@">(").Append(FormatPath(fieldName)).Append(@"); } }
 ");
                         break;
                 }
@@ -352,9 +356,7 @@ namespace ").Append(objNamespace).Append(@"
         if (references.Count > 0)
         {
             GenerationEnvironment.Append(@"
-
 #region References
-
 ");
 
             foreach (var field in references)
@@ -363,12 +365,12 @@ namespace ").Append(objNamespace).Append(@"
                 var relationshipName = field["relationshipName"]?.ToString();
                 var referenceTo = field["referenceTo"]?[0]?.ToString();
                 GenerationEnvironment.Append(@"
-		public Sf").Append(referenceTo).Append(@" ").Append(relationshipName).Append(@" { get => new Sf").Append(referenceTo).Append(@"(").Append(FormatPath(relationshipName)).Append(@"); }
+		public Sf").Append(referenceTo).Append(@" ").Append(relationshipName).Append(@" { get { return new Sf").Append(referenceTo).Append(@"(").Append(FormatPath(relationshipName)).Append(@"); } }
 ");
             }
             GenerationEnvironment.Append(@"
-
-#endregion References");
+#endregion References
+");
         }
 
         var childRelationships = new JArray();
@@ -392,9 +394,7 @@ namespace ").Append(objNamespace).Append(@"
         if (childRelationships.Count > 0)
         {
             GenerationEnvironment.Append(@"
-
 #region ChildRelationships
-
 ");
             foreach (var childRelationship in childRelationships)
             {
@@ -403,17 +403,17 @@ namespace ").Append(objNamespace).Append(@"
                 GenerationEnvironment.Append(@"
 		public SfChildRelationship<Sf").Append(objName).Append(@", Sf").Append(childSObject).Append(@"> ").Append(relationshipName).Append(@"
 		{
-			get => new SfChildRelationship<Sf").Append(objName).Append(@", Sf").Append(childSObject).Append(@">(").Append(FormatPath(relationshipName)).Append(@");
+			get { return new SfChildRelationship<Sf").Append(objName).Append(@", Sf").Append(childSObject).Append(@">(").Append(FormatPath(relationshipName)).Append(@"); }
 		}
 ");
             }
             GenerationEnvironment.Append(@"
-
-#endregion ChildRelationships");
+#endregion ChildRelationships
+");
         }
         GenerationEnvironment.Append(@"
 
-		public override string ToString() => string.IsNullOrEmpty(_Path) ? ").Append(Json(objName)).Append(@" : _Path;
+		public override string ToString() { return string.IsNullOrEmpty(_Path) ? ").Append(EncodeJson(objName)).Append(@" : _Path; }
 	}
 ");
         //await GenerateFileAsync("Sf" + objName + ".cs").ConfigureAwait(false);
@@ -421,10 +421,10 @@ namespace ").Append(objNamespace).Append(@"
 
     string FormatPath(string fieldName)
     {
-        return "string.IsNullOrEmpty(_Path) ? " + Json(fieldName) + " : _Path + " + Json("." + fieldName);
+        return "string.IsNullOrEmpty(_Path) ? " + EncodeJson(fieldName) + " : _Path + " + EncodeJson("." + fieldName);
     }
 
-    protected string Json(Object obj) => JsonConvert.SerializeObject(obj);
+    protected string EncodeJson(object obj) => JsonConvert.SerializeObject(obj);
 
     protected void OutputPicklistDefaultValue(JToken field)
     {
@@ -435,7 +435,7 @@ namespace ").Append(objNamespace).Append(@"
             {
                 if ((bool?)picklist["active"] == true && (bool?)picklist["defaultValue"] == true)
                 {
-                    GenerationEnvironment.Append(Json(picklist["value"].ToString()));
+                    GenerationEnvironment.Append(EncodeJson(picklist["value"].ToString()));
                     return;
                 }
             }
@@ -453,10 +453,15 @@ namespace ").Append(objNamespace).Append(@"
             {
                 if ((bool?)picklist["active"] == true)
                 {
-                    GenerationEnvironment.Append(@" new SfPicklistValue(").Append(Json(picklist["value"].ToString())).Append(@", ").Append(Json(picklist["label"]?.ToString() ?? picklist["value"].ToString())).Append(@"),");
+                    GenerationEnvironment.Append(@" new SfPicklistValue(").Append(EncodeJson(picklist["value"].ToString())).Append(@", ").Append(EncodeJson(picklist["label"]?.ToString() ?? picklist["value"].ToString())).Append(@"),");
                 }
             }
         }
         GenerationEnvironment.Append(@"}");
+    }
+
+    public override string ToString()
+    {
+        return GenerationEnvironment.ToString();
     }
 }
