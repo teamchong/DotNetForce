@@ -20,6 +20,10 @@
     <PackageReleaseNotes>https://ste80.github.io/DotNetForce</PackageReleaseNotes>
 
     <Description>https://ste80.github.io/DotNetForce</Description>
+
+    <PackageLicenseUrl>https://raw.githubusercontent.com/ste80/DotNetForce/master/LICENSE</PackageLicenseUrl>
+
+    <Copyright>Copyright (c) 2018 Steven Chong</Copyright>
   </PropertyGroup>
 
   <ItemGroup>

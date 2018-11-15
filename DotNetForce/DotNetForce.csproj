@@ -12,6 +12,8 @@
     <PackageTags></PackageTags>
     <PackageProjectUrl>https://ste80.github.io/DotNetForce</PackageProjectUrl>
     <PackageReleaseNotes>https://ste80.github.io/DotNetForce</PackageReleaseNotes>
+    <PackageLicenseUrl>https://raw.githubusercontent.com/ste80/DotNetForce/master/LICENSE</PackageLicenseUrl>
+    <Copyright>Copyright (c) 2018 Steven Chong</Copyright>
   </PropertyGroup>
 
   <ItemGroup>
