@@ -2,14 +2,14 @@
 
 I have updated the library, but don't have time to document the changes, please check the TestClasses for code samples https://github.com/ste80/DotNetForce/tree/master/DotNetForceTest
 
-V3.0.0
+V4.0.0
 
 I tried put DotNetForce.Schema on nuget, but it doesn't work.
 
 
 following is the step by step guide to generate Schema for your org
 
-1) Install the latest version from nuget (v3.0.1+) https://nuget.org/packages/DotNetForce 
+1) Install the latest version from nuget (v4.0.0+) https://nuget.org/packages/DotNetForce 
 
 2) Download all the files from (Except DotNetForce.Schema.csproj) https://github.com/ste80/DotNetForce/tree/master/DotNetForce.Schema
 
@@ -19,7 +19,7 @@ following is the step by step guide to generate Schema for your org
 
 5) Run the DEV.tt using T4
 
-6) a new folder DEV should be created which contains the Schema helper for your org.
+6) a new DEV.cs should be created which contains the Schema helper classes for your org.
 
 
 
