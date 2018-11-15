@@ -45,12 +45,7 @@ public class SchemaGenerator
         return null;
     }
 
-    public async Task<JObject> GenerateAsync(
-        Uri loginUri,
-        string clientId,
-        string clientSecret,
-        string userName,
-        string password)
+    public async Task<JObject> RetreiveSObjectsAsync(DNFClient client)
     {
         var folder = Path.Combine(ProjectDir, InstanceName);
         var solutionDir = Path.GetDirectoryName(ProjectDir);
@@ -70,7 +65,7 @@ public class SchemaGenerator
             File.Delete(file);
         }
 
-        var client = await DNFClient.LoginAsync(loginUri, clientId, clientSecret, userName, password, Logger).ConfigureAwait(false);
+        // var client = await DNFClient.LoginAsync(loginUri, clientId, clientSecret, userName, password, Logger).ConfigureAwait(false);
         var describeGlobalResult = await client.GetObjectsAsync<JObject>().ConfigureAwait(false);
 
         var request = new CompositeRequest();
@@ -111,22 +106,77 @@ public class SchemaGenerator
         GenerationEnvironment.Clear();
     }
 
-    public async Task WriteJsonAsync(string objName, JToken objDescribe)
+    //public async Task WriteJsonAsync(string objName, JToken objDescribe)
+    //{
+    //    GenerationEnvironment.Append(objDescribe);
+    //    await GenerateFileAsync("Json\\" + objName + ".json").ConfigureAwait(false);
+    //}
+    
+    public async Task GenerateAsync(DNFClient client, string objNamespace)
     {
-        GenerationEnvironment.Append(objDescribe);
-        await GenerateFileAsync("Json\\" + objName + ".json").ConfigureAwait(false);
-    }
-
-    public async Task WriteObjectAsync(string objNamespace, string objName, JToken objDescribe)
-    {
+        var objects = await RetreiveSObjectsAsync(client);
+        
         GenerationEnvironment.Append(@"using DotNetForce;
-using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
-using System.Linq.Expressions;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace ").Append(objNamespace).Append(@"
-{
+{");
+		GenerateSchema(objNamespace, objects);
+
+		foreach (var prop in objects.Properties())
+		{
+			// await WriteJsonAsync(prop.Name, prop.Value).ConfigureAwait(false);
+			GenerateObject(objNamespace, prop.Name, prop.Value);
+		}
+        GenerationEnvironment.Append(@"
+}");
+    }
+
+    public void GenerateSchema(string objNamespace, JObject objects)
+    {
+        GenerationEnvironment.Append(@"
+	public class Schema
+	{
+		private static Schema _Instance { get; set; }
+		public static Schema Instance
+        {
+            get
+            {
+                if (_Instance == null)
+                {
+                    _Instance = new Schema();
+                }
+                return _Instance;
+            }
+        }
+        public static T Of<T>(Func<Schema, T> func) => func(Instance);
+        public static void Of<T>(Func<Schema, T> func, Action<T> action) => action(func(Instance));
+        public static TOut Of<T, TOut>(Func<Schema, T> func, Func<T, TOut> getter) => getter(func(Instance));
+        public static JObjectWrapper Wrap(JObject obj) => new JObjectWrapper(obj);
+        public static async Task<IEnumerable<JObjectWrapper>> Wrap(Task<IEnumerable<JObject>> objs) => Wrap(await objs);
+        public static IEnumerable<JObjectWrapper> Wrap(IEnumerable<JObject> objs) => objs?.Select(o => new JObjectWrapper(o));
+
+");
+		foreach (var prop in objects.Properties())
+		{
+			var objName = prop.Name;
+            GenerationEnvironment.Append(@"
+		public Sf").Append(objName).Append(@" ").Append(objName).Append(@" { get => new Sf").Append(objName).Append(@"(); }
+");
+		}
+        GenerationEnvironment.Append(@"
+	}
+");
+		//await GenerateFileAsync("Schema.cs").ConfigureAwait(false);
+    }
+
+    public void GenerateObject(string objNamespace, string objName, JToken objDescribe)
+    {
+        GenerationEnvironment.Append(@"
 	public class Sf").Append(objName).Append(@" : SfObjectBase
 	{
 		public Sf").Append(objName).Append(@"() : base("""") { }
@@ -254,8 +304,7 @@ namespace ").Append(objNamespace).Append(@"
                         if (((JArray)field["referenceTo"])?.Count != 1)
                         {
                             GenerationEnvironment.Append(@"
-	/* referenceTo.Count != 1 ").Append(field["referenceTo"]).Append(@" */
-");
+	/* referenceTo.Count != 1 ").Append(field["referenceTo"]).Append(@" */");
                             continue;
                         }
                         var relationshipName = field["relationshipName"]?.ToString();
@@ -319,9 +368,7 @@ namespace ").Append(objNamespace).Append(@"
             }
             GenerationEnvironment.Append(@"
 
-#endregion References
-
-");
+#endregion References");
         }
 
         var childRelationships = new JArray();
@@ -362,17 +409,14 @@ namespace ").Append(objNamespace).Append(@"
             }
             GenerationEnvironment.Append(@"
 
-#endregion ChildRelationships
-
-");
+#endregion ChildRelationships");
         }
         GenerationEnvironment.Append(@"
 
 		public override string ToString() => string.IsNullOrEmpty(_Path) ? ").Append(Json(objName)).Append(@" : _Path;
 	}
-}
 ");
-        await GenerateFileAsync("Sf" + objName + ".cs").ConfigureAwait(false);
+        //await GenerateFileAsync("Sf" + objName + ".cs").ConfigureAwait(false);
     }
 
     string FormatPath(string fieldName)

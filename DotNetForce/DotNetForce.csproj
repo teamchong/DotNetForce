@@ -5,7 +5,7 @@
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <Authors>Steven Chong</Authors>
     <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
-    <Version>3.0.1</Version>
+    <Version>4.0.0</Version>
     <Company />
     <Description>https://github.com/ste80/DotNetForce/blob/master/README.md</Description>
     <RepositoryUrl>https://github.com/ste80/DotNetForce</RepositoryUrl>

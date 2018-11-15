@@ -6,7 +6,7 @@ using DotNetForce.Common;
 
 namespace DotNetForce.Chatter
 {
-    public class ChatterClient : IChatterClient, IDisposable
+    internal class ChatterClient : IChatterClient, IDisposable
     {
         private readonly JsonHttpClient _jsonHttpClient;
 	    private readonly string _itemsOrElements;

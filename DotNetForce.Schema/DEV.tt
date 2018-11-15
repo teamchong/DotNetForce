@@ -15,7 +15,7 @@
 <#@ import namespace="System.Text" #>
 <#@ import namespace="System.Threading" #>
 <#@ import namespace="System.Threading.Tasks" #>
-<#@ output extension="log" #>
+<#@ output extension="cs" #>
 <#
 	System.Net.ServicePointManager.DefaultConnectionLimit = int.MaxValue;
 	System.Net.ServicePointManager.Expect100Continue = true;
@@ -101,16 +101,11 @@ async Task RunTransformAsync() {
 		var clientSecret = loginProfile["ClientSecret"]?.ToString() ?? throw new Exception("ClientSecret is null.");
 		var userName = loginProfile["UserName"]?.ToString() ?? throw new Exception("UserName is null.");
 		var password = loginProfile["Password"]?.ToString() ?? throw new Exception("Password is null.");
-		var objects = await generator.GenerateAsync(loginUri, clientId, clientSecret, userName, password);
+
 		var objNamespace = "DotNetForce.Schema";
+		var client = await DNFClient.LoginAsync(loginUri, clientId, clientSecret, userName, password, msg => Warning(msg)).ConfigureAwait(false);
 
-		await WriteSchemaAsync(objNamespace, objects, generator).ConfigureAwait(false);
-
-		foreach (var prop in objects.Properties())
-		{
-			// await generator.WriteJsonAsync(prop.Name, prop.Value).ConfigureAwait(false);
-			await generator.WriteObjectAsync(objNamespace, prop.Name, prop.Value).ConfigureAwait(false);
-		}
+		await generator.GenerateAsync(client, objNamespace).ConfigureAwait(false);
 	} finally {
 		Warning(output.ToString());
 	}

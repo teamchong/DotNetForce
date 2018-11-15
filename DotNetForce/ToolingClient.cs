@@ -19,7 +19,7 @@ using System.Web;
 
 namespace DotNetForce
 {
-    public class ToolingClient : IToolingClient
+    internal class ToolingClient : IToolingClient
     {
         protected JsonHttpClient JsonHttp { get; set; }
 
