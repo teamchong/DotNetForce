@@ -9,7 +9,7 @@
     <Company />
     <Description>https://ste80.github.io/DotNetForce</Description>
     <RepositoryUrl>https://github.com/ste80/DotNetForce</RepositoryUrl>
-    <PackageTags></PackageTags>
+    <PackageTags>salesforce</PackageTags>
     <PackageProjectUrl>https://ste80.github.io/DotNetForce</PackageProjectUrl>
     <PackageReleaseNotes>https://ste80.github.io/DotNetForce</PackageReleaseNotes>
     <PackageLicenseUrl>https://raw.githubusercontent.com/ste80/DotNetForce/master/LICENSE</PackageLicenseUrl>

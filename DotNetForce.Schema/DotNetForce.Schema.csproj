@@ -14,6 +14,7 @@
     <PackageId>DotNetForce.Schema .Sources</PackageId>
     <PackageLicenseUrl>https://raw.githubusercontent.com/ste80/DotNetForce/master/LICENSE</PackageLicenseUrl>
     <Copyright>Copyright (c) 2018 Steven Chong</Copyright>
+    <PackageTags>salesforce</PackageTags>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
