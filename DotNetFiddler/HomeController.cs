@@ -23,37 +23,24 @@ namespace DotNetForceSample
 		}
 		
 		[HttpPost]
-		public async Task<ActionResult> Schema(PostData data)
+		public ActionResult Schema(PostData data)
 		{
-			try {
-				return Json(data);
-				var client = await DNFClient.OAuthLoginAsync(new OAuthProfile
-				{
-					LoginUri = new Uri(data.instance_url),
-					ClientId = ClientId,
-					RedirectUri = RedirectUri,
-					Code = data.access_token
-				});
-				var generator = new SchemaGenerator();
-				var schemaCode = await generator.GenerateAsync(client, "SalesforceSchema");
+			var client = DNFClient.OAuthLoginAsync(new OAuthProfile
+			{
+				LoginUri = new Uri("https://" + data.state),
+				ClientId = ClientId,
+				RedirectUri = RedirectUri,
+				Code = data.code
+			}).Result;
+			var generator = new SchemaGenerator();
+			var schemaCode = generator.GenerateAsync(client, "SalesforceSchema").Result;
 
-				return Content(schemaCode);	
-			}
-			catch (Exception ex) {
-				return Content(ex.ToString());
-			}
+			return Content(schemaCode);	
 		}
 
         public class PostData {
-            public string access_token { get; set; }
-            public string instance_url { get; set; }
-            public string id { get; set; }
-			public string refresh_token { get; set; }
-            public string issued_at { get; set; }
-            public string signature { get; set; }
+            public string code { get; set; }
             public string state { get; set; }
-            public string scope { get; set; }
-            public string token_type { get; set; }
         }
 	}
 }

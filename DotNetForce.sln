@@ -9,6 +9,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DotNetForce.Schema", "DotNe
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DotNetForceTest", "DotNetForceTest\DotNetForceTest.csproj", "{334303A4-8A25-45FB-BDF5-B7DAE29D2C68}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BlazorForce", "BlazorForce\BlazorForce.csproj", "{F2A5F43D-657B-4833-9E42-E11A55299DC7}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -27,6 +29,10 @@ Global
 		{334303A4-8A25-45FB-BDF5-B7DAE29D2C68}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{334303A4-8A25-45FB-BDF5-B7DAE29D2C68}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{334303A4-8A25-45FB-BDF5-B7DAE29D2C68}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F2A5F43D-657B-4833-9E42-E11A55299DC7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F2A5F43D-657B-4833-9E42-E11A55299DC7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F2A5F43D-657B-4833-9E42-E11A55299DC7}.Release|Any CPU.ActiveCfg = Debug|Any CPU
+		{F2A5F43D-657B-4833-9E42-E11A55299DC7}.Release|Any CPU.Build.0 = Debug|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

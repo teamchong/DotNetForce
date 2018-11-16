@@ -19,19 +19,19 @@ namespace DotNetForceTest
     {
         public DNFClientTest(ITestOutputHelper output) : base(output) { }
 
-        [Fact]
-        public async Task OAuth2Test()
-        {
-			var client = await DNFClient.OAuthLoginAsync(new OAuthProfile
-			{
-				LoginUri = new Uri("https://ubmasia--Full.cs72.my.salesforce.com"),
-				ClientId = "3MVG910YPh8zrcR3w3cOaVxURhJtcv8fxvL19jvXzqO_F819av8P2cc9VMnBOKkKTdK.uMAfUGRU_4aYDm5A3",
-				RedirectUri = "https://ste80.github.io/DotNetForce/oauth2",
-				Code = "00D5D0000004zU9!AQ8AQMapoY7h3zRhrqFImPF25bL.RF4dlF6XIUDG6WPbbaBU6Ol48Quuy3SGfFY8vGBwQIyOB.8XCE0r38OT.3pWWP38EOVi"
-			});
+   //     [Fact]
+   //     public async Task OAuth2Test()
+   //     {
+			//var client = await DNFClient.OAuthLoginAsync(new OAuthProfile
+			//{
+			//	LoginUri = new Uri("https://test.salesforce.com"),
+			//	ClientId = "3MVG910YPh8zrcR3w3cOaVxURhJtcv8fxvL19jvXzqO_F819av8P2cc9VMnBOKkKTdK.uMAfUGRU_4aYDm5A3",
+			//	RedirectUri = "https://ste80.github.io/DotNetForce/oauth2",
+			//	Code = ""
+			//});
 
-            return;
-        }
+   //         return;
+   //     }
 
         [Fact]
         public async Task LoginTest()
