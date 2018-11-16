@@ -341,4 +341,4 @@ ASALocalRun/
 
 
 # End of https://www.gitignore.io/api/csharp,visualstudio2017
-!/_framework/_bin/BlazorForce.pdb
+!/_framework/_bin/*.pdb
