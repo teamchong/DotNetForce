@@ -1,7 +1,44 @@
-﻿@page "/"
+﻿@using Microsoft.JSInterop;
+@page "/"
 
-<h1>Hello, world!</h1>
+<div class="container-fluid">
+    <h1>DotNetForce</h1>
 
-Welcome to your new app.
-
+    @if (string.IsNullOrEmpty(loggedIn)) {
+    <div class="p-3">
+        <button type="button" class="btn btn-outline-primary"><span class="oi oi-account-login"></span> Production</button>
+        <button type="button" class="btn btn-outline-primary"><span class="oi oi-account-login"></span> Test</button>
+        <button type="button" class="btn btn-outline-primary"><span class="oi oi-account-login"></span> Custom</button>
+    </div>
+    }
+    else
+    {
+        <h3>@loggedIn</h3>
+    }
+    @message
+</div>
 @*<SurveyPrompt Title="How is Blazor working for you?" />*@
+
+@functions {
+    public static string loggedIn = null;
+    public static string message = null;
+
+    protected override async Task OnInitAsync()
+    {
+        await JSRuntime.Current.InvokeAsync<object>(
+            "jsFunctions.addEventListener", "message", "HandleWindowMessage");
+
+    }
+
+    [JSInvokable]
+    public static async Task HandleWindowMessage(string e)
+    {
+        //var eObj = Json.Deserialize<dynamic>(e);
+        message = e;
+    }
+
+    public async Task login()
+    {
+
+    }
+}
