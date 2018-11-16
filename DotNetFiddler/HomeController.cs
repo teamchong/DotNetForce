@@ -25,22 +25,23 @@ namespace DotNetForceSample
 		[HttpPost]
 		public async Task<ActionResult> Schema(PostData data)
 		{
-            var client = await DNFClient.OAuthLoginAsync(new OAuthProfile
-            {
-                LoginUri = new Uri(data.instance_url),
-                ClientId = ClientId,
-                RedirectUri = RedirectUri,
-                Code = data.access_token
-            });
-			var generator = new SchemaGenerator();
-            var schemaCode = await generator.GenerateAsync(client, "SalesforceSchema");
-			var sobjects = await generator.RetreiveSObjectsAsync(client);
-		
-			return Json(new JObject
-			{
-				{ "sobjects", sobjects },
-				{ "schemaCode", schemaCode }
-			});	
+			try {
+				return Json(data);
+				var client = await DNFClient.OAuthLoginAsync(new OAuthProfile
+				{
+					LoginUri = new Uri(data.instance_url),
+					ClientId = ClientId,
+					RedirectUri = RedirectUri,
+					Code = data.access_token
+				});
+				var generator = new SchemaGenerator();
+				var schemaCode = await generator.GenerateAsync(client, "SalesforceSchema");
+
+				return Content(schemaCode);	
+			}
+			catch (Exception ex) {
+				return Content(ex.ToString());
+			}
 		}
 
         public class PostData {

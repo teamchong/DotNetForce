@@ -1,8 +1,8 @@
-@model ViewModel
+@model ViewModel
 @{
 	Layout = null;
 	var loginPath = Html.Raw("/services/oauth2/authorize" +
-		"?response_type=" + Url.Encode("token") +
+		"?response_type=" + Url.Encode("code") +
 		"&redirect_uri=" + Url.Encode(Model.RedirectUri) +
 		"&client_id=" + Url.Encode(Model.ClientId) +
 		"&display=" + Url.Encode("popup") +
@@ -81,12 +81,12 @@ function App(props) {
 				)
 			)
 		),
-		props.schema ? h('textarea', {'class': 'slds-size_full',style: {height:'800px'}}, props.schema) : 'Loading schema...',
+		props.schema ? h('textarea', {'class': 'slds-size_full',style: {height:'400px'}}, props.schema) : 'Loading schema...',
 	]);
 }
 window.addEventListener('message', function(e){
 	console.log(e.data);
-	var m = /^DNF:https:\/\/ste80\.github\.io\/DotNetForce\/oauth2#(.+)$/.exec(e.data);
+	var m = /^DNF:https:\/\/ste80\.github\.io\/DotNetForce\/oauth2\?(.+)$/.exec(e.data);
 	if (m && m[1]) {
 		var params = {};
 		var paramList = m[1].split('&');
@@ -97,15 +97,8 @@ window.addEventListener('message', function(e){
 		store.dispatch({ type: 'LOGIN_OAUTH2', token: params.access_token });
 		fetch(@Html.Raw(Json.Encode(Url.Action("Schema"))), {
 			method:'post', 
-			body: 'access_token=' + encodeURIComponent(params.access_token || '') +
-			'&instance_url=' + encodeURIComponent(params.instance_url || '') +
-			'&id=' + encodeURIComponent(params.id || '') +
-			'&refresh_token=' + encodeURIComponent(params.refresh_token || '') +
-			'&issued_at=' + encodeURIComponent(params.issued_at || '') +
-			'&signature=' + encodeURIComponent(params.signature || '') +
-			'&state=' + encodeURIComponent(params.state || '') +
-			'&scope=' + encodeURIComponent(params.scope || '') +
-			'&token_type=' + encodeURIComponent(params.token_type || ''),
+			body: 'code=' + encodeURIComponent(params.access_token || '') +
+			'&state=' + encodeURIComponent(params.state || ''),
 			headers: {
 				// "Content-Type": "application/json; charset=utf-8",
 				"Content-Type": "application/x-www-form-urlencoded",
