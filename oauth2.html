@@ -36,7 +36,7 @@ if (params.code && params.state) {
   var code = document.createElement('redirect_uri');
   code.setAttribute('type', 'hidden');
   code.setAttribute('name', 'code');
-  code.setAttribute('value', prams.code);
+  code.setAttribute('value', params.code);
   form.appendChild(code);
   document.body.appendChild(form);
   form.submit();
