@@ -8,41 +8,9 @@
 </head>
 <body>
 <script>
-var params = {};
-var paramList = location.search.replace(/^\?/, '').split('&');
-for (var i = 0; i < paramList.length; i++) {
-  var keyVal = paramList[i].split('=');
-  params[keyVal[0]] = decodeURIComponent(keyVal[1] || '');
-}
-if (params.code && params.state) {
-  var form = document.createElement('form');
-  form.setAttribute('action', 'https://' + params.state + '/services/oauth2/token');
-  form.setAttribute('method', 'post');
-  var grant_type = document.createElement('input');
-  grant_type.setAttribute('type', 'hidden');
-  grant_type.setAttribute('name', 'grant_type');
-  grant_type.setAttribute('value', 'authorization_code');
-  form.appendChild(grant_type);
-  var client_id = document.createElement('input');
-  client_id.setAttribute('type', 'hidden');
-  client_id.setAttribute('name', 'client_id');
-  client_id.setAttribute('value', '3MVG910YPh8zrcR3w3cOaVxURhJtcv8fxvL19jvXzqO_F819av8P2cc9VMnBOKkKTdK.uMAfUGRU_4aYDm5A3');
-  form.appendChild(client_id);
-  var redirect_uri = document.createElement('input');
-  redirect_uri.setAttribute('type', 'hidden');
-  redirect_uri.setAttribute('name', 'redirect_uri');
-  redirect_uri.setAttribute('value', 'https://ste80.github.io/DotNetForce/oauth2');
-  form.appendChild(redirect_uri);
-  var code = document.createElement('input');
-  code.setAttribute('type', 'hidden');
-  code.setAttribute('name', 'code');
-  code.setAttribute('value', params.code);
-  form.appendChild(code);
-  document.body.appendChild(form);
-  form.submit();
-} else if (opener) {
+if (opener) {
   opener.postMessage('DNF:' + location.href, '*');
-  //window.close();
+  window.close();
 }
 </script>
 </body>
