@@ -90,14 +90,21 @@ namespace DotNetForce.Common
         public async Task WebServerAsync(string clientId, string clientSecret, string redirectUri, string code, string tokenRequestEndpointUrl)
         {
             if (string.IsNullOrEmpty(clientId)) throw new ArgumentNullException("clientId");
-            if (string.IsNullOrEmpty(clientSecret)) throw new ArgumentNullException("clientSecret");
+            // if (string.IsNullOrEmpty(clientSecret)) throw new ArgumentNullException("clientSecret");
             if (string.IsNullOrEmpty(redirectUri)) throw new ArgumentNullException("redirectUri");
             if (!Uri.IsWellFormedUriString(redirectUri, UriKind.Absolute)) throw new FormatException("redirectUri");
             if (string.IsNullOrEmpty(code)) throw new ArgumentNullException("code");
             if (string.IsNullOrEmpty(tokenRequestEndpointUrl)) throw new ArgumentNullException("tokenRequestEndpointUrl");
             if (!Uri.IsWellFormedUriString(tokenRequestEndpointUrl, UriKind.Absolute)) throw new FormatException("tokenRequestEndpointUrl");
 
-            var content = new FormUrlEncodedContent(new[]
+            var content = string.IsNullOrEmpty(clientSecret)
+                ? new FormUrlEncodedContent(new[]
+                {
+                    new KeyValuePair<string, string>("grant_type", "authorization_code"),
+                    new KeyValuePair<string, string>("client_id", clientId),
+                    new KeyValuePair<string, string>("redirect_uri", redirectUri),
+                    new KeyValuePair<string, string>("code", code)
+                }) : new FormUrlEncodedContent(new[]
                 {
                     new KeyValuePair<string, string>("grant_type", "authorization_code"),
                     new KeyValuePair<string, string>("client_id", clientId),
