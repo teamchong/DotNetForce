@@ -207,10 +207,10 @@ namespace DotNetForce
         public Task<SuccessResponse> CreateAsync(string objectName, object record) => Force.CreateAsync(objectName, record);
         public Task<SaveResponse> CreateAsync(string objectName, CreateRequest request) => Force.CreateAsync(objectName, request);
         public Task<SuccessResponse> UpdateAsync(string objectName, string recordId, object record) => Force.UpdateAsync(objectName, recordId, record);
-        public Task<SuccessResponse> UpsertExternalAsync(string objectName, string externalFieldName, string externalId, object record) => Force.UpsertExternalAsync(objectName, externalFieldName, HttpUtility.UrlEncode(externalId), record);
-        public Task<SuccessResponse> UpsertExternalAsync(string objectName, string externalFieldName, string externalId, object record, bool ignoreNull) => Force.UpsertExternalAsync(objectName, externalFieldName, HttpUtility.UrlEncode(externalId), record, ignoreNull);
+        public Task<SuccessResponse> UpsertExternalAsync(string objectName, string externalFieldName, string externalId, object record) => Force.UpsertExternalAsync(objectName, externalFieldName, DNF.EscapeUriString(externalId), record);
+        public Task<SuccessResponse> UpsertExternalAsync(string objectName, string externalFieldName, string externalId, object record, bool ignoreNull) => Force.UpsertExternalAsync(objectName, externalFieldName, DNF.EscapeUriString(externalId), record, ignoreNull);
         public Task<bool> DeleteAsync(string objectName, string recordId) => Force.DeleteAsync(objectName, recordId);
-        public Task<bool> DeleteExternalAsync(string objectName, string externalFieldName, string externalId) => Force.DeleteExternalAsync(objectName, externalFieldName, HttpUtility.UrlEncode(externalId));
+        public Task<bool> DeleteExternalAsync(string objectName, string externalFieldName, string externalId) => Force.DeleteExternalAsync(objectName, externalFieldName, DNF.EscapeUriString(externalId));
         public Task<DescribeGlobalResult<JObject>> GetObjectsAsync() => GetObjectsAsync<JObject>();
         public Task<DescribeGlobalResult<T>> GetObjectsAsync<T>() => Force.GetObjectsAsync<T>();
         public Task<JObject> BasicInformationAsync(string objectName) => BasicInformationAsync<JObject>(objectName);
@@ -355,8 +355,8 @@ namespace DotNetForce
             if (string.IsNullOrEmpty(externalId)) throw new ArgumentNullException("externalId");
             if (fields == null) throw new ArgumentNullException("fields");
 
-            return await JsonHttp.HttpGetAsync<T>($"sobjects/{objectName}/{externalFieldName}/{HttpUtility.UrlEncode(externalId)}" +
-                (fields?.Length > 0 ? $"?fields={string.Join(",", fields.Select(field => HttpUtility.UrlEncode(field)))}" : "")).ConfigureAwait(false);
+            return await JsonHttp.HttpGetAsync<T>($"sobjects/{objectName}/{externalFieldName}/{DNF.EscapeUriString(externalId)}" +
+                (fields?.Length > 0 ? $"?fields={string.Join(",", fields.Select(field => DNF.EscapeUriString(field)))}" : "")).ConfigureAwait(false);
         }
 
         public async Task<System.IO.Stream> RichTextImageRetrieveAsync(string objectName, string recordId, string fieldName, string contentReferenceId)
@@ -377,7 +377,7 @@ namespace DotNetForce
             if (string.IsNullOrEmpty(relationshipFieldName)) throw new ArgumentNullException("relationshipFieldName");
 
             return await JsonHttp.HttpGetAsync<T>($"sobjects/{objectName}/{recordId}/{relationshipFieldName}" +
-                (fields?.Length > 0 ? $"?fields={string.Join(",", fields.Select(field => HttpUtility.UrlEncode(field)))}" : "")).ConfigureAwait(false);
+                (fields?.Length > 0 ? $"?fields={string.Join(",", fields.Select(field => DNF.EscapeUriString(field)))}" : "")).ConfigureAwait(false);
         }
         
         public async Task<IEnumerable<JObject>> GetEnumerableByIdsAsync(IEnumerable<string> source, string soql, string template)

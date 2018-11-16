@@ -85,8 +85,8 @@ namespace DotNetForce
         {
             if (string.IsNullOrEmpty(referenceId)) throw new ArgumentNullException("referenceId");
 
-            var sdt = HttpUtility.UrlEncode(startDateTime.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ss+00:00", System.Globalization.CultureInfo.InvariantCulture));
-            var edt = HttpUtility.UrlEncode(endDateTime.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ss+00:00", System.Globalization.CultureInfo.InvariantCulture));
+            var sdt = DNF.EscapeUriString(startDateTime.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ss+00:00", System.Globalization.CultureInfo.InvariantCulture));
+            var edt = DNF.EscapeUriString(endDateTime.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ss+00:00", System.Globalization.CultureInfo.InvariantCulture));
 
             var request = new CompositeSubrequest
             {
@@ -102,8 +102,8 @@ namespace DotNetForce
         {
             if (string.IsNullOrEmpty(referenceId)) throw new ArgumentNullException("referenceId");
 
-            var sdt = HttpUtility.UrlEncode(startDateTime.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ss+00:00", System.Globalization.CultureInfo.InvariantCulture));
-            var edt = HttpUtility.UrlEncode(endDateTime.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ss+00:00", System.Globalization.CultureInfo.InvariantCulture));
+            var sdt = DNF.EscapeUriString(startDateTime.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ss+00:00", System.Globalization.CultureInfo.InvariantCulture));
+            var edt = DNF.EscapeUriString(endDateTime.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ss+00:00", System.Globalization.CultureInfo.InvariantCulture));
 
             var request = new CompositeSubrequest
             {
@@ -148,7 +148,7 @@ namespace DotNetForce
                 Method = "GET",
                 ReferenceId = referenceId,
                 Url = fields?.Length > 0
-                    ? $"sobjects/{objectName}/{recordId}?fields={string.Join(",", fields.Select(field => HttpUtility.UrlEncode(field)))}"
+                    ? $"sobjects/{objectName}/{recordId}?fields={string.Join(",", fields.Select(field => DNF.EscapeUriString(field)))}"
                     : $"sobjects/{objectName}/{recordId}"
             };
             CompositeRequests.Add(request);
@@ -207,7 +207,7 @@ namespace DotNetForce
                 Body = DNF.Omit(body, externalFieldName),
                 Method = "PATCH",
                 ReferenceId = referenceId,
-                Url = $"sobjects/{objectName}/{externalFieldName}/{HttpUtility.UrlEncode(externalId)}"
+                Url = $"sobjects/{objectName}/{externalFieldName}/{DNF.EscapeUriString(externalId)}"
             };
             CompositeRequests.Add(request);
             return request;
@@ -239,7 +239,7 @@ namespace DotNetForce
                 ResponseType = "query",
                 Method = "GET",
                 ReferenceId = referenceId,
-                Url = $"query?q={HttpUtility.UrlEncode(query)}"
+                Url = $"query?q={DNF.EscapeUriString(query)}"
             };
             CompositeRequests.Add(request);
             return request;

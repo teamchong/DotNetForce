@@ -51,7 +51,7 @@ namespace DotNetForce
         {
             if (string.IsNullOrEmpty(q)) throw new ArgumentNullException("q");
 
-            var urlSuffix = $"tooling/query?q={HttpUtility.UrlEncode(q)}";
+            var urlSuffix = $"tooling/query?q={DNF.EscapeUriString(q)}";
             return await JsonHttp.HttpGetAsync<QueryResult<T>>(urlSuffix).ConfigureAwait(false);
         }
 
@@ -59,7 +59,7 @@ namespace DotNetForce
         {
             if (string.IsNullOrEmpty(q)) throw new ArgumentNullException("q");
 
-            var urlSuffix = $"tooling/search?q={HttpUtility.UrlEncode(q)}";
+            var urlSuffix = $"tooling/search?q={DNF.EscapeUriString(q)}";
             return await JsonHttp.HttpGetAsync<QueryResult<T>>(urlSuffix).ConfigureAwait(false);
         }
 
@@ -79,7 +79,7 @@ namespace DotNetForce
         public async Task<T> RetreiveAsync<T>(MetadataType metadataType, string recordId, string[] fields)
         {
             var urlSuffix = fields?.Length > 0
-                ? $"tooling/sobjects/{metadataType}/{recordId}?fields={string.Join(",", fields.Select(field => HttpUtility.UrlEncode(field)))}"
+                ? $"tooling/sobjects/{metadataType}/{recordId}?fields={string.Join(",", fields.Select(field => DNF.EscapeUriString(field)))}"
                 : $"tooling/sobjects/{metadataType}/{recordId}";
             return await JsonHttp.HttpGetAsync<T>(urlSuffix).ConfigureAwait(false);
         }
@@ -114,7 +114,7 @@ namespace DotNetForce
         {
             if (string.IsNullOrEmpty(type)) throw new ArgumentNullException("type");
 
-            var urlSuffix = $"tooling/completions?type={HttpUtility.UrlEncode(type)}";
+            var urlSuffix = $"tooling/completions?type={DNF.EscapeUriString(type)}";
             return await JsonHttp.HttpGetAsync<JToken>(urlSuffix).ConfigureAwait(false);
         }
 
@@ -122,7 +122,7 @@ namespace DotNetForce
         {
             if (string.IsNullOrEmpty(anonymousBody)) throw new ArgumentNullException("anonymousBody");
 
-            var urlSuffix = $"tooling/executeAnonymous?anonymousBody={HttpUtility.UrlEncode(anonymousBody)}";
+            var urlSuffix = $"tooling/executeAnonymous?anonymousBody={DNF.EscapeUriString(anonymousBody)}";
             return await JsonHttp.HttpGetAsync<ExecuteAnonymousResult>(urlSuffix).ConfigureAwait(false);
         }
 

@@ -439,6 +439,12 @@ namespace DotNetForce
         public static T Omit<T>(T source, params string[] colNames) where T : JObject, new() => new JObjectHelper<T>(source).Omit(colNames);
         
 #endregion JObjectHelper
+
+        public static string EscapeUriString(string uri)
+        {
+            if (uri == null) return null;
+            return string.Join("", DNF.Chunk(uri, 65519).Select(c => Uri.EscapeUriString(new string(c.ToArray()))));
+        }
         
         public static IEnumerable<List<T>> Chunk<T>(IEnumerable<T> source, int size) => new EnumerableChunk<T>(source, size).GetEnumerable();
         

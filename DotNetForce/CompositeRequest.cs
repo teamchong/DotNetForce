@@ -581,7 +581,7 @@ namespace DotNetForce
                 ResponseType = "query",
                 Method = "GET",
                 ReferenceId = referenceId,
-                Url = $@"query?q={System.Web.HttpUtility.UrlEncode(query)}"
+                Url = $@"query?q={DNF.EscapeUriString(query)}"
             };
             CompositeRequests.Add(request);
             return request;

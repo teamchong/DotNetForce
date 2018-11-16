@@ -630,9 +630,9 @@ namespace DotNetForce
 
         protected string DecodeReference(string value)
         {
-            var pattern = HttpUtility.UrlEncode("@{") +
-                $"[0-9a-z](?:[_.0-9a-z]|{HttpUtility.UrlEncode("[")}|{HttpUtility.UrlEncode("]")})*" + //$".+" +
-                HttpUtility.UrlEncode("}");
+            var pattern = DNF.EscapeUriString("@{") +
+                $"[0-9a-z](?:[_.0-9a-z]|{DNF.EscapeUriString("[")}|{DNF.EscapeUriString("]")})*" + //$".+" +
+                DNF.EscapeUriString("}");
             MatchEvaluator evaluator = m => Uri.UnescapeDataString(m.Value);
             var decoded = Regex.Replace(value ?? "", pattern, evaluator, RegexOptions.IgnoreCase);
             return decoded;

@@ -54,7 +54,7 @@ namespace DotNetForce.Force
         {
             if (string.IsNullOrEmpty(query)) throw new ArgumentNullException("query");
 
-            return _jsonHttpClient.HttpGetAsync<QueryResult<T>>(string.Format("query?q={0}", HttpUtility.UrlEncode(query)));
+            return _jsonHttpClient.HttpGetAsync<QueryResult<T>>(string.Format("query?q={0}", DNF.EscapeUriString(query)));
         }
 
         public Task<QueryResult<T>> QueryContinuationAsync<T>(string nextRecordsUrl)
@@ -68,7 +68,7 @@ namespace DotNetForce.Force
         {
             if (string.IsNullOrEmpty(query)) throw new ArgumentNullException("query");
 
-            return _jsonHttpClient.HttpGetAsync<QueryResult<T>>(string.Format("queryAll/?q={0}", HttpUtility.UrlEncode(query)));
+            return _jsonHttpClient.HttpGetAsync<QueryResult<T>>(string.Format("queryAll/?q={0}", DNF.EscapeUriString(query)));
         }
 
         public async Task<System.IO.Stream> GetBlobAsync(String objectName, String objectId, String fieldName)
@@ -198,16 +198,16 @@ namespace DotNetForce.Force
 
         public Task<T> GetDeleted<T>(string objectName, DateTime startDateTime, DateTime endDateTime)
         {
-            var sdt = HttpUtility.UrlEncode(startDateTime.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ss+00:00", System.Globalization.CultureInfo.InvariantCulture));
-            var edt = HttpUtility.UrlEncode(endDateTime.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ss+00:00", System.Globalization.CultureInfo.InvariantCulture));
+            var sdt = DNF.EscapeUriString(startDateTime.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ss+00:00", System.Globalization.CultureInfo.InvariantCulture));
+            var edt = DNF.EscapeUriString(endDateTime.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ss+00:00", System.Globalization.CultureInfo.InvariantCulture));
 
             return _jsonHttpClient.HttpGetAsync<T>(string.Format("sobjects/{0}/deleted/?start={1}&end={2}", objectName, sdt, edt));
         }
 
         public Task<T> GetUpdated<T>(string objectName, DateTime startDateTime, DateTime endDateTime)
         {
-            var sdt = HttpUtility.UrlEncode(startDateTime.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ss+00:00", System.Globalization.CultureInfo.InvariantCulture));
-            var edt = HttpUtility.UrlEncode(endDateTime.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ss+00:00", System.Globalization.CultureInfo.InvariantCulture));
+            var sdt = DNF.EscapeUriString(startDateTime.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ss+00:00", System.Globalization.CultureInfo.InvariantCulture));
+            var edt = DNF.EscapeUriString(endDateTime.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ss+00:00", System.Globalization.CultureInfo.InvariantCulture));
 
             return _jsonHttpClient.HttpGetAsync<T>(string.Format("sobjects/{0}/updated/?start={1}&end={2}", objectName, sdt, edt));
         }
@@ -237,7 +237,7 @@ namespace DotNetForce.Force
             if (!query.Contains("FIND")) throw new ArgumentException("query does not contain FIND");
             if (!query.Contains("{") || !query.Contains("}")) throw new ArgumentException("search term must be wrapped in braces");
 
-            return _jsonHttpClient.HttpGetAsync<List<T>>(string.Format("search?q={0}", HttpUtility.UrlEncode(query)));
+            return _jsonHttpClient.HttpGetAsync<List<T>>(string.Format("search?q={0}", DNF.EscapeUriString(query)));
         }
 
         public async Task<T> UserInfo<T>(string url)
