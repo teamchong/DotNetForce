@@ -36,7 +36,7 @@ if (params.code && params.state) {
   var code = document.createElement('redirect_uri');
   code.setAttribute('type', 'hidden');
   code.setAttribute('name', 'code');
-  code.setAttribute('value', 'https://ste80.github.io/DotNetForce/oauth2');
+  code.setAttribute('value', prams.code);
   form.appendChild(code);
   document.body.appendChild(form);
   form.submit();
