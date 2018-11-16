@@ -16,7 +16,7 @@ for (var i = 0; i < paramList.length; i++) {
 }
 if (params.code && params.state) {
   var form = document.createElement('form');
-  form.setAttribute('action', params.state + '/services/oauth2/token');
+  form.setAttribute('action', 'https://' + params.state + '/services/oauth2/token');
   form.setAttribute('method', 'post');
   var grant_type = document.createElement('grant_type');
   grant_type.setAttribute('type', 'hidden');
