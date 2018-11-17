@@ -1,11 +1,12 @@
 ﻿using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using System.Collections.Generic;
 using System.Linq;
 using System.Reactive.Linq;
 
 namespace DotNetForce
 {
-    internal class JObjectHelper<T> where T : JObject, new()
+    internal class JObjectHelper<T> where T : JToken
     {
         public T Source { get; set; }
         
@@ -21,15 +22,15 @@ namespace DotNetForce
                 return Source;
             }
 
-            var result = new T();
-            foreach (var prop in Source.Properties())
+            var result = JToken.FromObject(new Dictionary<string, JToken>());
+            foreach (var prop in (IDictionary<string, JToken>)Source)
             {
-                var propName = prop.Name.Split(new[] { ':' }, 2);
-                result[propName[0]] = prop?.Type == JTokenType.Object
-                    ? new JObjectHelper<T>((T)prop.Value).UnFlatten(propName.Skip(1).FirstOrDefault())
+                var propNames = prop.Key.Split(new[] { ':' }, 2);
+                result[propNames[0]] = prop.Value?.Type == JTokenType.Object
+                    ? new JObjectHelper<T>((T)prop.Value).UnFlatten(propNames.Skip(1).FirstOrDefault())
                     : prop.Value;
             }
-            return result;
+            return (T)result;
         }
 
         public T UnFlatten(string name)
@@ -42,13 +43,13 @@ namespace DotNetForce
             var names = name.Split(new[] { ':' }, 2);
             if (names.Length > 1)
             {
-                return new T { [names[0]] = UnFlatten(names[1]) };
+                return (T)JToken.FromObject(new Dictionary<string, JToken> { [names[0]] = UnFlatten(names[1]) });
             }
 
-            return new T { [name] = Source };
+            return (T)JToken.FromObject(new Dictionary<string, JToken> { [name] = Source });
         }
 
-        public T Assign(params JObject[] others)
+        public T Assign(params JToken[] others)
         {
             if (Source == null)
             {
@@ -57,11 +58,11 @@ namespace DotNetForce
 
             if (others?.Length > 0)
             {
-                foreach (JObject other in others)
+                foreach (JToken other in others)
                 {
-                    foreach (var prop in other.Properties())
+                    foreach (var prop in ((IDictionary<string, JToken>)other))
                     {
-                        Source[prop.Name] = prop.Value;
+                        Source[prop.Key] = prop.Value;
                     }
                 }
             }
@@ -75,25 +76,25 @@ namespace DotNetForce
                 return Source;
             }
 
-            var result = new T();
+            var result = JToken.FromObject(new Dictionary<string, JToken>());
             if ((colNames?.Length ?? 0) == 0)
             {
-                foreach (var prop in Source.Properties())
+                foreach (var prop in (IDictionary<string, JToken>)Source)
                 {
-                    result[prop.Name] = prop.Value;
+                    result[prop.Key] = prop.Value;
                 }
             }
             else
             {
-                foreach (var prop in Source.Properties())
+                foreach (var prop in (IDictionary<string, JToken>)Source)
                 {
-                    if (colNames.Contains(prop.Name))
+                    if (colNames.Contains(prop.Key))
                     {
-                        result[prop.Name] = prop.Value;
+                        result[prop.Key] = prop.Value;
                     }
                 }
             }
-            return result;
+            return (T)result;
         }
 
         public T Omit(params string[] colNames)
@@ -103,25 +104,25 @@ namespace DotNetForce
                 return Source;
             }
 
-            var result = new T();
+            var result = JToken.FromObject(new Dictionary<string, JToken>());
             if ((colNames?.Length ?? 0) == 0)
             {
-                foreach (var prop in Source.Properties())
+                foreach (var prop in (IDictionary<string, JToken>)Source)
                 {
-                    result[prop.Name] = prop.Value;
+                    result[prop.Key] = prop.Value;
                 }
             }
             else
             {
-                foreach (var prop in Source.Properties())
+                foreach (var prop in (IDictionary<string, JToken>)Source)
                 {
-                    if (!colNames.Contains(prop.Name))
+                    if (!colNames.Contains(prop.Key))
                     {
-                        result[prop.Name] = prop.Value;
+                        result[prop.Key] = prop.Value;
                     }
                 }
             }
-            return result;
+            return (T)result;
         }
     }
 }

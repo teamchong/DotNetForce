@@ -48,8 +48,8 @@ namespace DotNetForce
 
         Task<ExecuteAnonymousResult> ExecuteAnonymousAsync(string anonymousBody);
 
-        Task<JToken> RunTestsAsynchronousAsync(JObject inputObject);
+        Task<JToken> RunTestsAsynchronousAsync(JToken inputObject);
 
-        Task<JToken> RunTestsSynchronousAsync(JObject inputObject);
+        Task<JToken> RunTestsSynchronousAsync(JToken inputObject);
     }
 }

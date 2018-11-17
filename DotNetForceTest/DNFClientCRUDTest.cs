@@ -27,10 +27,10 @@ namespace DotNetForceTest
 
             try
             {
-                var result1 = await client.CreateAsync("Case", new JObject
+                var result1 = await client.CreateAsync("Case", JToken.FromObject(new Dictionary<string, JToken>
                 {
                     ["Subject"] = $"UnitTest0"
-                });
+                }));
                 DNF.ThrowIfError(result1);
 
                 var caseList = Enumerable.Range(1, 40).Select(i => new AttributedObject("Case")
@@ -94,7 +94,7 @@ SELECT Name FROM Opportunity ORDER BY Id LIMIT {expected}");
             {
                 await Assert.ThrowsAsync<ForceException>(async () =>
                 {
-                    var result = await client.CreateAsync($"Account", new JObject());
+                    var result = await client.CreateAsync($"Account", JToken.FromObject(new Dictionary<string, JToken>()));
                     DNF.ThrowIfError(result);
                 });
                 await Assert.ThrowsAsync<ForceException>(async () =>
@@ -135,7 +135,7 @@ SELECT Name FROM Opportunity ORDER BY Id LIMIT {expected}");
                 //var externalIds = Enumerable.Range(1, 4000).Select(i => $"UnitTest{i}").ToArray();
                 var result = await client.QueryAsync($@"
 SELECT Id FROM Case WHERE Subject LIKE 'UnitTest%'");
-                //var externalIds = Enumerable.Range(1, 4000).Select(i => new JObject { ["Source_Product_ID__c"] = $"UnitTest{i}" }).ToArray();
+                //var externalIds = Enumerable.Range(1, 4000).Select(i => JToken.FromObject(new Dictionary<string, JToken> { ["Source_Product_ID__c"] = $"UnitTest{i}" })).ToArray();
                 Assert.NotEmpty(result.Records);
                 //Assert.NotEmpty(result.Collections());
                 //var ids = result.Objects().Values.Select(c => c["Id"].ToString()).ToArray();
@@ -165,14 +165,14 @@ SELECT Id FROM Case WHERE Subject LIKE 'UnitTest%'");
 
                 await client.UpdateAsync("Case",
                     result1.SuccessResponses().Select(r => r.Value.Id).FirstOrDefault(),
-                    new JObject { ["Description"] = "UnitTest0" });
+                    JToken.FromObject(new Dictionary<string, JToken> { ["Description"] = "UnitTest0" }));
 
                 var resultQuery = await client.QueryAsync($@"
 SELECT Id FROM Case WHERE Subject LIKE 'UnitTest%' ORDER BY Id");
 
                 var timer1 = System.Diagnostics.Stopwatch.StartNew();
                 var result2 = await client.Composite.UpdateAsync(client.GetEnumerable(resultQuery)
-                    .Select((c, i) => DNF.Assign(c, new JObject { ["Description"] = $"UnitTest{i}" })));
+                    .Select((c, i) => DNF.Assign(c, JToken.FromObject(new Dictionary<string, JToken> { ["Description"] = $"UnitTest{i}" }))));
                 timer1.Stop();
 
                 WriteLine($"time1: {timer1.Elapsed.TotalSeconds}.");
@@ -191,16 +191,16 @@ SELECT Id FROM Case WHERE Subject LIKE 'UnitTest%' ORDER BY Id");
             await DeleteTestingRecords(client);
             try
             {
-                var createResult = await client.CreateAsync("Product2", DNF.Assign(GetTestProduct2(), new JObject
+                var createResult = await client.CreateAsync("Product2", DNF.Assign(GetTestProduct2(), JToken.FromObject(new Dictionary<string, JToken>
                 {
                     ["Source_Product_ID__c"] = $"UnitTest/0"
-                }));
+                })));
                 DNF.ThrowIfError(createResult);
 
                 var uniqueText = $"{Guid.NewGuid():N}";
 
                 var upserted = await client.UpsertExternalAsync("Product2", "Source_Product_ID__c", "UnitTest/0",
-                    new JObject { ["Name"] = $"UnitTest{uniqueText}" });
+                    JToken.FromObject(new Dictionary<string, JToken> { ["Name"] = $"UnitTest{uniqueText}" }));
 
                 var updated = await client.RetrieveExternalAsync("Product2", "Source_Product_ID__c", "UnitTest/0");
                 Assert.Equal($"UnitTest/0", updated?["Source_Product_ID__c"]?.ToString());
@@ -219,10 +219,10 @@ SELECT Id FROM Case WHERE Subject LIKE 'UnitTest%' ORDER BY Id");
             await DeleteTestingRecords(client);
             try
             {
-                var caseList = Enumerable.Range(1, 100000).Select(i => DNF.Assign(GetTestProduct2(), new JObject
+                var caseList = Enumerable.Range(1, 100000).Select(i => DNF.Assign(GetTestProduct2(), JToken.FromObject(new Dictionary<string, JToken>
                 {
                     ["Source_Product_ID__c"] = $"UnitTest/{i}",
-                })).ToArray();
+                }))).ToArray();
                 var resultCreate = await client.Composite.CreateAsync(caseList);
                 DNF.ThrowIfError(resultCreate);
 

@@ -2,7 +2,8 @@
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
-using System.IO;
+using System.Linq;
+using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -26,7 +27,7 @@ public class SchemaGenerator
         // ErrorLogger = errorLogger;
     }
 
-    //public JObject ReadProfile(string path)
+    //public JToken ReadProfile(string path)
     //{
     //    try
     //    {
@@ -38,7 +39,7 @@ public class SchemaGenerator
     //                {
     //                    using (var jsonReader = new JsonTextReader(reader))
     //                    {
-    //                        return new JsonSerializer().Deserialize<JObject>(jsonReader);
+    //                        return new JsonSerializer().Deserialize<JToken>(jsonReader);
     //                    }
     //                }
     //            }
@@ -48,7 +49,7 @@ public class SchemaGenerator
     //    return null;
     //}
 
-    public async Task<JObject> RetreiveSObjectsAsync(DNFClient client)
+    public async Task<JToken> RetreiveSObjectsAsync(DNFClient client)
     {
         //var folder = Path.Combine(ProjectDir, InstanceName);
         //var solutionDir = Path.GetDirectoryName(ProjectDir);
@@ -69,7 +70,7 @@ public class SchemaGenerator
         //}
 
         // var client = await DNFClient.LoginAsync(loginUri, clientId, clientSecret, userName, password, Logger).ConfigureAwait(false);
-        var describeGlobalResult = await client.GetObjectsAsync<JObject>().ConfigureAwait(false);
+        var describeGlobalResult = await client.GetObjectsAsync<JToken>().ConfigureAwait(false);
 
         var request = new CompositeRequest();
         foreach (var sobject in describeGlobalResult.SObjects)
@@ -90,7 +91,7 @@ public class SchemaGenerator
         //    Logger?.Invoke($"{error.Key}\n{error.Value}");
         //}
 
-        var objects = JObject.FromObject(describeResult.Results());
+        var objects = JToken.FromObject(describeResult.Results());
         return objects;
     }
 
@@ -130,17 +131,17 @@ namespace ").Append(objNamespace).Append(@"
 {");
 		GenerateSchema(objNamespace, objects);
 
-		foreach (var prop in objects.Properties())
+		foreach (var prop in (IDictionary<string, JToken>)objects)
 		{
 			// await WriteJsonAsync(prop.Name, prop.Value).ConfigureAwait(false);
-			GenerateObject(objNamespace, prop.Name, prop.Value);
+			GenerateObject(objNamespace, prop.Key, prop.Value);
 		}
         GenerationEnvironment.Append(@"
 }");
         return GenerationEnvironment.ToString();
     }
 
-    public void GenerateSchema(string objNamespace, JObject objects)
+    public void GenerateSchema(string objNamespace, JToken objects)
     {
         GenerationEnvironment.Append(@"
 	public class Schema
@@ -160,14 +161,13 @@ namespace ").Append(objNamespace).Append(@"
         public static T Of<T>(Func<Schema, T> func) { return func(Instance); }
         public static void Of<T>(Func<Schema, T> func, Action<T> action) { action(func(Instance)); }
         public static TOut Of<T, TOut>(Func<Schema, T> func, Func<T, TOut> getter) { return getter(func(Instance)); }
-        public static JObjectWrapper Wrap(JObject obj) { return new JObjectWrapper(obj); }
-        public static async Task<IEnumerable<JObjectWrapper>> Wrap(Task<IEnumerable<JObject>> objs) { return Wrap(await objs); }
-        public static IEnumerable<JObjectWrapper> Wrap(IEnumerable<JObject> objs) { return objs?.Select(o => new JObjectWrapper(o)); }
+        public static JObjectWrapper Wrap(JToken obj) { return new JObjectWrapper(obj); }
+        public static async Task<IEnumerable<JObjectWrapper>> Wrap(Task<IEnumerable<JToken>> objs) { return Wrap(await objs); }
+        public static IEnumerable<JObjectWrapper> Wrap(IEnumerable<JToken> objs) { return objs?.Select(o => new JObjectWrapper(o)); }
 
 ");
-		foreach (var prop in objects.Properties())
+		foreach (var objName in ((IDictionary<string, JToken>)objects).Keys)
 		{
-			var objName = prop.Name;
             GenerationEnvironment.Append(@"
 		public Sf").Append(objName).Append(@" ").Append(objName).Append(@" { get { return new Sf").Append(objName).Append(@"(); } }
 ");
@@ -186,12 +186,12 @@ namespace ").Append(objNamespace).Append(@"
 		public Sf").Append(objName).Append(@"() : base("""") { }
 		public Sf").Append(objName).Append(@"(string path) : base(path) { }
 ");
-        var references = new JArray();
+        var references = new List<JToken>();
 
 
         if (objDescribe["fields"]?.Type == JTokenType.Array)
         {
-            foreach (var field in ((JArray)objDescribe["fields"]))
+            foreach (var field in objDescribe["fields"])
             {
                 var fieldName = field["name"]?.ToString();
 
@@ -305,7 +305,7 @@ namespace ").Append(objNamespace).Append(@"
 ");
                         break;
                     case "reference":
-                        if (((JArray)field["referenceTo"])?.Count != 1)
+                        if (field["referenceTo"].Count() != 1)
                         {
                             GenerationEnvironment.Append(@"
 	/* referenceTo.Count != 1 ").Append(field["referenceTo"]).Append(@" */");
@@ -373,11 +373,11 @@ namespace ").Append(objNamespace).Append(@"
 ");
         }
 
-        var childRelationships = new JArray();
+        var childRelationships = new List<JToken>();
 
-        if (objDescribe["childRelationships"]?.Type == JTokenType.Array && ((JArray)objDescribe["childRelationships"]).Count > 0)
+        if (objDescribe["childRelationships"]?.Type == JTokenType.Array && objDescribe["childRelationships"].Count() > 0)
         {
-            foreach (var childRelationship in ((JArray)objDescribe["childRelationships"]))
+            foreach (var childRelationship in objDescribe["childRelationships"])
             {
                 var relationshipName = childRelationship["relationshipName"]?.ToString();
                 var childSObject = childRelationship["childSObject"]?.ToString();
@@ -428,8 +428,8 @@ namespace ").Append(objNamespace).Append(@"
 
     protected void OutputPicklistDefaultValue(JToken field)
     {
-        var picklistValues = (JArray)field["picklistValues"];
-        if (picklistValues?.Count > 0)
+        var picklistValues = field["picklistValues"];
+        if (picklistValues?.Any() == true)
         {
             foreach (var picklist in picklistValues)
             {
@@ -446,8 +446,8 @@ namespace ").Append(objNamespace).Append(@"
     protected void OutputPicklists(JToken field)
     {
         GenerationEnvironment.Append(@"new SfPicklistValue[] {");
-        var picklistValues = (JArray)field["picklistValues"];
-        if (picklistValues?.Count > 0)
+        var picklistValues = field["picklistValues"];
+        if (picklistValues?.Any() == true)
         {
             foreach (var picklist in picklistValues)
             {

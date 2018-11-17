@@ -41,7 +41,7 @@ namespace DotNetForceTest
                 var projectPath = dirPath.FullName;
                 jsonFile = Path.Combine(projectPath, "LoginProfiles.json");
             }
-            var loginProfile = JObject.Parse(File.ReadAllText(jsonFile));
+            var loginProfile = JToken.Parse(File.ReadAllText(jsonFile));
             LoginUri = new Uri(loginProfile["DEV"]["LoginUrl"].ToString());
             ClientId = loginProfile["DEV"]["ClientId"].ToString();
             ClientSecret = loginProfile["DEV"]["ClientSecret"].ToString();
@@ -67,12 +67,12 @@ SELECT Id FROM Contact WHERE Name LIKE 'UnitTest%'")).Select(r => r["Id"]?.ToStr
 SELECT Id FROM Product2 WHERE Source_Product_ID__c LIKE 'UnitTest%'")).Select(r => r["Id"]?.ToString())));
         }
 
-        protected JObject GetTestProduct2()
+        protected JToken GetTestProduct2()
         {
             var id = Guid.NewGuid();
-            return new JObject
+            return JToken.FromObject(new Dictionary<string, JToken>
             {
-                ["attributes"] = new JObject { ["type"] = "Product2" },
+                ["attributes"] = JToken.FromObject(new Dictionary<string, JToken> { ["type"] = "Product2" }),
                 ["Name"] = $"UnitTest{id:N}",
                 ["Contract_Type_ID__c"] = "U",
                 ["Contract_Type__c"] = "U",
@@ -82,7 +82,7 @@ SELECT Id FROM Product2 WHERE Source_Product_ID__c LIKE 'UnitTest%'")).Select(r 
                 ["Venue_ID__c"] = "U",
                 ["Zone_ID__c"] = "U",
                 ["Source_Product_ID__c"] = $"UnitTest{id:N}",
-            };
+            });
         }
 
         protected void WriteLine(string message)

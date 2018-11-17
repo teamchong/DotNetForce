@@ -390,14 +390,14 @@ namespace DotNetForce
                     if (requests.Count > DNF.COMPOSITE_LIMIT) throw new ArgumentOutOfRangeException("request");
                     if (requests.Count(c => IsQuery(c.ResponseType)) > DNF.COMPOSITE_QUERY_LIMIT) throw new ArgumentOutOfRangeException("request");
 
-                    var inputObject = new JObject
+                    var inputObject = JToken.FromObject(new Dictionary<string, JToken>
                     {
                         ["allOrNone"] = true,
-                        ["compositeRequest"] = JArray.FromObject(requests.Select(req => DNF.Assign(JObject.FromObject(req), new JObject
+                        ["compositeRequest"] = JToken.FromObject(requests.Select(req => DNF.Assign(JToken.FromObject(req), JToken.FromObject(new Dictionary<string, JToken>
                         {
                             ["url"] = DecodeReference($"/services/data/{ApiVersion}/{request.Prefix}{req.Url.TrimStart('/')}")
-                        })))
-                    };
+                        }))))
+                    });
 
                     var result = await JsonHttp.HttpPostAsync<CompositeResultBody>(inputObject, urlSuffix).ConfigureAwait(false);
                     var results = new CompositeResult(request.CompositeRequests, result.CompositeResponse);
@@ -445,20 +445,20 @@ namespace DotNetForce
                         {
                             try
                             {
-                                var inputObject = new JObject
+                                var inputObject = JToken.FromObject(new Dictionary<string, JToken>
                                 {
-                                    ["compositeRequest"] = JArray.FromObject(requests.Select(req => DNF.Assign(JObject.FromObject(req), new JObject
+                                    ["compositeRequest"] = JToken.FromObject(requests.Select(req => DNF.Assign(JToken.FromObject(req), JToken.FromObject(new Dictionary<string, JToken>
                                     {
                                         ["url"] = DecodeReference($"/services/data/{ApiVersion}/{request.Prefix}{req.Url.TrimStart('/')}")
-                                    })))
-                                };
+                                    }))))
+                                });
 
                                 var result = await JsonHttp.HttpPostAsync<CompositeResultBody>(inputObject, urlSuffix).ConfigureAwait(false);
                                 results.Add(requests, result.CompositeResponse);
                             }
                             catch (Exception ex)
                             {
-                                var body = new JArray { ex.Message };
+                                var body = JToken.FromObject(new [] { ex.Message });
                                 var responses = requests.Select(req => new CompositeSubrequestResult
                                 {
                                     Body = body,
@@ -479,7 +479,7 @@ namespace DotNetForce
             }
             catch (Exception ex)
             {
-                var body = new JArray { ex.Message };
+                var body = JToken.FromObject(new [] { ex.Message });
                 var responses = request.CompositeRequests.Select(req => new CompositeSubrequestResult
                 {
                     Body = body,
@@ -508,14 +508,14 @@ namespace DotNetForce
                 {
                     if (request.BatchRequests.Count > DNF.BATCH_LIMIT) throw new ArgumentOutOfRangeException("request");
 
-                    var inputObject = new JObject
+                    var inputObject = JToken.FromObject(new Dictionary<string, JToken>
                     {
-                        ["batchRequests"] = JArray.FromObject(request.BatchRequests.Select(req => DNF.Assign(JObject.FromObject(req), new JObject
+                        ["batchRequests"] = JToken.FromObject(request.BatchRequests.Select(req => DNF.Assign(JToken.FromObject(req), JToken.FromObject(new Dictionary<string, JToken>
                         {
                             ["url"] = DecodeReference($"/services/data/{ApiVersion}/{request.Prefix}{req.Url.TrimStart('/')}")
-                        }))),
+                        })))),
                         ["haltOnError"] = true
-                    };
+                    });
 
                     var result = await JsonHttp.HttpPostAsync<BatchResultBody>(inputObject, urlSuffix).ConfigureAwait(false);
                     var results = new BatchResult(request.BatchRequests, result.Results);
@@ -555,13 +555,13 @@ namespace DotNetForce
                         {
                             try
                             {
-                                var inputObject = new JObject
+                                var inputObject = JToken.FromObject(new Dictionary<string, JToken>
                                 {
-                                    ["batchRequests"] = JArray.FromObject(requests.Select(req => DNF.Assign(JObject.FromObject(req), new JObject
+                                    ["batchRequests"] = JToken.FromObject(requests.Select(req => DNF.Assign(JToken.FromObject(req), JToken.FromObject(new Dictionary<string, JToken>
                                     {
                                         ["url"] = DecodeReference($"/services/data/{ApiVersion}/{request.Prefix}{req.Url.TrimStart('/')}")
-                                    })))
-                                };
+                                    }))))
+                                });
 
 
                                 var result = await JsonHttp.HttpPostAsync<BatchResultBody>(inputObject, urlSuffix).ConfigureAwait(false);
@@ -569,7 +569,7 @@ namespace DotNetForce
                             }
                             catch (Exception ex)
                             {
-                                var body = new JArray { ex.Message };
+                                var body = JToken.FromObject(new [] { ex.Message });
                                 var responses = requests.Select(req => new BatchSubrequestResult
                                 {
                                     Result = body,
@@ -589,7 +589,7 @@ namespace DotNetForce
             }
             catch (Exception ex)
             {
-                var body = new JArray { ex.Message };
+                var body = JToken.FromObject(new [] { ex.Message });
                 var responses = request.BatchRequests.Select(req => new BatchSubrequestResult
                 {
                     Result = body,
@@ -621,7 +621,7 @@ namespace DotNetForce
                 return await DNF.TryDeserializeObject(Task.Run(async () =>
                 {
                     var result = await JsonHttp.HttpPostAsync<SaveResponse>(
-                        new JObject { ["records"] = JArray.FromObject(objectTree) },
+                        JToken.FromObject(new Dictionary<string, JToken> { ["records"] = JToken.FromObject(objectTree) }),
                         $"composite/tree/{objectName}").ConfigureAwait(false);
                     return result;
                 }));

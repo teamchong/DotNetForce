@@ -25,7 +25,7 @@ namespace DotNetForce
         public JToken Body { get; set; }
         
         [JsonProperty("httpHeaders", DefaultValueHandling = DefaultValueHandling.Ignore)]
-        public JObject HttpHeaders { get; set; }
+        public JToken HttpHeaders { get; set; }
         
         [JsonProperty("httpStatusCode", DefaultValueHandling = DefaultValueHandling.Ignore)]
         public int? HttpStatusCode { get; set; }
@@ -42,7 +42,7 @@ namespace DotNetForce
             return null;
         }
 
-        public JObject NullIfError()
+        public JToken NullIfError()
         {
             if (Body?.Type == JTokenType.Array)
             {
@@ -50,12 +50,12 @@ namespace DotNetForce
             }
             else if (Body.Type == JTokenType.Object)
             {
-                return (JObject)Body;
+                return Body;
             }
-            return new JObject
+            return JToken.FromObject(new Dictionary<string, JToken>
             {
                 ["message"] = Body
-            };
+            });
         }
 
         public override string ToString()

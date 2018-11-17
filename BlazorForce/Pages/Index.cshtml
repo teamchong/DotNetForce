@@ -1,9 +1,11 @@
 ﻿@using DotNetForce;
+@using Newtonsoft.Json;
+@using Newtonsoft.Json.Linq;
+@using System.Reactive;
 @page "/"
 @page "/oauth2/{OAuth2}"
 
 <div class="container-fluid">
-    @OAuth2
     @if (!string.IsNullOrEmpty(Message))
     {
         <div class="alert alert-danger alert-dismissible fade show" role="alert">
@@ -104,19 +106,20 @@
     private string SelectedDomain { get => !IsCustomDomain(Domain) ? Domain : InputtedDomain?.Contains('.') == true ? InputtedDomain : InputtedDomain + ".my.salesforce.com"; }
 
     protected override async Task OnInitAsync() {
-        var oauth2 = ParseOAuth2(OAuth2);
+        var oauth2 = DecodeOAuth2(OAuth2);
 
         if (oauth2 != null && oauth2.ContainsKey("state") && oauth2.ContainsKey("code")) {
             try {
                 Domain = oauth2["state"];
                 Code = oauth2["code"];
-
+                
                 var client = await DNFClient.OAuthLoginAsync(new OAuthProfile {
                     ClientId = ClientId,
                     Code = Code,
                     LoginUri = new Uri("https://" + Domain),
                     RedirectUri = RedirectUri
                 });
+                OAuth2 = EncodeOAuth2(oauth2);
             }
             catch (Exception ex) {
                 Message = ex.ToString();
@@ -129,6 +132,7 @@
             Domain = null;
             Code = null;
         }
+        
         //await JSRuntime.Current.InvokeAsync<object>("jsInterop.addEventListener", "message", new DotNetObjectRef(new JsEventHandler((type, ev) => {
         //    switch (type) {
         //        case "message":
@@ -166,8 +170,14 @@
         //}));
     }
 
-    private Dictionary<string, string> ParseOAuth2(string oauth2) {
-        return oauth2?.Split('&').Select(o => o.Split('=')).ToDictionary(o => o[0], o => o.Length > 1 ? o[1] : "");
+    private Dictionary<string, string> DecodeOAuth2(string oauth2) {
+        var oauth2Obj = oauth2?.Split('&').Select(o => o.Split('=')).ToDictionary(o => Uri.UnescapeDataString(o[0]), o => o.Length > 1 ? Uri.UnescapeDataString(o[1]) : "");
+        oauth2Obj.Remove("display");
+        return oauth2Obj;
+    }
+
+    private string EncodeOAuth2(IDictionary<string, string> oauth2) {
+        return string.Join("&", oauth2.Select(o => Uri.EscapeDataString(o.Key) + "=" + Uri.EscapeDataString(o.Value)));
     }
 
     //private async Task OpenAuthWindow(string domain)

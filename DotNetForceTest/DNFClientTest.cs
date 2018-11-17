@@ -75,7 +75,7 @@ namespace DotNetForceTest
 
             var oppty = await client.QueryAsync($@"
 SELECT Id FROM Opportunity ORDER BY Id LIMIT {expected}");
-            var oppty2 = JToken.FromObject(oppty).ToObject<QueryResult<JObject>>();
+            var oppty2 = JToken.FromObject(oppty).ToObject<QueryResult<JToken>>();
             var oppty3 = (await client.GetEnumerableAsync($@"
 SELECT Id FROM Opportunity ORDER BY Id LIMIT {expected}")).ToList();
             var apiUsed2 = client.ApiUsed;
@@ -101,8 +101,8 @@ SELECT Id FROM Opportunity ORDER BY Id LIMIT {expected}")).ToList();
             WriteLine($"time1: {timer1.Elapsed.TotalSeconds}, time2: {timer2.Elapsed.TotalSeconds}.");
             WriteLine($"ApiUsage: {apiUsed1}, {apiUsed2}, {apiUsed3}, {apiUsed4}.");
 
-            Assert.Equal(JArray.FromObject(opptyList.Select(o => o["Id"]?.ToString())).ToString(), JArray.FromObject(opptyList2.Select(o => o["Id"]?.ToString())).ToString());
-            WriteLine(JArray.FromObject(opptyList.Select(o => o["Id"]?.ToString())).ToString());
+            Assert.Equal(JToken.FromObject(opptyList.Select(o => o["Id"]?.ToString())).ToString(), JToken.FromObject(opptyList2.Select(o => o["Id"]?.ToString())).ToString());
+            WriteLine(JToken.FromObject(opptyList.Select(o => o["Id"]?.ToString())).ToString());
         }
 
         [Fact]
@@ -134,9 +134,9 @@ SELECT Id FROM Opportunity ORDER BY Id LIMIT {expected}");
             var oppty = await client.QueryAsync(string.Join("", @"
 SELECT Id FROM Opportunity LIMIT ", opptyCount));
             var opptyList = client.GetEnumerable(oppty);
-            var opptyFullList = JArray.FromObject(opptyList);
+            var opptyFullList = JToken.FromObject(opptyList);
 
-            Assert.Equal(opptyCount, opptyFullList.Count);
+            Assert.Equal(opptyCount, opptyFullList.Count());
             Assert.DoesNotContain(opptyFullList, o =>
                 o["Id"]?.ToString()?.StartsWith("006") != true);
         }
@@ -172,9 +172,9 @@ LIMIT 10"))).ToList();
             Assert.All(pricebooks, o =>
             {
                 var oppSize = (int?)o["Opportunities"]["totalSize"];
-                Assert.Equal(oppSize, client.GetEnumerable(o["Opportunities"].ToObject<QueryResult<JObject>>()).Count());
+                Assert.Equal(oppSize, client.GetEnumerable(o["Opportunities"].ToObject<QueryResult<JToken>>()).Count());
                 var peSize = (int?)o["PricebookEntries"]["totalSize"];
-                Assert.Equal(peSize, client.GetEnumerable(o["PricebookEntries"].ToObject<QueryResult<JObject>>()).Count());
+                Assert.Equal(peSize, client.GetEnumerable(o["PricebookEntries"].ToObject<QueryResult<JToken>>()).Count());
             });
         }
     }

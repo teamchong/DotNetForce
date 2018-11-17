@@ -12,12 +12,12 @@ namespace DotNetForce
     public class JObjectWrapper : IAttributedObject
     {
         [JsonExtensionData]
-        protected JObject Object { get; set; }
+        protected JToken Object { get; set; }
 
         [JsonIgnore]
         public ObjectAttributes Attributes { get => Object?["attributes"]?.ToObject<ObjectAttributes>(); set => Object["attributes"] = value == null ? null : JToken.FromObject(value); }
 
-        public JObjectWrapper(JObject obj) => Object = obj;
+        public JObjectWrapper(JToken obj) => Object = obj;
 
         public JObjectWrapper Spread()
         {
@@ -26,46 +26,46 @@ namespace DotNetForce
 
         public JObjectWrapper Spread(string sep)
         {
-            var result = new JObject();
+            var result = JToken.FromObject(new Dictionary<string, JToken>());
             if (Object != null)
             {
-                foreach (var prop in Object.Properties())
+                foreach (var prop in (IDictionary<string, JToken>)Object)
                 {
-                    var splits = prop.Name.Split(new[]{ sep }, 2, StringSplitOptions.None);
+                    var splits = prop.Key.Split(new[]{ sep }, 2, StringSplitOptions.None);
                     if (splits.Length == 1)
                     {
-                        result[prop.Name] = prop.Value;
+                        result[prop.Key] = prop.Value;
                     }
-                    else if (result[prop.Name]?.Type == JTokenType.Object)
+                    else if (result[prop.Key]?.Type == JTokenType.Object)
                     {
-                        var subObj = (JObject)result[prop.Name];
+                        var subObj = result[prop.Key];
                         subObj[splits[1]] = prop.Value;
                         result[splits[0]] = new JObjectWrapper(subObj).Spread();
                     }
                     else
                     {
-                        result[splits[0]] = new JObjectWrapper(new JObject { [splits[1]] = prop.Value }).Spread();
+                        result[splits[0]] = new JObjectWrapper(JToken.FromObject(new Dictionary<string, JToken> { [splits[1]] = prop.Value })).Spread();
                     }
                 }
             }
             return new JObjectWrapper(result);
         }
 
-        public JObject Unwrap() => Object;
+        public JToken Unwrap() => Object;
         
-        public JObject Unwrap(SfObjectBase type) => Unwrap(type?.ToString());
+        public JToken Unwrap(SfObjectBase type) => Unwrap(type?.ToString());
 
-        public JObject Unwrap(string type)
+        public JToken Unwrap(string type)
         {
-            if (Object != null) Object["attributes"] = new JObject { ["type"] = type };
+            if (Object != null) Object["attributes"] = JToken.FromObject(new Dictionary<string, JToken> { ["type"] = type });
             return Object;
         }
         
-        public JObject Unwrap(SfObjectBase type, string referenceId) => Unwrap(type?.ToString(), referenceId);
+        public JToken Unwrap(SfObjectBase type, string referenceId) => Unwrap(type?.ToString(), referenceId);
 
-        public JObject Unwrap(string type, string referenceId)
+        public JToken Unwrap(string type, string referenceId)
         {
-            if (Object != null) Object["attributes"] = new JObject { ["type"] = type, ["referenceId"] = referenceId };
+            if (Object != null) Object["attributes"] = JToken.FromObject(new Dictionary<string, JToken> { ["type"] = type, ["referenceId"] = referenceId });
             return Object;
         }
 
@@ -80,7 +80,7 @@ namespace DotNetForce
             {
                 if (Object[paths[0]]?.Type == JTokenType.Object)
                 {
-                    return new JObjectWrapper((JObject)Object[paths[0]]).Get(paths[1]);
+                    return new JObjectWrapper(Object[paths[0]]).Get(paths[1]);
                 }
             }
             return null;
@@ -97,7 +97,7 @@ namespace DotNetForce
             {
                 if (Object[paths[0]]?.Type != JTokenType.Object)
                 {
-                    Object[paths[0]] = new JObject();
+                    Object[paths[0]] = JToken.FromObject(new Dictionary<string, JToken>());
                 }
                 return Set(paths[1], value);
             }
@@ -118,7 +118,7 @@ namespace DotNetForce
 
         public JToken Get<T>(SfAnyTypeField<T> field) where T : SfObjectBase
         {
-            return (JObject)Get(field?.ToString());
+            return Get(field?.ToString());
         }
 
         public JObjectWrapper Set<T>(SfAnyTypeField<T> field, JToken value) where T : SfObjectBase
@@ -149,10 +149,10 @@ namespace DotNetForce
         }
 
 
-        public QueryResult<JObject> Get<T, TChild>(SfChildRelationship<T, TChild> field)
+        public QueryResult<JToken> Get<T, TChild>(SfChildRelationship<T, TChild> field)
             where T : SfObjectBase, new() where TChild : SfObjectBase, new()
         {
-            return Get(field?.ToString())?.ToObject<QueryResult<JObject>>();
+            return Get(field?.ToString())?.ToObject<QueryResult<JToken>>();
         }
 
         public JObjectWrapper Set<T, TChild>(SfChildRelationship<T, TChild> field, JToken value)
@@ -175,7 +175,7 @@ namespace DotNetForce
 
         public JToken Get<T>(SfComplexValueField<T> field) where T : SfObjectBase
         {
-            return (JObject)Get(field?.ToString());
+            return Get(field?.ToString());
         }
 
         public JObjectWrapper Set<T>(SfComplexValueField<T> field, JToken value) where T : SfObjectBase
@@ -384,7 +384,7 @@ namespace DotNetForce
             return Object?.ToString(formatting, converters);
         }
 
-        public static implicit operator JObjectWrapper(JObject obj) => new JObjectWrapper(obj);
-        public static implicit operator JObject(JObjectWrapper wrapper) => wrapper.Unwrap();
+        public static implicit operator JObjectWrapper(JToken obj) => new JObjectWrapper(obj);
+        public static implicit operator JToken(JObjectWrapper wrapper) => wrapper.Unwrap();
     }
 }

@@ -139,8 +139,8 @@ namespace DotNetForce
         {
             if (response?.Errors != null)
             {
-                var errors = JArray.FromObject(response.Errors);
-                if (errors.Count > 0)
+                var errors = JToken.FromObject(response.Errors);
+                if (errors.Any())
                 {
                     var messages = errors.Select(err => err?.ToString() ?? "Unknown Error.");
                     throw new ForceException(Error.Unknown, string.Join(Environment.NewLine, messages));
@@ -428,15 +428,15 @@ namespace DotNetForce
 
 #region JObjectHelper
         
-        public static T UnFlatten<T>(T source) where T : JObject, new() => new JObjectHelper<T>(source).UnFlatten();
+        public static T UnFlatten<T>(T source) where T : JToken => new JObjectHelper<T>(source).UnFlatten();
 
-        public static T UnFlatten<T>(T source, string name) where T : JObject, new() => new JObjectHelper<T>(source).UnFlatten(name);
+        public static T UnFlatten<T>(T source, string name) where T : JToken => new JObjectHelper<T>(source).UnFlatten(name);
 
-        public static T Assign<T>(T source, params JObject[] others) where T : JObject, new() => new JObjectHelper<T>(source).Assign( others);
+        public static T Assign<T>(T source, params JToken[] others) where T : JToken => new JObjectHelper<T>(source).Assign( others);
 
-        public static T Pick<T>(T source, params string[] colNames) where T : JObject, new() => new JObjectHelper<T>(source).Pick(colNames);
+        public static T Pick<T>(T source, params string[] colNames) where T : JToken => new JObjectHelper<T>(source).Pick(colNames);
 
-        public static T Omit<T>(T source, params string[] colNames) where T : JObject, new() => new JObjectHelper<T>(source).Omit(colNames);
+        public static T Omit<T>(T source, params string[] colNames) where T : JToken => new JObjectHelper<T>(source).Omit(colNames);
         
 #endregion JObjectHelper
 

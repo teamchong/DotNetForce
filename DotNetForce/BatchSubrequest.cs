@@ -41,7 +41,7 @@ namespace DotNetForce
 
         public override string ToString()
         {
-            return JObject.FromObject(this).ToString();
+            return JsonConvert.SerializeObject(this);
         }
     }
 }

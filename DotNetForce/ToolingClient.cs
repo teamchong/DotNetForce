@@ -88,7 +88,7 @@ namespace DotNetForce
         {
             if (record == null) throw new ArgumentNullException("record");
 
-            var body = JObject.FromObject(record);
+            var body = JToken.FromObject(record);
             return UpdateAsync(metadataType, body["Id"]?.ToString(), DNF.Omit(body, "Id"));
         }
 
@@ -126,7 +126,7 @@ namespace DotNetForce
             return await JsonHttp.HttpGetAsync<ExecuteAnonymousResult>(urlSuffix).ConfigureAwait(false);
         }
 
-        public async Task<JToken> RunTestsAsynchronousAsync(JObject inputObject)
+        public async Task<JToken> RunTestsAsynchronousAsync(JToken inputObject)
         {
             if (inputObject == null) throw new ArgumentNullException("inputObject");
 
@@ -134,7 +134,7 @@ namespace DotNetForce
             return await JsonHttp.HttpPostAsync<JToken>(inputObject, urlSuffix).ConfigureAwait(false);
         }
 
-        public async Task<JToken> RunTestsSynchronousAsync(JObject inputObject)
+        public async Task<JToken> RunTestsSynchronousAsync(JToken inputObject)
         {
             if (inputObject == null) throw new ArgumentNullException("inputObject");
 

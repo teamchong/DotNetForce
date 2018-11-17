@@ -13,8 +13,8 @@
 //        {
 //            if (response?.Errors != null)
 //            {
-//                var errors = JArray.FromObject(response.Errors);
-//                if (errors.Count > 0)
+//                var errors = JToken.FromObject(response.Errors);
+//                if (errors.Any() == true)
 //                {
 //                    var messages = errors.Select(err => err?.ToString() ?? "Unknown Error.");
 //                    throw new ForceException(Error.Unknown, string.Join(Environment.NewLine, messages));

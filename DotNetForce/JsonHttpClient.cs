@@ -53,13 +53,13 @@ namespace DotNetForce.Common
                 //var jToken = JsonConvert.DeserializeObject<JToken>(response);
                 //if (jToken.Type == JTokenType.Array)
                 //{
-                //    var jArray = JsonConvert.DeserializeObject<JArray>(response);
+                //    var jArray = JsonConvert.DeserializeObject<JToken>(response);
                 //    return JsonConvert.DeserializeObject<T>(jArray.ToString());
                 //}
                 // else
                 //try
                 //{
-                //    ////var jObject = JsonConvert.DeserializeObject<JObject>(response);
+                //    ////var jObject = JsonConvert.DeserializeObject<JToken>(response);
                 //    ////return JsonConvert.DeserializeObject<T>(jObject.ToString());
                 //}
                 //catch
@@ -90,7 +90,7 @@ namespace DotNetForce.Common
                 try
                 {
                     //var response = await HttpGetAsync(url);
-                    //var jObject = JsonConvert.DeserializeObject<JObject>(response);
+                    //var jObject = JsonConvert.DeserializeObject<JToken>(response);
                     //var jToken = jObject.GetValue(nodeName);
                     //next = (jObject.GetValue("nextRecordsUrl") != null) ? jObject.GetValue("nextRecordsUrl").ToString() : null;
                     //records.AddRange(JsonConvert.DeserializeObject<IList<T>>(jToken.ToString()));

@@ -25,7 +25,7 @@ namespace DotNetForce
         public string ResponseType = "object";
 
         [JsonProperty("body", DefaultValueHandling = DefaultValueHandling.Ignore)]
-        public JObject Body { get; set; }
+        public JToken Body { get; set; }
         
         [JsonProperty("httpHeaders", DefaultValueHandling = DefaultValueHandling.Ignore)]
         public HttpHeaders HttpHeaders { get; set; }
@@ -41,7 +41,7 @@ namespace DotNetForce
 
         public override string ToString()
         {
-            return JObject.FromObject(this).ToString();
+            return JsonConvert.SerializeObject(this);
         }
     }
 }

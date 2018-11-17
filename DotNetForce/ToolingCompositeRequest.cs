@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json.Linq;
+﻿using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -123,7 +124,7 @@ namespace DotNetForce
 
             var request = new CompositeSubrequest
             {
-                Body = DNF.UnFlatten(JObject.FromObject(record)),
+                Body = DNF.UnFlatten(JToken.FromObject(record)),
                 Method = "POST",
                 ReferenceId = referenceId,
                 Url = $"sobjects/{objectName}"
@@ -161,7 +162,7 @@ namespace DotNetForce
             if (string.IsNullOrEmpty(objectName)) throw new ArgumentNullException("objectName");
             if (record == null) throw new ArgumentNullException("record");
 
-            var body = DNF.UnFlatten(JObject.FromObject(record));
+            var body = DNF.UnFlatten(JToken.FromObject(record));
             return Update(referenceId, objectName, body["Id"]?.ToString(), DNF.Omit(body, "Id"));
         }
 
@@ -172,7 +173,7 @@ namespace DotNetForce
             if (string.IsNullOrEmpty(recordId)) throw new ArgumentNullException("recordId");
             if (record == null) throw new ArgumentNullException("record");
 
-            var body = DNF.UnFlatten(JObject.FromObject(record));
+            var body = DNF.UnFlatten(JToken.FromObject(record));
             var request = new CompositeSubrequest
             {
                 Body = DNF.Omit(body, "Id"),
@@ -190,7 +191,7 @@ namespace DotNetForce
             if (string.IsNullOrEmpty(objectName)) throw new ArgumentNullException("objectName");
             if (record == null) throw new ArgumentNullException("record");
 
-            var body = DNF.UnFlatten(JObject.FromObject(record));
+            var body = DNF.UnFlatten(JToken.FromObject(record));
             return UpsertExternal(referenceId, objectName, externalFieldName, body[externalFieldName]?.ToString(), DNF.Omit(body, externalFieldName));
         }
 
@@ -201,7 +202,7 @@ namespace DotNetForce
             if (string.IsNullOrEmpty(externalId)) throw new ArgumentNullException("externalId");
             if (record == null) throw new ArgumentNullException("record");
 
-            var body = DNF.UnFlatten(JObject.FromObject(record));
+            var body = DNF.UnFlatten(JToken.FromObject(record));
             var request = new CompositeSubrequest
             {
                 Body = DNF.Omit(body, externalFieldName),
@@ -247,7 +248,7 @@ namespace DotNetForce
 
         public override string ToString()
         {
-            return JArray.FromObject(CompositeRequests).ToString(0);
+            return JsonConvert.SerializeObject(CompositeRequests);
         }
     }
 }

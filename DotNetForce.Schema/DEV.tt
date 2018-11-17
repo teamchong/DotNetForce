@@ -34,7 +34,7 @@ async Task RunTransformAsync() {
 
 		var generator = new SchemaGenerator(GenerationEnvironment);
 		var devProfileFile = Path.Combine(devDir, "LoginProfiles.json");
-		var loginProfile = ReadProfile(devProfileFile)?[instanceName] ?? new JObject
+		var loginProfile = ReadProfile(devProfileFile)?[instanceName] ?? JToken.FromObject(new Dictionary<string, JToken>
 {
 	["LoginUrl"] = "https://test.salesforce.com/services/oauth2/token",
 	["ClientId"] = "{your_app_client_id}",
@@ -42,7 +42,7 @@ async Task RunTransformAsync() {
 	["RedirectUri"] = "{your_app_redirect_uri_for_server_flow_only}",
 	["UserName"] = "{your_user_name_for_password_flow_only}",
 	["Password"] = "{your_password_for_password_flow_only}"
-};
+});
 		var loginUri = new Uri(loginProfile["LoginUrl"]?.ToString() ?? throw new Exception("LoginUrl is null."));
 		var clientId = loginProfile["ClientId"]?.ToString() ?? throw new Exception("ClientId is null.");
 		var clientSecret = loginProfile["ClientSecret"]?.ToString() ?? throw new Exception("ClientSecret is null.");
@@ -59,7 +59,7 @@ async Task RunTransformAsync() {
 }
 #>
 <#+
-public JObject ReadProfile(string path)
+public JToken ReadProfile(string path)
 {
     try
     {
@@ -71,7 +71,7 @@ public JObject ReadProfile(string path)
                 {
                     using (var jsonReader = new JsonTextReader(reader))
                     {
-                        return new JsonSerializer().Deserialize<JObject>(jsonReader);
+                        return new JsonSerializer().Deserialize<JToken>(jsonReader);
                     }
                 }
             }
