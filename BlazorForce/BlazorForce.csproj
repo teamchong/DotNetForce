@@ -18,7 +18,7 @@
   </ItemGroup>
 
   <Target Name="PostBuild" AfterTargets="PostBuildEvent">
-    <Exec Command="xcopy &quot;$(ProjectDir)$(OutDir)dist\*&quot; &quot;$(SolutionDir)&quot; /E/Y" />
+    <Exec Command="xcopy &quot;$(ProjectDir)wwwroot\*&quot; &quot;$(SolutionDir)&quot; /E/Y&#xD;&#xA;xcopy &quot;$(ProjectDir)$(OutDir)dist\*&quot; &quot;$(SolutionDir)&quot; /E/Y" />
   </Target>
 
 </Project>
