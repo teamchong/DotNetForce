@@ -28,7 +28,8 @@
                 @SelectedDomain
             </div>
             <div class="card-body">
-                Loading... @Code
+                <iframe src="https://@(SelectedDomain)/074?setupid=CorsWhitelistEntries&isdtp=vw" class="w-100" style="height:400px;border:1px solid #ccc;"></iframe>
+                @Code
             </div>
         </div>
     }
@@ -126,9 +127,9 @@
             }
             catch (Exception ex) {
                 Message = ex.ToString();
-                OAuth2 = null;
-                Domain = null;
-                Code = null;
+                //OAuth2 = null;
+                //Domain = null;
+                //Code = null;
             }
         } else {
             OAuth2 = null;
