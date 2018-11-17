@@ -40,7 +40,7 @@
                     <input type="text" class="form-control" id="loggedInCustom" bind-value-oninput="@InputtedDomain" placeholder="?.my.salesfore.com" />
                 </div>
                 <div class="form-group">
-                    <a href="@("https://" + SelectedDomain + LoginPath + Uri.EscapeDataString(SelectedDomain))" class="btn btn-outline-primary btn-block">
+                    <a href="@GetOauthHref(SelectedDomain)" class="btn btn-outline-primary btn-block">
                         <span class="oi oi-account-login"></span> Login
                     </a>
                 </div>
@@ -55,10 +55,10 @@
             </ol>
         </nav>
         <div class="p-3">
-            <a class="btn btn-outline-primary btn-lg btn-block" href="@("https://" + "login.salesforce.com" + LoginPath + Uri.EscapeDataString("login.salesforce.com"))">
+            <a class="btn btn-outline-primary btn-lg btn-block" href="@GetOauthHref("login.salesforce.com")">
                 <span class="oi oi-account-login"></span> Production
             </a>
-            <a class="btn btn-outline-primary btn-lg btn-block"  href="@("https://" + "test.salesforce.com" + LoginPath + Uri.EscapeDataString("test.salesforce.com"))">
+            <a class="btn btn-outline-primary btn-lg btn-block"  href="@GetOauthHref("test.salesforce.com")">
                 <span class="oi oi-account-login"></span> Test
             </a>
             <button type="button" class="btn btn-outline-primary btn-lg btn-block" onclick="@(() => SelectDomain("?.my.salesforce.com"))">
@@ -94,12 +94,6 @@
     private string Message { get; set; }
 
     private string SelectedDomain { get => !IsCustomDomain(Domain) ? Domain : InputtedDomain?.Contains('.') == true ? InputtedDomain : InputtedDomain + ".my.salesforce.com"; }
-
-    private void SelectDomain(string domain)
-    {
-        Domain = domain;
-        InputtedDomain = null;
-    }
 
     protected override async Task OnInitAsync()
     {
@@ -160,6 +154,17 @@
     //{
     //    await JSRuntime.Current.InvokeAsync<object>("jsInterop.openAuthWindow", "https://" + SelectedDomain + LoginPath + Uri.EscapeDataString(SelectedDomain));
     //}
+
+    private void SelectDomain(string domain)
+    {
+        Domain = domain;
+        InputtedDomain = null;
+    }
+
+    private string GetOauthHref(string domain)
+    {
+        return "https://" + domain + LoginPath + Uri.EscapeDataString(domain);
+    }
 
 
     private bool IsCustomDomain(string domain) => !string.IsNullOrEmpty(domain) && domain != "login.salesforce.com" && domain != "test.salesforce.com";

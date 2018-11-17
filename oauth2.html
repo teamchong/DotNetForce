@@ -12,12 +12,7 @@ if (opener) {
     opener.postMessage('DNF:' + location.href, '*');
     window.close();
 } else {
-    var m = /%3A(\d+)$/.test(location.search);
-    if (m && m[1]) {
-        location.replace('http://localhost:' + m[1] + '#/oauth2/' + location.search.replace(/^\?/, '').replace(/%3A\d+$/, ''));
-    } else {
-        location.replace('https://ste80.github.io/DotNetForce#/oauth2/' + location.search.replace(/^\?/, ''));
-    }
+    location.replace('https://ste80.github.io/DotNetForce#/oauth2/' + location.search.replace(/^\?/, ''));
 }
 </script>
 </body>
