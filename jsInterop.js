@@ -13,7 +13,7 @@ window.jsInterop = {
             var value = sessionStorage.getItem(key);
             if (value) {
                 var result = callback.invokeMethodAsync('Callback', key, value);
-                if (value != result) {
+                if (value !== result) {
                     sessionStorage.setItem(key, result);
                 }
             }
