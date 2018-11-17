@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="utf-8">
@@ -9,9 +9,11 @@
 <body>
 <script>
 if (opener) {
-  opener.postMessage('DNF:' + location.href, '*');
-  window.close();
+    opener.postMessage('DNF:' + location.href, '*');
+} else {
+    window.sessionStorage.setItem('oauth2', location.href);
 }
+window.close();
 </script>
 </body>
 <html>
