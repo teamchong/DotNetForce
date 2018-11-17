@@ -108,7 +108,7 @@
         var url = UriHelper.GetAbsoluteUri();
         var hashSplit = url.Split(new [] { '#' }, 2);
         var hash = hashSplit.Length > 1 ? hashSplit[1] : "";
-        OAuth2 = hash.StartsWith("oauth2/") ? hash.Substring("oauth2".Length) : null;
+        OAuth2 = hash.StartsWith("/oauth2/") ? hash.Substring("/oauth2/".Length) : null;
         var oauth2 = DecodeOAuth2(OAuth2);
 
         if (oauth2 != null && oauth2.ContainsKey("state") && oauth2.ContainsKey("code")) {
