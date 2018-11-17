@@ -14,9 +14,9 @@ if (opener) {
 } else {
     var m = /%3A(\d+)$/.test(location.search);
     if (m && m[1]) {
-        location.replace('http://localhost:' + m[1] + '#/oauth2/' + locaion.search.replace(/^\?/, '').replace(/%3A\d+$/, ''));
+        location.replace('http://localhost:' + m[1] + '#/oauth2/' + location.search.replace(/^\?/, '').replace(/%3A\d+$/, ''));
     } else {
-        location.replace('https://ste80.github.io/DotNetForce#/oauth2/' + locaion.search.replace(/^\?/, ''));
+        location.replace('https://ste80.github.io/DotNetForce#/oauth2/' + location.search.replace(/^\?/, ''));
     }
 }
 </script>
