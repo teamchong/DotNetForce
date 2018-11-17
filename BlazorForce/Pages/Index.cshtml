@@ -28,7 +28,7 @@
                 @SelectedDomain
             </div>
             <div class="card-body">
-                <iframe src="https://@(SelectedDomain)/074?setupid=CorsWhitelistEntries&isdtp=vw" class="w-100" style="height:400px;border:1px solid #ccc;"></iframe>
+                <iframe src="https://@(OAuth2?["state"])/074?setupid=CorsWhitelistEntries&isdtp=vw" class="w-100" style="height:400px;border:1px solid #ccc;"></iframe>
                 @Code
             </div>
         </div>
@@ -84,7 +84,7 @@
 
 @functions
 {
-    private string OAuth2 { get; set; }
+    private Dictionary<string, string> OAuth2 { get; set; }
 
     private string RedirectUri { get => "https://ste80.github.io/DotNetForce/oauth2"; }
     private string ClientId { get => "3MVG910YPh8zrcR3w3cOaVxURhJtcv8fxvL19jvXzqO_F819av8P2cc9VMnBOKkKTdK.uMAfUGRU_4aYDm5A3"; }
@@ -109,13 +109,12 @@
         var url = UriHelper.GetAbsoluteUri();
         var hashSplit = url.Split(new [] { '#' }, 2);
         var hash = hashSplit.Length > 1 ? hashSplit[1] : "";
-        OAuth2 = hash.StartsWith("/oauth2/") ? hash.Substring("/oauth2/".Length) : null;
-        var oauth2 = DecodeOAuth2(OAuth2);
+        OAuth2 = DecodeOAuth2(hash.StartsWith("/oauth2/") ? hash.Substring("/oauth2/".Length) : null);
 
-        if (oauth2 != null && oauth2.ContainsKey("state") && oauth2.ContainsKey("code")) {
+        if (OAuth2 != null && OAuth2.ContainsKey("state") && OAuth2.ContainsKey("code")) {
             try {
-                Domain = oauth2["state"];
-                Code = oauth2["code"];
+                Domain = OAuth2["state"];
+                Code = OAuth2["code"];
 
                 var client = await DNFClient.OAuthLoginAsync(new OAuthProfile {
                     ClientId = ClientId,
@@ -123,7 +122,6 @@
                     LoginUri = new Uri("https://" + Domain),
                     RedirectUri = RedirectUri
                 });
-                OAuth2 = EncodeOAuth2(oauth2);
             }
             catch (Exception ex) {
                 Message = ex.ToString();
