@@ -119,7 +119,8 @@
                 var client = await DNFClient.OAuthLoginAsync(new OAuthProfile {
                     ClientId = ClientId,
                     Code = Code,
-                    LoginUri = new Uri("https://" + Domain),
+                    //LoginUri = new Uri("https://" + Domain),
+                    LoginUri = new Uri("https://sfdc-cors.herokuapp.com"),
                     RedirectUri = RedirectUri
                 });
                 OAuth2 = EncodeOAuth2(oauth2);

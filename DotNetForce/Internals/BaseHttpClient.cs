@@ -40,7 +40,6 @@ namespace DotNetForce.Common.Internals
 
             HttpClient.DefaultRequestHeaders.Accept.Clear();
             HttpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue(_contentType));
-            HttpClient.DefaultRequestHeaders.Add("Origin", new Uri(instanceUrl).Host);
 
             //HttpClient.DefaultRequestHeaders.AcceptEncoding.Clear();
             //HttpClient.DefaultRequestHeaders.AcceptEncoding.Add(new StringWithQualityHeaderValue("gzip"));
