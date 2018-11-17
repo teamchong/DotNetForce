@@ -1,6 +1,6 @@
 window.jsInterop = {
     openAuthWindow: function (url) {
-        open(url, 'DotNetForceOAuth', 'width=600,height=800');
+        open(url, '_blank', 'width=600,height=800');
     },
     getStorage: function (key) {
         return sessionStorage.getItem(key);
@@ -17,7 +17,7 @@ window.jsInterop = {
                     sessionStorage.setItem(key, result);
                 }
             }
-            waitForForSession(key, callback);
+            jsInterop.waitForForSession(key, callback);
         });
     },
     addEventListener: function (type, callback) {
