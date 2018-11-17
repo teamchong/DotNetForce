@@ -1,14 +1,23 @@
-﻿@using System.Text.RegularExpressions;
+﻿@using DotNetForce;
 @page "/"
 @page "/oauth2/{OAuth2}"
 
 <div class="container-fluid">
-    {@OAuth2}
+    @OAuth2
+    @if (!string.IsNullOrEmpty(Message))
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+          @Message
+          <button type="button" class="close" data-dismiss="alert" aria-label="Close" onclick="@(() => Message = null)">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+    }
     @if (!string.IsNullOrEmpty(Code))
     {
         <nav aria-label="breadcrumb">
             <ol class="breadcrumb">
-                <li class="breadcrumb-item"><a href="#" onclick="@(() => logout())">DotNetForce</a></li>
+                <li class="breadcrumb-item"><a href="#" onclick="@(() => logout())">Home</a></li>
                 <li class="breadcrumb-item active">@SelectedDomain</li>
             </ol>
         </nav>
@@ -25,7 +34,7 @@
     {
         <nav aria-label="breadcrumb">
             <ol class="breadcrumb">
-                <li class="breadcrumb-item"><a href="#" onclick="@(() => logout())">DotNetForce</a></li>
+                <li class="breadcrumb-item"><a href="#" onclick="@(() => logout())">Home</a></li>
                 <li class="breadcrumb-item active">Custom</li>
             </ol>
         </nav>
@@ -52,7 +61,7 @@
     {
         <nav aria-label="breadcrumb">
             <ol class="breadcrumb">
-                <li class="breadcrumb-item active"><a href="#">DotNetForce</a></li>
+                <li class="breadcrumb-item active"><a href="#">Home</a></li>
             </ol>
         </nav>
         <div class="p-3">
@@ -67,7 +76,6 @@
             </button>
         </div>
     }
-    @Message
 </div>
 @*<SurveyPrompt Title="How is Blazor working for you?" />*@
 
@@ -79,8 +87,7 @@
     private string RedirectUri { get => "https://ste80.github.io/DotNetForce/oauth2"; }
     private string ClientId { get => "3MVG910YPh8zrcR3w3cOaVxURhJtcv8fxvL19jvXzqO_F819av8P2cc9VMnBOKkKTdK.uMAfUGRU_4aYDm5A3"; }
 
-    private string LoginPath
-    {
+    private string LoginPath {
         get => "/services/oauth2/authorize" +
             "?response_type=" + Uri.EscapeDataString("code") +
             "&redirect_uri=" + Uri.EscapeDataString(RedirectUri) +
@@ -96,23 +103,42 @@
 
     private string SelectedDomain { get => !IsCustomDomain(Domain) ? Domain : InputtedDomain?.Contains('.') == true ? InputtedDomain : InputtedDomain + ".my.salesforce.com"; }
 
-    protected override async Task OnInitAsync()
-    {
-        //await JSRuntime.Current.InvokeAsync<object>("jsInterop.addEventListener", "message", new DotNetObjectRef(new JsEventHandler((type, ev) =>
-        //{
-        //    switch (type)
-        //    {
+    protected override async Task OnInitAsync() {
+        var oauth2 = ParseOAuth2(OAuth2);
+
+        if (oauth2 != null && oauth2.ContainsKey("state") && oauth2.ContainsKey("code")) {
+            try {
+                Domain = oauth2["state"];
+                Code = oauth2["code"];
+
+                var client = await DNFClient.OAuthLoginAsync(new OAuthProfile {
+                    ClientId = ClientId,
+                    Code = Code,
+                    LoginUri = new Uri("https://" + Domain),
+                    RedirectUri = RedirectUri
+                });
+            }
+            catch (Exception ex) {
+                Message = ex.ToString();
+                OAuth2 = null;
+                Domain = null;
+                Code = null;
+            }
+        } else {
+            OAuth2 = null;
+            Domain = null;
+            Code = null;
+        }
+        //await JSRuntime.Current.InvokeAsync<object>("jsInterop.addEventListener", "message", new DotNetObjectRef(new JsEventHandler((type, ev) => {
+        //    switch (type) {
         //        case "message":
-        //            if (!string.IsNullOrEmpty(Domain))
-        //            {
+        //            if (!string.IsNullOrEmpty(Domain)) {
         //                var match = Regex.Match((string)ev?.data ?? "", @"^DNF:https://ste80\.github\.io/DotNetForce/oauth2\?(.+)$");
 
-        //                if (match.Success && match.Groups.Count > 1)
-        //                {
+        //                if (match.Success && match.Groups.Count > 1) {
         //                    var dictParam = match.Groups[1].Value.Split('&').Select(val => val.Split('=')).ToDictionary(val => val[0], val => val.Length > 1 ? val[1] : "");
 
-        //                    if (dictParam.TryGetValue("code", out var code))
-        //                    {
+        //                    if (dictParam.TryGetValue("code", out var code)) {
         //                        Code = code;
         //                        Message = "Loading Schema...";
         //                    }
@@ -123,18 +149,14 @@
         //    return null;
         //})));
 
-        //await JSRuntime.Current.InvokeAsync<object>("jsInterop.waitForForSession", "oauth2", new SessionHandler(value =>
-        //{
-        //    if (!string.IsNullOrEmpty(Domain))
-        //    {
+        //await JSRuntime.Current.InvokeAsync<object>("jsInterop.waitForForSession", "oauth2", new SessionHandler(value => {
+        //    if (!string.IsNullOrEmpty(Domain)) {
         //        var match = Regex.Match(value ?? "", @"^https://ste80\.github\.io/DotNetForce/oauth2\?(.+)$");
 
-        //        if (match.Success && match.Groups.Count > 1)
-        //        {
+        //        if (match.Success && match.Groups.Count > 1) {
         //            var dictParam = match.Groups[1].Value.Split('&').Select(val => val.Split('=')).ToDictionary(val => val[0], val => val.Length > 1 ? val[1] : "");
 
-        //            if (dictParam.TryGetValue("code", out var code))
-        //            {
+        //            if (dictParam.TryGetValue("code", out var code)) {
         //                Code = code;
         //                Message = "Loading Schema...";
         //            }
@@ -142,6 +164,10 @@
         //    }
         //    return null;
         //}));
+    }
+
+    private Dictionary<string, string> ParseOAuth2(string oauth2) {
+        return oauth2?.Split('&').Select(o => o.Split('=')).ToDictionary(o => o[0], o => o.Length > 1 ? o[1] : "");
     }
 
     //private async Task OpenAuthWindow(string domain)
@@ -156,22 +182,19 @@
     //    await JSRuntime.Current.InvokeAsync<object>("jsInterop.openAuthWindow", "https://" + SelectedDomain + LoginPath + Uri.EscapeDataString(SelectedDomain));
     //}
 
-    private void SelectDomain(string domain)
-    {
+    private void SelectDomain(string domain) {
         Domain = domain;
         InputtedDomain = null;
     }
 
-    private string GetOauthHref(string domain)
-    {
+    private string GetOauthHref(string domain) {
         return "https://" + domain + LoginPath + Uri.EscapeDataString(domain);
     }
 
 
     private bool IsCustomDomain(string domain) => !string.IsNullOrEmpty(domain) && domain != "login.salesforce.com" && domain != "test.salesforce.com";
 
-    private void logout()
-    {
+    private void logout() {
         Domain = null;
         InputtedDomain = null;
         Code = null;
