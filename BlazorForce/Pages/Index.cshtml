@@ -1,8 +1,9 @@
 ﻿@using System.Text.RegularExpressions;
 @page "/"
-@page "/auth2/{Auth2QueryString}"
+@page "/oauth2/{OAuth2}"
 
 <div class="container-fluid">
+    {@OAuth2}
     @if (!string.IsNullOrEmpty(Code))
     {
         <nav aria-label="breadcrumb">
@@ -73,7 +74,7 @@
 @functions
 {
     [Parameter]
-    private string Auth2QueryString { get; set; }
+    private string OAuth2 { get; set; }
 
     private string RedirectUri { get => "https://ste80.github.io/DotNetForce/oauth2"; }
     private string ClientId { get => "3MVG910YPh8zrcR3w3cOaVxURhJtcv8fxvL19jvXzqO_F819av8P2cc9VMnBOKkKTdK.uMAfUGRU_4aYDm5A3"; }
