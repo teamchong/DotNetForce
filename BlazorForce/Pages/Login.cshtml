@@ -1,0 +1,115 @@
+﻿@using DotNetForce;
+@using Newtonsoft.Json;
+@using Newtonsoft.Json.Linq;
+
+@if (!string.IsNullOrEmpty(Message))
+{
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+        @Message
+        <button type="button" class="close" data-dismiss="alert" aria-label="Close" onclick="@(() => Message = null)">
+            <span aria-hidden="true">&times;</span>
+        </button>
+    </div>
+}
+
+@if (IsCustomDomain(Domain))
+{
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="#" onclick="@Cancel">Home</a></li>
+            <li class="breadcrumb-item active">Custom</li>
+        </ol>
+    </nav>
+    <div class="card">
+        <div class="card-header">
+            Custom @(string.IsNullOrEmpty(SelectedDomain) ? "" : "(" + SelectedDomain + ")")
+            <button type="button" class="close" aria-label="Close" onclick="@Cancel">
+                <span aria-hidden="true">&times;</span>
+            </button>
+        </div>
+        <div class="card-body">
+            <div class="form-group">
+                <input type="text" class="form-control" id="loggedInCustom" bind-value-oninput="@InputtedDomain" placeholder="?.my.salesfore.com" />
+            </div>
+            <div class="form-group">
+                <a href="@GetOAuthHref(SelectedDomain)" class="btn btn-outline-primary btn-block">
+                    <span class="oi oi-account-login"></span> Login
+                </a>
+            </div>
+        </div>
+    </div>
+}
+else
+{
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item active"><a href="#">Home</a></li>
+        </ol>
+    </nav>
+    <div class="p-3">
+        @if (Storage.Data.Organizations.Count > 0)
+        {
+            foreach (var org in Storage.Data.Organizations)
+            {
+                <div class="form-group">
+                    <a href="#/org/@(Uri.EscapeDataString(org.Key))" class="btn btn-primary btn-block">
+                        <span class="oi oi-account-login"></span> @(org.Value.ToString())
+                    </a>
+                </div>
+            }
+            <hr />
+        }
+        <a class="btn btn-outline-primary btn-lg btn-block" href="@GetOAuthHref("login.salesforce.com")">
+            <span class="oi oi-account-login"></span> Production
+        </a>
+        <a class="btn btn-outline-primary btn-lg btn-block" href="@GetOAuthHref("test.salesforce.com")">
+            <span class="oi oi-account-login"></span> Test
+        </a>
+        <button type="button" class="btn btn-outline-primary btn-lg btn-block" onclick="@(() => SelectDomain("?.my.salesforce.com"))">
+            <span class="oi oi-account-login"></span> Custom
+        </button>
+    </div>
+}
+
+@functions
+{
+    [Parameter]
+    private AppStorage Storage { get; set; }
+
+    private string Domain { get; set; }
+    private string InputtedDomain { get; set; }
+    private string Message { get; set; }
+
+    private string LoginPath
+    {
+        get => "/services/oauth2/authorize" +
+            "?response_type=" + Uri.EscapeDataString("code") +
+            "&redirect_uri=" + Uri.EscapeDataString(OAuthSetting.Default.RedirectUri) +
+            "&client_id=" + Uri.EscapeDataString(OAuthSetting.Default.ClientId) +
+            "&display=" + Uri.EscapeDataString("popup") +
+            "&state=";
+    }
+
+    private string SelectedDomain { get => !IsCustomDomain(Domain) ? Domain : InputtedDomain?.Contains('.') == true ? InputtedDomain : InputtedDomain + ".my.salesforce.com"; }
+
+
+    private bool IsCustomDomain(string domain) => !string.IsNullOrEmpty(domain) && domain != "login.salesforce.com" && domain != "test.salesforce.com";
+
+    private void SelectDomain(string domain)
+    {
+        Domain = domain;
+        InputtedDomain = null;
+    }
+
+    private string GetOAuthHref(string domain)
+    {
+        return "https://" + domain + LoginPath + Uri.EscapeDataString(domain);
+    }
+
+    private void Cancel()
+    {
+        Domain = null;
+        InputtedDomain = null;
+        Message = null;
+    }
+}

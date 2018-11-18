@@ -17,71 +17,26 @@
     }
     else
     {
-        if (!string.IsNullOrEmpty(Message))
-        {
-            <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                @Message
-                <button type="button" class="close" data-dismiss="alert" aria-label="Close" onclick="@(() => Message = null)">
-                    <span aria-hidden="true">&times;</span>
-                </button>
-            </div>
-        }
-
         if (Hash.StartsWith("/oauth2/"))
         {
             var oauth2 = UriHelper.GetHashAsDictionary("/oauth2/");
-            <OAuth2 Code="@oauth2["code"]" LoginDomain="@oauth2["state"]" Storage="@Storage" ParentStateHasChanged="@(() => StateHasChanged())" Logout="@Logout"></OAuth2>
+            <OAuth2 Code="@oauth2["code"]" LoginDomain="@oauth2["state"]" Storage="@Storage" ParentStateHasChanged="@(() => StateHasChanged())" Cancel="@Cancel"></OAuth2>
         }
         else if (Hash.StartsWith("/org/"))
         {
             var org = Uri.UnescapeDataString(Hash.Substring("/org/".Length));
-            <Org InstanceUrl="@org" Storage="@Storage" Logout="@Logout"></Org>
+            <Org InstanceUrl="@org" Storage="@Storage"></Org>
         }
-        else if (IsCustomDomain(Domain))
+        else if (Hash.StartsWith("/DataImport/"))
         {
-            <nav aria-label="breadcrumb">
-                <ol class="breadcrumb">
-                    <li class="breadcrumb-item"><a href="#" onclick="@(() => Logout())">Home</a></li>
-                    <li class="breadcrumb-item active">Custom</li>
-                </ol>
-            </nav>
-            <div class="card">
-                <div class="card-header">
-                    Custom @(string.IsNullOrEmpty(SelectedDomain) ? "" : "(" + SelectedDomain + ")")
-                    <button type="button" class="close" aria-label="Close" onclick="@(() => Logout())">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
-                </div>
-                <div class="card-body">
-                    <div class="form-group">
-                        <input type="text" class="form-control" id="loggedInCustom" bind-value-oninput="@InputtedDomain" placeholder="?.my.salesfore.com" />
-                    </div>
-                    <div class="form-group">
-                        <a href="@GetOauthHref(SelectedDomain)" class="btn btn-outline-primary btn-block">
-                            <span class="oi oi-account-login"></span> Login
-                        </a>
-                    </div>
-                </div>
-            </div>
+            <text>Under construction...</text>
         }
-        else
+        else if (Hash.StartsWith("/DataExport/"))
         {
-            <nav aria-label="breadcrumb">
-                <ol class="breadcrumb">
-                    <li class="breadcrumb-item active"><a href="#">Home</a></li>
-                </ol>
-            </nav>
-            <div class="p-3">
-                <a class="btn btn-outline-primary btn-lg btn-block" href="@GetOauthHref("login.salesforce.com")">
-                    <span class="oi oi-account-login"></span> Production
-                </a>
-                <a class="btn btn-outline-primary btn-lg btn-block" href="@GetOauthHref("test.salesforce.com")">
-                    <span class="oi oi-account-login"></span> Test
-                </a>
-                <button type="button" class="btn btn-outline-primary btn-lg btn-block" onclick="@(() => SelectDomain("?.my.salesforce.com"))">
-                    <span class="oi oi-account-login"></span> Custom
-                </button>
-            </div>
+            <text>Under construction...</text>
+        }
+        else {
+            <Login Storage="@Storage"></Login>
         }
     }
 </div>
@@ -89,77 +44,34 @@
 
 @functions
 {
-    private string RedirectUri { get => "https://ste80.github.io/DotNetForce/oauth2"; }
-    private string ClientId { get => "3MVG910YPh8zrcR3w3cOaVxURhJtcv8fxvL19jvXzqO_F819av8P2cc9VMnBOKkKTdK.uMAfUGRU_4aYDm5A3"; }
-
-    private string LoginPath
-    {
-        get => "/services/oauth2/authorize" +
-            "?response_type=" + Uri.EscapeDataString("code") +
-            "&redirect_uri=" + Uri.EscapeDataString(RedirectUri) +
-            "&client_id=" + Uri.EscapeDataString(ClientId) +
-            "&display=" + Uri.EscapeDataString("popup") +
-            "&state=";
-    }
-
-    private string Domain { get; set; }
-    private string InputtedDomain { get; set; }
-    private string Code { get; set; }
-    private string Message { get; set; }
-
     private AppStorage Storage { get; set; }
+    private string Url { get; set; }
     private string Hash { get; set; }
-
-    private string SelectedDomain { get => !IsCustomDomain(Domain) ? Domain : InputtedDomain?.Contains('.') == true ? InputtedDomain : InputtedDomain + ".my.salesforce.com"; }
 
     protected override async Task OnInitAsync()
     {
         Storage = await AppStorage.GetAsync();
+        Url = UriHelper.GetAbsoluteUri();
         Hash = UriHelper.GetHash() ?? "";
+        UriHelper.OnLocationChanged += OnLocationChanged;
     }
 
-    private Dictionary<string, string> DecodeOAuth2(string oauth2)
+    private void OnLocationChanged(object sender, string newUriAbsolute)
     {
-        if (oauth2 != null)
-        {
-            var oauth2Obj = oauth2.Split('&').Select(o => o.Split('=')).ToDictionary(o => Uri.UnescapeDataString(o[0]), o => o.Length > 1 ? Uri.UnescapeDataString(o[1]) : "");
-
-            if (oauth2Obj.ContainsKey("state") && oauth2Obj.ContainsKey("code"))
-            {
-                oauth2Obj.Remove("display");
-                return oauth2Obj;
-            }
-        }
-        return null;
-    }
-
-    private void SelectDomain(string domain)
-    {
-        Domain = domain;
-        InputtedDomain = null;
-    }
-
-    private string GetOauthHref(string domain)
-    {
-        return "https://" + domain + LoginPath + Uri.EscapeDataString(domain);
-    }
-
-
-    private bool IsCustomDomain(string domain) => !string.IsNullOrEmpty(domain) && domain != "login.salesforce.com" && domain != "test.salesforce.com";
-
-    private void SetMessage(string message)
-    {
-        Message = message;
+        Url = newUriAbsolute;
+        Hash = UriHelper.GetHash() ?? "";
         StateHasChanged();
+        Console.WriteLine($"Url: {Url}");
     }
 
-    private void Logout()
+    private void Cancel()
     {
         Hash = "";
-        Domain = null;
-        InputtedDomain = null;
-        Code = null;
-        Message = null;
         StateHasChanged();
+    }
+
+    public void Dispose()
+    {
+        UriHelper.OnLocationChanged -= OnLocationChanged;
     }
 }

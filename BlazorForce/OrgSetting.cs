@@ -21,13 +21,13 @@ namespace BlazorForce
         //[JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         //public long? IssuedAt { get; set; }
 
-        public string GetName()
+        public override string ToString()
         {
             if (InstanceUrl != null)
             {
                 return Regex.Replace(Regex.Replace(InstanceUrl, @"^https?://([^.]+).*\.salesforce\.com.*$", @"$1"), "-+", " ").ToUpper();
             }
-            return null;
+            return "";
         }
 
         //public DateTime? GetIssuedAt()
