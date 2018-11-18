@@ -20,7 +20,7 @@
         if (Hash.StartsWith("/oauth2/"))
         {
             var oauth2 = UriHelper.GetHashAsDictionary("/oauth2/");
-            <OAuth2 Code="@oauth2["code"]" LoginDomain="@oauth2["state"]" Storage="@Storage" Reload="@Reload" CancelAsync="@CancelAsync"></OAuth2>
+            <OAuth2 Code="@oauth2["code"]" LoginDomain="@oauth2["state"]" Storage="@Storage"></OAuth2>
         }
         else if (Hash.StartsWith("/org/"))
         {
@@ -56,14 +56,14 @@
         UriHelper.OnLocationChanged += OnLocationChanged;
     }
 
-    private void Reload()
-    {
-        Console.WriteLine($"Reload {Url} {Hash}");
-        Url = UriHelper.GetAbsoluteUri();
-        Hash = UriHelper.GetHash() ?? "";
-        Console.WriteLine($"Reload {Url} {Hash} complelte.");
-        StateHasChanged();
-    }
+    //private void Reload()
+    //{
+    //    Console.WriteLine($"Reload {Url} {Hash}");
+    //    Url = UriHelper.GetAbsoluteUri();
+    //    Hash = UriHelper.GetHash() ?? "";
+    //    Console.WriteLine($"Reload {Url} {Hash} complelte.");
+    //    StateHasChanged();
+    //}
 
     private void OnLocationChanged(object sender, string newUriAbsolute)
     {
@@ -73,11 +73,11 @@
         //Console.WriteLine($"Url: {Url}");
     }
 
-    private async Task CancelAsync()
-    {
-        await JSRuntime.Current.InvokeAsync<object>("DNF.history.replaceState", null, null, "");
-        Reload();
-    }
+    //private async Task CancelAsync()
+    //{
+    //    await JSRuntime.Current.InvokeAsync<object>("DNF.history.replaceState", null, null, "");
+    //    Reload();
+    //}
 
     public void Dispose()
     {

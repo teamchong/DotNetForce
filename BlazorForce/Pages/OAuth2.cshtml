@@ -1,11 +1,12 @@
 ﻿@using DotNetForce;
 @using Newtonsoft.Json;
+@inject Microsoft.AspNetCore.Blazor.Services.IUriHelper UriHelper;
 
 <div class="jumbotron mt-3">
     <h1 class="display-4">DotNetForce</h1>
     <p class="lead">
         @Message
-        <button type="button" class="close" data-dismiss="alert" aria-label="Close" onclick="@(async () => await CancelAsync())">
+        <button type="button" class="close" data-dismiss="alert" aria-label="Close" onclick="@Cancel">
             <span aria-hidden="true">&times;</span> Cancel
         </button>
     </p>
@@ -20,56 +21,62 @@
 
 @functions
 {
-[Parameter]
-private string LoginDomain { get; set; }
+    [Parameter]
+    private string LoginDomain { get; set; }
 
-[Parameter]
-private string Code { get; set; }
+    [Parameter]
+    private string Code { get; set; }
 
-[Parameter]
-private AppStorage Storage { get; set; }
+    [Parameter]
+    private AppStorage Storage { get; set; }
 
-[Parameter]
-private Action Reload { get; set; }
+    //[Parameter]
+    //private Action Reload { get; set; }
 
-[Parameter]
-private Func<Task> CancelAsync { get; set; }
+    [Parameter]
+    private Func<Task> CancelAsync { get; set; }
 
-private bool IsLoading { get; set; }
+    private bool IsLoading { get; set; }
 
-private string Message { get; set; }
+    private string Message { get; set; }
 
-protected override async Task OnInitAsync()
-{
-    try
+    protected override async Task OnInitAsync()
     {
-        IsLoading = true;
-        Message = $"Connecting to {LoginDomain}...";
-        var client = await DNFClient.OAuthLoginAsync(new OAuthProfile
+        try
         {
-            ClientId = OAuthSetting.Default.ClientId,
-            Code = Code,
-            LoginUri = new Uri($"https://{LoginDomain}"),
-            RedirectUri = OAuthSetting.Default.RedirectUri
-        });
-        if (!Storage.Data.Organizations.TryGetValue(client.InstanceUrl, out var orgSetting))
-        {
-            orgSetting = new OrgSetting();
-            Storage.Data.Organizations.Add(client.InstanceUrl, orgSetting);
+            IsLoading = true;
+            Message = $"Connecting to {LoginDomain}...";
+            var client = await DNFClient.OAuthLoginAsync(new OAuthProfile
+            {
+                ClientId = OAuthSetting.Default.ClientId,
+                Code = Code,
+                LoginUri = new Uri($"https://{LoginDomain}"),
+                RedirectUri = OAuthSetting.Default.RedirectUri
+            });
+            if (!Storage.Data.Organizations.TryGetValue(client.InstanceUrl, out var orgSetting))
+            {
+                orgSetting = new OrgSetting();
+                Storage.Data.Organizations.Add(client.InstanceUrl, orgSetting);
+            }
+            orgSetting.AccessToken = client.AccessToken;
+            orgSetting.RefreshToken = client.RefreshToken;
+            orgSetting.InstanceUrl = client.InstanceUrl;
+            //Console.WriteLine(JsonConvert.SerializeObject(Storage.Data));
+            await Storage.SaveChangeAsync();
+            Message = "Login successfully, redirecting...";
+            await JSRuntime.Current.InvokeAsync<object>("DNF.history.replaceState", null, null, $"#/org/{Uri.EscapeDataString(client.InstanceUrl)}");
+            //Reload();
+            UriHelper.NavigateTo("");
         }
-        orgSetting.AccessToken = client.AccessToken;
-        orgSetting.RefreshToken = client.RefreshToken;
-        orgSetting.InstanceUrl = client.InstanceUrl;
-        //Console.WriteLine(JsonConvert.SerializeObject(Storage.Data));
-        await Storage.SaveChangeAsync();
-        Message = "Login successfully, redirecting...";
-        await JSRuntime.Current.InvokeAsync<object>("DNF.history.replaceState", null, null, $"#/org/{Uri.EscapeDataString(client.InstanceUrl)}");
-        Reload();
+        catch (Exception ex)
+        {
+            IsLoading = false;
+            Message = ex.ToString();
+        }
     }
-    catch (Exception ex)
+
+    private void Cancel()
     {
-        IsLoading = false;
-        Message = ex.ToString();
+        UriHelper.NavigateTo("");
     }
-}
 }
