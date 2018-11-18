@@ -5,7 +5,7 @@
     <h1 class="display-4">DotNetForce</h1>
     <p class="lead">
         @Message
-        <button type="button" class="close" data-dismiss="alert" aria-label="Close" onclick="@(() => CancelAsync())">
+        <button type="button" class="close" data-dismiss="alert" aria-label="Close" onclick="@(async () => await CancelAsync())">
             <span aria-hidden="true">&times;</span> Cancel
         </button>
     </p>

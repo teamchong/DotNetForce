@@ -57,7 +57,7 @@ else
                             <span class="oi oi-account-login"></span> @(org.Value.ToString())
                         </a>
                       <div class="input-group-append">
-                        <button type="button" onclick="@(() => DeleteOrgAsync(org.Key))"><span class="oi oi-x"></span></button>
+                        <button type="button" class="btn btn-outline-danger" onclick="@(async () => await DeleteOrgAsync(org.Key))"><span class="oi oi-x"></span></button>
                       </div>
                     </div>
                 </div>

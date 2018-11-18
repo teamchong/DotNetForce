@@ -58,8 +58,10 @@
 
     private void Reload()
     {
+        Console.WriteLine($"Reload {Url} {Hash}");
         Url = UriHelper.GetAbsoluteUri();
         Hash = UriHelper.GetHash() ?? "";
+        Console.WriteLine($"Reload {Url} {Hash} complelte.");
         StateHasChanged();
     }
 
