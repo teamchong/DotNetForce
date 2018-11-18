@@ -5,7 +5,7 @@
     <RunCommand>dotnet</RunCommand>
     <RunArguments>blazor serve</RunArguments>
     <LangVersion>7.3</LangVersion>
-    <Configurations>Debug</Configurations>
+    <Configurations>Debug;Release</Configurations>
   </PropertyGroup>
 
   <ItemGroup>
@@ -26,7 +26,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Content Update="Pages\Org.cshtml">
+    <Content Update="Pages\OAuth2.cshtml">
       <Pack>$(IncludeRazorContentInPack)</Pack>
     </Content>
   </ItemGroup>

@@ -25,16 +25,16 @@ namespace DotNetForce
         public static string DefaultApiVersion = "v44.0";
         public static Func<Uri, Uri> Proxy = uri => uri;
 
-        public Uri LoginUri { get; set; }
-        public string ClientId { get; set; }
-        public string ClientSecret { get; set; }
+        //public Uri LoginUri { get; set; }
+        //public string ClientId { get; set; }
+        //public string ClientSecret { get; set; }
 
-        public string Id { get; set; }
+        //public string Id { get; set; }
         public string InstanceUrl { get; set; }
         public string RefreshToken { get; set; }
         public string AccessToken { get; set; }
         public string ApiVersion { get; set; }
-        public long? IssuedAt { get; set; }
+        //public long? IssuedAt { get; set; }
 
         public Action<string> Logger { get; set; }
 
@@ -59,7 +59,32 @@ namespace DotNetForce
 
         #endregion
 
-        protected DNFClient() { }
+        public DNFClient(string instanceUrl, string accessToken, Action<string> logger)
+        {
+            Logger = logger;
+            
+            var httpHandler = new HttpClientHandler
+            {
+                AutomaticDecompression = System.Net.DecompressionMethods.GZip | System.Net.DecompressionMethods.Deflate
+            };
+            var jsonClient = new HttpClient(httpHandler) { Timeout = TimeSpan.FromSeconds(60 * 30) };
+            //jsonClient.DefaultRequestHeaders.ConnectionClose = true;
+            jsonClient.DefaultRequestHeaders.AcceptEncoding.Add(new System.Net.Http.Headers.StringWithQualityHeaderValue("gzip"));
+            var xmlClient = new HttpClient(httpHandler) { Timeout = TimeSpan.FromSeconds(60 * 30) };
+            //xmlClient.DefaultRequestHeaders.ConnectionClose = true;
+            xmlClient.DefaultRequestHeaders.AcceptEncoding.Add(new System.Net.Http.Headers.StringWithQualityHeaderValue("gzip"));
+            InstanceUrl = instanceUrl;
+            AccessToken = accessToken;
+            ApiVersion = DefaultApiVersion;
+
+            JsonHttp = new JsonHttpClient(InstanceUrl, ApiVersion, AccessToken, jsonClient);
+            XmlHttp = new XmlHttpClient(InstanceUrl, ApiVersion, AccessToken, xmlClient);
+
+            Force = new ForceClient(InstanceUrl, AccessToken, ApiVersion, JsonHttp, XmlHttp);
+            Chatter = new ChatterClient(InstanceUrl, AccessToken, ApiVersion, JsonHttp);
+            Composite = new CompositeClient(JsonHttp, ApiVersion, Logger);
+            Tooling = new ToolingClient(JsonHttp);
+        }
 
         #region Login
 
@@ -70,41 +95,21 @@ namespace DotNetForce
 
         public static async Task<DNFClient> LoginAsync(Uri loginUri, string clientId, string clientSecret, string userName, string password, Action<string> logger)
         {
-            var client = new DNFClient { LoginUri = loginUri, ClientId = clientId, ClientSecret = clientSecret, Logger = logger };
-
-            client.Logger?.Invoke($"DNFClient connecting...");
+            logger?.Invoke($"DNFClient connecting...");
             var timer = Stopwatch.StartNew();
 
             using (var auth = new AuthenticationClient() { ApiVersion = DefaultApiVersion })
             {
-                var tokenRequestEndpointUrl = new Uri(new Uri(client.LoginUri.GetLeftPart(UriPartial.Authority)), "/services/oauth2/token").ToString();
+                var tokenRequestEndpointUrl = new Uri(new Uri(loginUri.GetLeftPart(UriPartial.Authority)), "/services/oauth2/token").ToString();
                 await auth.UsernamePasswordAsync(clientId, clientSecret, userName, password, tokenRequestEndpointUrl).ConfigureAwait(false);
-                var httpHandler = new HttpClientHandler
-                {
-                    AutomaticDecompression = System.Net.DecompressionMethods.GZip | System.Net.DecompressionMethods.Deflate
-                };
-                var jsonClient = new HttpClient(httpHandler) { Timeout = TimeSpan.FromSeconds(60 * 30) };
-                //jsonClient.DefaultRequestHeaders.ConnectionClose = true;
-                jsonClient.DefaultRequestHeaders.AcceptEncoding.Add(new System.Net.Http.Headers.StringWithQualityHeaderValue("gzip"));
-                var xmlClient = new HttpClient(httpHandler) { Timeout = TimeSpan.FromSeconds(60 * 30) };
-                //xmlClient.DefaultRequestHeaders.ConnectionClose = true;
-                xmlClient.DefaultRequestHeaders.AcceptEncoding.Add(new System.Net.Http.Headers.StringWithQualityHeaderValue("gzip"));
-                client.Id = auth.Id;
-                client.InstanceUrl = auth.InstanceUrl;
+
+                logger?.Invoke($"DNFClient connected ({timer.Elapsed.TotalSeconds} seconds)");
+                
+                var client = new DNFClient(auth.InstanceUrl, auth.AccessToken, logger);
                 client.RefreshToken = auth.RefreshToken;
-                client.AccessToken = auth.AccessToken;
                 client.ApiVersion = auth.ApiVersion;
-
-                client.JsonHttp = new JsonHttpClient(client.InstanceUrl, client.ApiVersion, client.AccessToken, jsonClient);
-                client.XmlHttp = new XmlHttpClient(client.InstanceUrl, client.ApiVersion, client.AccessToken, xmlClient);
-
-                client.Force = new ForceClient(client.InstanceUrl, client.AccessToken, client.ApiVersion, client.JsonHttp, client.XmlHttp);
-                client.Chatter = new ChatterClient(client.InstanceUrl, client.AccessToken, client.ApiVersion, client.JsonHttp);
-                client.Composite = new CompositeClient(client.JsonHttp, client.ApiVersion, client.Logger);
-                client.Tooling = new ToolingClient(client.JsonHttp);
+                return client;
             }
-            client.Logger?.Invoke($"DNFClient connected ({timer.Elapsed.TotalSeconds} seconds)");
-            return client;
         }
 
         public static Task<DNFClient> OAuthLoginAsync(OAuthProfile oAuthProfile)
@@ -114,51 +119,31 @@ namespace DotNetForce
 
         public static async Task<DNFClient> OAuthLoginAsync(OAuthProfile oAuthProfile, Action<string> logger)
         {
-            var client = new DNFClient { LoginUri = oAuthProfile.LoginUri, ClientId = oAuthProfile.ClientId, ClientSecret = oAuthProfile.ClientSecret, Logger = logger };
-
-            client.Logger?.Invoke($"DNFClient connecting...");
+            logger?.Invoke($"DNFClient connecting...");
             var timer = Stopwatch.StartNew();
 
             using (var auth = new AuthenticationClient() { ApiVersion = DefaultApiVersion })
             {
-                var tokenRequestEndpointUrl = new Uri(new Uri(client.LoginUri.GetLeftPart(UriPartial.Authority)), "/services/oauth2/token").ToString();
+                var tokenRequestEndpointUrl = new Uri(new Uri(oAuthProfile.LoginUri.GetLeftPart(UriPartial.Authority)), "/services/oauth2/token").ToString();
                 await auth.WebServerAsync(oAuthProfile.ClientId, oAuthProfile.ClientSecret, oAuthProfile.RedirectUri, oAuthProfile.Code, tokenRequestEndpointUrl).ConfigureAwait(false);
-                var httpHandler = new HttpClientHandler
-                {
-                    AutomaticDecompression = System.Net.DecompressionMethods.GZip | System.Net.DecompressionMethods.Deflate
-                };
-                var jsonClient = new HttpClient(httpHandler) { Timeout = TimeSpan.FromSeconds(60 * 30) };
-                //jsonClient.DefaultRequestHeaders.ConnectionClose = true;
-                jsonClient.DefaultRequestHeaders.AcceptEncoding.Add(new System.Net.Http.Headers.StringWithQualityHeaderValue("gzip"));
-                var xmlClient = new HttpClient(httpHandler) { Timeout = TimeSpan.FromSeconds(60 * 30) };
-                //xmlClient.DefaultRequestHeaders.ConnectionClose = true;
-                xmlClient.DefaultRequestHeaders.AcceptEncoding.Add(new System.Net.Http.Headers.StringWithQualityHeaderValue("gzip"));
-                client.Id = auth.Id;
-                client.InstanceUrl = auth.InstanceUrl;
+                
+                logger?.Invoke($"DNFClient connected ({timer.Elapsed.TotalSeconds} seconds)");
+
+                var client = new DNFClient(auth.InstanceUrl, auth.AccessToken, logger);
                 client.RefreshToken = auth.RefreshToken;
-                client.AccessToken = auth.AccessToken;
                 client.ApiVersion = auth.ApiVersion;
-
-                client.JsonHttp = new JsonHttpClient(client.InstanceUrl, client.ApiVersion, client.AccessToken, jsonClient);
-                client.XmlHttp = new XmlHttpClient(client.InstanceUrl, client.ApiVersion, client.AccessToken, xmlClient);
-
-                client.Force = new ForceClient(client.InstanceUrl, client.AccessToken, client.ApiVersion, jsonClient, xmlClient);
-                client.Chatter = new ChatterClient(client.InstanceUrl, client.AccessToken, client.ApiVersion, jsonClient);
-                client.Composite = new CompositeClient(client.JsonHttp, client.ApiVersion, client.Logger);
-                client.Tooling = new ToolingClient(client.JsonHttp);
+                return client;
             }
-            client.Logger?.Invoke($"DNFClient connected ({timer.Elapsed.TotalSeconds} seconds)");
-            return client;
         }
 
-        public async Task TokenRefreshAsync()
+        public async Task TokenRefreshAsync(Uri loginUri, string clientId, string clientSecret = "")
         {
             using (var auth = new AuthenticationClient() { ApiVersion = ApiVersion })
             {
-                var tokenRequestEndpointUrl = new Uri(new Uri(LoginUri.GetLeftPart(UriPartial.Authority)), "/services/oauth2/token").ToString();
-                await auth.TokenRefreshAsync(ClientId, RefreshToken, ClientSecret, tokenRequestEndpointUrl).ConfigureAwait(false);
+                var tokenRequestEndpointUrl = new Uri(new Uri(loginUri.GetLeftPart(UriPartial.Authority)), "/services/oauth2/token").ToString();
+                await auth.TokenRefreshAsync(clientId, RefreshToken, clientSecret, tokenRequestEndpointUrl).ConfigureAwait(false);
 
-                Id = auth.Id;
+                //Id = auth.Id;
                 InstanceUrl = auth.InstanceUrl;
                 AccessToken = auth.AccessToken;
             }
@@ -391,10 +376,10 @@ namespace DotNetForce
 
         #endregion
 
-        public async Task<UserInfo> UserInfoAsync()
-        {
-            return await Force.UserInfo<UserInfo>(Id).ConfigureAwait(false);
-        }
+        //public async Task<UserInfo> UserInfoAsync()
+        //{
+        //    return await Force.UserInfo<UserInfo>(Id).ConfigureAwait(false);
+        //}
 
         public Task<List<JToken>> VersionsAsync() => VersionsAsync<JToken>();
         public async Task<List<T>> VersionsAsync<T>()

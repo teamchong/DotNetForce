@@ -18,9 +18,6 @@ namespace BlazorForce
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public string InstanceUrl { get; set; }
 
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
-        public string LoginUri { get; set; }
-
         //[JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         //public long? IssuedAt { get; set; }
 

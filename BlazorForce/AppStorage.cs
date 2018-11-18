@@ -14,7 +14,7 @@ namespace BlazorForce
         {
             AppStorageModel data = null;
             try {
-                var storedData = await JSRuntime.Current.InvokeAsync<string>("DNF.getStorage", "appStorage");
+                var storedData = await JSRuntime.Current.InvokeAsync<string>("DNF.getLocalStorage", "appStorage");
                 var uncompressed = LZString.DecompressFromUTF16(storedData);
                 data = JsonConvert.DeserializeObject<AppStorageModel>(uncompressed);
             } catch { }
@@ -28,7 +28,7 @@ namespace BlazorForce
         public async Task SaveChangeAsync()
         {
             var compressed = LZString.CompressToUTF16(JsonConvert.SerializeObject(Data));
-            await JSRuntime.Current.InvokeAsync<string>("DNF.setStorage", "appStorage", compressed);
+            await JSRuntime.Current.InvokeAsync<string>("DNF.getLocalStorage", "appStorage", compressed);
         }
     }
 }

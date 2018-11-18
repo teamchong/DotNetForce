@@ -1,0 +1,58 @@
+﻿@using DotNetForce;
+@page "/OAuth2/{Path}"
+
+<div class="jumbotron mt-3">
+    <h1 class="display-4">DotNetForce</h1>
+    <p class="lead">Connecting to @(LoginDomain)...</p>
+    <hr class="my-4">
+    <div class="progress">
+        <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100" style="width: 100%"></div>
+    </div>
+</div>
+
+@functions
+{
+    [Parameter]
+    private string LoginDomain { get; set; }
+
+    [Parameter]
+    private string Code { get; set; }
+
+    [Parameter]
+    private AppStorage Storage { get; set; }
+
+    [Parameter]
+    private Action<String> SetMessage { get; set; }
+
+    [Parameter]
+    private Action Logout { get; set; }
+
+    protected override async Task OnInitAsync()
+    {
+        SetMessage("testing");
+        try
+        {
+            DNFClient.Proxy = uri => new Uri(new Uri("https://dotnetforce.herokuapp.com"), uri.PathAndQuery);
+            var client = await DNFClient.OAuthLoginAsync(new OAuthProfile
+            {
+                ClientId = OAuthSetting.Default.ClientId,
+                Code = Code,
+                LoginUri = new Uri($"https://{LoginDomain}"),
+                RedirectUri = OAuthSetting.Default.RedirectUri
+            });
+            if (!Storage.Data.Organizations.TryGetValue(client.InstanceUrl, out var orgSetting))
+            {
+                orgSetting = new OrgSetting();
+            }
+            orgSetting.AccessToken = client.AccessToken;
+            orgSetting.RefreshToken = client.RefreshToken;
+            orgSetting.InstanceUrl = client.InstanceUrl;
+            await Storage.SaveChangeAsync();
+            await JSRuntime.Current.InvokeAsync<object>("DNF.history.replaceState", null, null, $"#/org/{Uri.EscapeDataString(client.InstanceUrl)}");
+        }
+        catch (Exception ex)
+        {
+            SetMessage(ex.ToString());
+        }
+    }
+}
