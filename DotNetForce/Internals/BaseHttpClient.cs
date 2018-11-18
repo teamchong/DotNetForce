@@ -101,7 +101,7 @@ namespace DotNetForce.Common.Internals
 
         protected async Task<string> HttpGetAsync(Uri uri)
         {
-            var responseMessage = await HttpClient.GetAsync(uri).ConfigureAwait(false);
+            var responseMessage = await HttpClient.GetAsync(DNFClient.Proxy(uri)).ConfigureAwait(false);
 
             if (responseMessage.StatusCode == HttpStatusCode.NoContent)
             {
@@ -122,7 +122,7 @@ namespace DotNetForce.Common.Internals
             //var content = new StringContent(payload, Encoding.UTF8, _contentType);
             var content = GetGZipContent(payload);
 
-            var responseMessage = await HttpClient.PostAsync(uri, content).ConfigureAwait(false);
+            var responseMessage = await HttpClient.PostAsync(DNFClient.Proxy(uri), content).ConfigureAwait(false);
             ParseApiUsage(responseMessage);
 
 
@@ -147,7 +147,7 @@ namespace DotNetForce.Common.Internals
 
             var request = new HttpRequestMessage
             {
-                RequestUri = uri,
+                RequestUri = DNFClient.Proxy(uri),
                 Method = new HttpMethod("PATCH"),
                 Content = content
             };
@@ -171,7 +171,7 @@ namespace DotNetForce.Common.Internals
 
         protected async Task<string> HttpDeleteAsync(Uri uri)
         {
-            var responseMessage = await HttpClient.DeleteAsync(uri).ConfigureAwait(false);
+            var responseMessage = await HttpClient.DeleteAsync(DNFClient.Proxy(uri)).ConfigureAwait(false);
             ParseApiUsage(responseMessage);
 
             if (responseMessage.StatusCode == HttpStatusCode.NoContent)

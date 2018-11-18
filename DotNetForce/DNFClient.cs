@@ -23,6 +23,7 @@ namespace DotNetForce
     public partial class DNFClient : IForceClient// : IDisposable
     {
         public static string DefaultApiVersion = "v43.0";
+        public static Func<Uri, Uri> Proxy = uri => uri;
 
         protected Uri LoginUri { get; set; }
         protected string ClientId { get; set; }

@@ -113,7 +113,7 @@ namespace DotNetForce.Common
 
         protected async Task<T> HttpGetXmlAsync<T>(Uri uri)
         {
-            var responseMessage = await HttpClient.GetAsync(uri).ConfigureAwait(false);
+            var responseMessage = await HttpClient.GetAsync(DNFClient.Proxy(uri)).ConfigureAwait(false);
             ParseApiUsage(responseMessage);
 
             var response = await responseMessage.Content.ReadAsStreamAsync().ConfigureAwait(false);
@@ -134,7 +134,7 @@ namespace DotNetForce.Common
             //var content = new StringContent(payload, Encoding.UTF8, _contentType);
             var content = GetGZipContent(payload);
 
-            var responseMessage = await HttpClient.PostAsync(uri, content).ConfigureAwait(false);
+            var responseMessage = await HttpClient.PostAsync(DNFClient.Proxy(uri), content).ConfigureAwait(false);
             ParseApiUsage(responseMessage);
 
             var response = await responseMessage.Content.ReadAsStreamAsync().ConfigureAwait(false);

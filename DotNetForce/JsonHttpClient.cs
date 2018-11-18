@@ -117,7 +117,7 @@ namespace DotNetForce.Common
 
             var request = new HttpRequestMessage
             {
-                RequestUri = url,
+                RequestUri = DNFClient.Proxy(url),
                 Method = HttpMethod.Get
             };
 
@@ -202,7 +202,7 @@ namespace DotNetForce.Common
             byteArrayContent.Headers.Add("Content-Disposition", string.Format("form-data; name=\"{0}\"; filename=\"{1}\"", headerName, fileName));
             content.Add(byteArrayContent, headerName, fileName);
 
-            var responseMessage = await HttpClient.PostAsync(uri, content).ConfigureAwait(false);
+            var responseMessage = await HttpClient.PostAsync(DNFClient.Proxy(uri), content).ConfigureAwait(false);
             var response = await responseMessage.Content.ReadAsStringAsync().ConfigureAwait(false);
 
             if (responseMessage.IsSuccessStatusCode)
@@ -317,7 +317,7 @@ namespace DotNetForce.Common
 
         protected async Task<JToken> HttpGetJsonAsync(Uri uri)
         {
-            var responseMessage = await HttpClient.GetAsync(uri).ConfigureAwait(false);
+            var responseMessage = await HttpClient.GetAsync(DNFClient.Proxy(uri)).ConfigureAwait(false);
             ParseApiUsage(responseMessage);
 
             if (responseMessage.StatusCode == HttpStatusCode.NoContent)
@@ -343,7 +343,7 @@ namespace DotNetForce.Common
             //var content = new StringContent(payload, Encoding.UTF8, _contentType);
             var content = GetGZipContent(payload);
 
-            var responseMessage = await HttpClient.PostAsync(uri, content).ConfigureAwait(false);
+            var responseMessage = await HttpClient.PostAsync(DNFClient.Proxy(uri), content).ConfigureAwait(false);
             ParseApiUsage(responseMessage);
 
 

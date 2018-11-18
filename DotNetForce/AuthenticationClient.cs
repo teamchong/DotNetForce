@@ -58,7 +58,7 @@ namespace DotNetForce.Common
             var request = new HttpRequestMessage
             {
                 Method = HttpMethod.Post,
-                RequestUri = new Uri(tokenRequestEndpointUrl),
+                RequestUri = DNFClient.Proxy(new Uri(tokenRequestEndpointUrl)),
 				Content = content
             };
 
@@ -116,7 +116,7 @@ namespace DotNetForce.Common
             var request = new HttpRequestMessage
             {
                 Method = HttpMethod.Post,
-                RequestUri = new Uri(tokenRequestEndpointUrl),
+                RequestUri = DNFClient.Proxy(new Uri(tokenRequestEndpointUrl)),
                 Content = content
             };
 
@@ -165,7 +165,7 @@ namespace DotNetForce.Common
             var request = new HttpRequestMessage
             {
                 Method = HttpMethod.Post,
-                RequestUri = new Uri(url)
+                RequestUri = DNFClient.Proxy(new Uri(url))
             };
 
 			request.Headers.UserAgent.ParseAdd(string.Concat(UserAgent, "/", ApiVersion));
