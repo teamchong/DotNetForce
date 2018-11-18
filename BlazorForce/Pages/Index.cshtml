@@ -28,7 +28,7 @@
                 @SelectedDomain
             </div>
             <div class="card-body">
-                Must add https://ste80.github.com to Whitelisted Origins
+                Still under construction...
                 @*
                 @Code*@
             </div>
@@ -116,12 +116,12 @@
             try {
                 Domain = OAuth2["state"];
                 Code = OAuth2["code"];
-
-                DNFClient.Proxy = uri => new Uri("https://myprofile.ubmasia.com/CORS/?" + uri);
+                
                 var client = await DNFClient.OAuthLoginAsync(new OAuthProfile {
                     ClientId = ClientId,
                     Code = Code,
-                    LoginUri = new Uri("https://" + Domain),
+                    //LoginUri = new Uri("https://" + Domain),
+                    LoginUri = new Uri("https://dotnetforce.herokuapp.com/"),
                     RedirectUri = RedirectUri
                 });
             }
