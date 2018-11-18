@@ -34,6 +34,9 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Content Update="Pages\Org.cshtml">
+      <Pack>$(IncludeRazorContentInPack)</Pack>
+    </Content>
     <Content Update="Pages\OAuth2.cshtml">
       <Pack>$(IncludeRazorContentInPack)</Pack>
     </Content>

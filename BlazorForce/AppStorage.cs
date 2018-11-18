@@ -28,7 +28,7 @@ namespace BlazorForce
         public async Task SaveChangeAsync()
         {
             var compressed = LZString.CompressToUTF16(JsonConvert.SerializeObject(Data));
-            await JSRuntime.Current.InvokeAsync<string>("DNF.getLocalStorage", "appStorage", compressed);
+            await JSRuntime.Current.InvokeAsync<string>("DNF.setLocalStorage", "appStorage", compressed);
         }
     }
 }

@@ -1,0 +1,87 @@
+﻿@using DotNetForce;
+@using Newtonsoft.Json;
+
+<div class="jumbotron mt-3">
+    <h1 class="display-4">DotNetForce</h1>
+    <p class="lead">
+        @JsonConvert.SerializeObject(Storage)
+        @Message
+        <button type="button" class="close" data-dismiss="alert" aria-label="Close" onclick="@Logout">
+            <span aria-hidden="true">&times;</span> Logout
+        </button>
+    </p>
+    @if (IsLoading)
+    {
+        <hr class="my-4">
+        <div class="progress">
+            <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100" style="width: 100%"></div>
+        </div>
+    }
+</div>
+
+@functions
+{
+    [Parameter]
+    private string InstanceUrl { get; set; }
+
+    [Parameter]
+    private AppStorage Storage { get; set; }
+
+    [Parameter]
+    private Action Logout { get; set; }
+
+    private bool IsLoading { get; set; }
+
+    private string Message { get; set; }
+
+    private OrgSetting Setting { get; set; }
+
+    private DNFClient Client { get; set;}
+
+    protected override async Task OnInitAsync()
+    {
+        try
+        {
+            IsLoading = true;
+            Message = $"Loading...";
+            DNFClient.Proxy = uri => new Uri(new Uri("https://dotnetforce.herokuapp.com"), uri.PathAndQuery);
+            if (Storage.Data.Organizations.TryGetValue(InstanceUrl, out var orgSetting))
+            {
+                Setting = orgSetting;
+                DNFClient.Proxy = uri => new Uri(new Uri("https://dotnetforce.herokuapp.com"), uri.PathAndQuery);
+                Client = new DNFClient(Setting.InstanceUrl, Setting.AccessToken, msg => Console.WriteLine(msg));
+                try {
+                    Message = (await Client.LimitsAsync()).ToString();
+                }
+                catch (Exception ex1)
+                {
+                    if (!string.IsNullOrEmpty(Setting.RefreshToken))
+                    {
+                        try {
+                            await Client.TokenRefreshAsync(new Uri(Setting.InstanceUrl), OAuthSetting.Default.ClientId);
+                            Setting.AccessToken = Client.AccessToken;
+                        }
+                        catch (Exception ex2)
+                        {
+                            Message = ex2.ToString();
+                        }
+                    }
+                    else
+                    {
+                        Message = ex1.ToString();
+                    }
+                }
+            }
+            else
+            {
+                IsLoading = false;
+                Message = $"Failed to connected to {InstanceUrl}";
+            }
+        }
+        catch (Exception ex)
+        {
+            IsLoading = false;
+            Message = ex.ToString();
+        }
+    }
+}

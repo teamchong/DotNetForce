@@ -30,7 +30,12 @@
         if (Hash.StartsWith("/oauth2/"))
         {
             var oauth2 = UriHelper.GetHashAsDictionary("/oauth2/");
-            <OAuth2 Code="@oauth2["code"]" LoginDomain="@oauth2["state"]" Logout="@Logout" SetMessage="@SetMessage" Storage="@Storage"></OAuth2>
+            <OAuth2 Code="@oauth2["code"]" LoginDomain="@oauth2["state"]" Storage="@Storage" ParentStateHasChanged="@StateHasChanged" Logout="@Logout"></OAuth2>
+        }
+        else if (Hash.StartsWith("/org/"))
+        {
+            var org = Uri.UnescapeDataString(Hash.Substring("/org/".Length));
+            <Org InstanceUrl="org" Storage="@Storage" Logout="@Logout"></Org>
         }
         else if (IsCustomDomain(Domain))
         {
@@ -150,6 +155,7 @@
 
     private void Logout()
     {
+        Hash = "";
         Domain = null;
         InputtedDomain = null;
         Code = null;
