@@ -3,8 +3,12 @@ nuget package https://www.nuget.org/packages/DotNetForce
 
 I have updated the library, but don't have time to document the changes, please check the TestClasses for code samples https://github.com/ste80/DotNetForce/tree/master/DotNetForceTest
 
-V5.0.0
-Add support for Blazor, CORS Proxy
+V5.0.1
+Add support for Blazor (WebAssembly)
++Setup https://ste80.github.io/DotNetForce/ for demo running C# on web client
++DNFClient.DefaultApiVersion = "v44.0"; // to change API Version
++DNFClient.UseCompression = false; // to disabled UseCompression
++DNFClient.Proxy = uri => new Uri(new Uri("https://yourproxy"), uri.PathAndQuery); // to send to proxy instead of instanceUrl
 
 V4.0.0
 
@@ -76,9 +80,6 @@ foreach (var oppObj in oppties)
 }
 ```
 
-I plan to create this libaray for TypeScript later.
-
-I plan to create this libaray for TypeScript later.
 --------------------------------------------------------------------------------
 
 Original repository https://github.com/developerforce/Force.com-Toolkit-for-NET
