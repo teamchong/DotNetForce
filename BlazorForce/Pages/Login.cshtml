@@ -52,9 +52,14 @@ else
             foreach (var org in Storage.Data.Organizations)
             {
                 <div class="form-group">
-                    <a href="#/org/@(Uri.EscapeDataString(org.Key))" class="btn btn-primary btn-block">
-                        <span class="oi oi-account-login"></span> @(org.Value.ToString())
-                    </a>
+                    <div class="input-group">
+                        <a href="#/org/@(Uri.EscapeDataString(org.Key))" class="btn btn-primary form-control">
+                            <span class="oi oi-account-login"></span> @(org.Value.ToString())
+                        </a>
+                      <div class="input-group-append">
+                        <button type="button" onclick="@(() => DeleteOrgAsync(org.Key))"><span class="oi oi-x"></span></button>
+                      </div>
+                    </div>
                 </div>
             }
             <hr />
@@ -99,6 +104,16 @@ else
     {
         Domain = domain;
         InputtedDomain = null;
+    }
+
+    private async Task DeleteOrgAsync(string instanceUrl)
+    {
+        if (Storage.Data.Organizations.ContainsKey(instanceUrl))
+        {
+            Storage.Data.Organizations.Remove(instanceUrl);
+            await Storage.SaveChangeAsync();
+            StateHasChanged();
+        }
     }
 
     private string GetOAuthHref(string domain)

@@ -20,7 +20,7 @@
         if (Hash.StartsWith("/oauth2/"))
         {
             var oauth2 = UriHelper.GetHashAsDictionary("/oauth2/");
-            <OAuth2 Code="@oauth2["code"]" LoginDomain="@oauth2["state"]" Storage="@Storage" Reload="@Reload" Cancel="@Cancel"></OAuth2>
+            <OAuth2 Code="@oauth2["code"]" LoginDomain="@oauth2["state"]" Storage="@Storage" Reload="@Reload" CancelAsync="@CancelAsync"></OAuth2>
         }
         else if (Hash.StartsWith("/org/"))
         {
@@ -71,10 +71,10 @@
         //Console.WriteLine($"Url: {Url}");
     }
 
-    private void Cancel()
+    private async Task CancelAsync()
     {
-        Hash = "";
-        StateHasChanged();
+        await JSRuntime.Current.InvokeAsync<object>("DNF.history.replaceState", null, null, "");
+        Reload();
     }
 
     public void Dispose()

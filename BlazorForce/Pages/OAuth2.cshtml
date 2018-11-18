@@ -5,7 +5,7 @@
     <h1 class="display-4">DotNetForce</h1>
     <p class="lead">
         @Message
-        <button type="button" class="close" data-dismiss="alert" aria-label="Close" onclick="@Cancel">
+        <button type="button" class="close" data-dismiss="alert" aria-label="Close" onclick="@(() => CancelAsync())">
             <span aria-hidden="true">&times;</span> Cancel
         </button>
     </p>
@@ -33,7 +33,7 @@ private AppStorage Storage { get; set; }
 private Action Reload { get; set; }
 
 [Parameter]
-private Action Cancel { get; set; }
+private Func<Task> CancelAsync { get; set; }
 
 private bool IsLoading { get; set; }
 
