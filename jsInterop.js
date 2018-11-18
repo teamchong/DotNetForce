@@ -16,11 +16,6 @@ window.DNF = {
             history.replaceState(data, title, location.pathname + url);
         }
     },
-    toLocalhost(port) {
-        if (/^https:\/\/ste80\.github\.io\/DotNetForce/.test(location.href)) {
-            history.replaceState(null, null, location.href.replace(/^https:\/\/ste80\.github\.io\/DotNetForce/, `http://localhost:${port}`));
-        }
-    },
     getSessionStorage(key) {
         return sessionStorage.getItem(key);
     },
