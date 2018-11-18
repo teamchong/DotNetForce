@@ -22,7 +22,7 @@ namespace BlazorForce
             //});
             DNFClient.DefaultApiVersion = "v44.0";
             DNFClient.UseCompression = false;
-                DNFClient.Proxy = uri => new Uri(new Uri("https://dotnetforce.herokuapp.com"), uri.PathAndQuery);
+            DNFClient.Proxy = uri => new Uri(new Uri("https://dotnetforce.herokuapp.com"), uri.PathAndQuery);
         }
 
         public void Configure(IBlazorApplicationBuilder app)

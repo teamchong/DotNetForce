@@ -48,10 +48,9 @@
             if (Storage.Data.Organizations.TryGetValue(InstanceUrl, out var orgSetting))
             {
                 Setting = orgSetting;
-                Client = new DNFClient(Setting.InstanceUrl, Setting.AccessToken, msg => Console.WriteLine(msg));
-                Client.RefreshToken = Setting.RefreshToken;
+                Client = new DNFClient(Setting.InstanceUrl, Setting.AccessToken, Setting.RefreshToken, msg => Console.WriteLine(msg));
                 try {
-                    Message = (await Client.LimitsAsync()).ToString();
+                    await OutputOrgLimits();
                 }
                 catch (Exception ex1)
                 {
@@ -60,7 +59,7 @@
                         try {
                             await Client.TokenRefreshAsync(new Uri(Setting.InstanceUrl), OAuthSetting.Default.ClientId);
                             Setting.AccessToken = Client.AccessToken;
-                            Message = (await Client.LimitsAsync()).ToString();
+                            await OutputOrgLimits();
                         }
                         catch (Exception ex2)
                         {
@@ -84,5 +83,16 @@
             IsLoading = false;
             Message = ex.ToString();
         }
+    }
+
+    private async Task OutputOrgLimits()
+    {
+        var request = new CompositeRequest();
+        request.Limits("limits");
+        request.Query("license", @"SELECT Id, Name, TotalLicenses, UsedLicenses
+FROM UserLicense");
+        var result = await Client.Composite.PostAsync(request);
+        Console.WriteLine(result.ToString());
+        Message = result.ToString();
     }
 }

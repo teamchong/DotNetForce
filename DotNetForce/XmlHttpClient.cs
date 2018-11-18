@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.Net.Http;
+using System.Text;
 using System.Threading.Tasks;
 using System.Xml;
 using System.Xml.Serialization;
@@ -132,7 +133,7 @@ namespace DotNetForce.Common
         protected async Task<T> HttpPostXmlAsync<T>(string payload, Uri uri)
         {
             //var content = new StringContent(payload, Encoding.UTF8, _contentType);
-            var content = GetGZipContent(payload);
+            var content = !DNFClient.UseCompression ? (HttpContent)new StringContent(payload, Encoding.UTF8, _contentType) :  GetGZipContent(payload);
 
             var responseMessage = await HttpClient.PostAsync(DNFClient.Proxy(uri), content).ConfigureAwait(false);
             ParseApiUsage(responseMessage);

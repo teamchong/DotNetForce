@@ -9,13 +9,13 @@ namespace DotNetForce.Common.Internals
 {
     public abstract class BaseHttpClient : IDisposable
     {
-        private const string UserAgent = "dotnetforce";
-        private readonly string _contentType;
+        protected const string UserAgent = "dotnetforce";
+        protected readonly string _contentType;
 
         protected readonly string InstanceUrl;
         protected string ApiVersion;
         protected readonly HttpClient HttpClient;
-        
+
         public DateTime? ApiLastRetrieve = null;
         public int? ApiUsed = null;
         public int? ApiLimit = null;
@@ -120,7 +120,7 @@ namespace DotNetForce.Common.Internals
         protected async Task<string> HttpPostAsync(string payload, Uri uri)
         {
             //var content = new StringContent(payload, Encoding.UTF8, _contentType);
-            var content = GetGZipContent(payload);
+            var content = !DNFClient.UseCompression ? (HttpContent)new StringContent(payload, Encoding.UTF8, _contentType) :  GetGZipContent(payload);
 
             var responseMessage = await HttpClient.PostAsync(DNFClient.Proxy(uri), content).ConfigureAwait(false);
             ParseApiUsage(responseMessage);
@@ -143,7 +143,7 @@ namespace DotNetForce.Common.Internals
         protected async Task<string> HttpPatchAsync(string payload, Uri uri)
         {
             //var content = new StringContent(payload, Encoding.UTF8, _contentType);
-            var content = GetGZipContent(payload);
+            var content = !DNFClient.UseCompression ? (HttpContent)new StringContent(payload, Encoding.UTF8, _contentType) :  GetGZipContent(payload);
 
             var request = new HttpRequestMessage
             {

@@ -133,9 +133,7 @@ namespace DotNetForce
 
                 logger?.Invoke($"DNFClient connected ({timer.Elapsed.TotalSeconds} seconds)");
 
-                var client = new DNFClient(auth.InstanceUrl, auth.AccessToken, logger);
-                client.RefreshToken = auth.RefreshToken;
-                client.ApiVersion = auth.ApiVersion;
+                var client = new DNFClient(auth.InstanceUrl, auth.AccessToken, auth.RefreshToken, logger);
                 return client;
             }
         }
@@ -157,9 +155,7 @@ namespace DotNetForce
 
                 logger?.Invoke($"DNFClient connected ({timer.Elapsed.TotalSeconds} seconds)");
 
-                var client = new DNFClient(auth.InstanceUrl, auth.AccessToken, logger);
-                client.RefreshToken = auth.RefreshToken;
-                client.ApiVersion = auth.ApiVersion;
+                var client = new DNFClient(auth.InstanceUrl, auth.AccessToken, auth.RefreshToken, logger);
                 return client;
             }
         }

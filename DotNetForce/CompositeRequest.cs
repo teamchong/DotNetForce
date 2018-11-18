@@ -24,6 +24,20 @@ namespace DotNetForce
 
         #region SObject
 
+        public CompositeSubrequest Limits(string referenceId)
+        {
+            if (string.IsNullOrEmpty(referenceId)) throw new ArgumentNullException("referenceId");
+        
+            var request = new CompositeSubrequest
+            {
+                Method = "GET",
+                ReferenceId = referenceId,
+                Url = "limits"
+            };
+            CompositeRequests.Add(request);
+            return request;
+        }
+
         public CompositeSubrequest GetObjects(string referenceId)
         {
             if (string.IsNullOrEmpty(referenceId)) throw new ArgumentNullException("referenceId");
