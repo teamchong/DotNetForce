@@ -22,18 +22,19 @@ namespace DotNetForce
 {
     public partial class DNFClient : IForceClient// : IDisposable
     {
-        public static string DefaultApiVersion = "v43.0";
+        public static string DefaultApiVersion = "v44.0";
         public static Func<Uri, Uri> Proxy = uri => uri;
 
-        protected Uri LoginUri { get; set; }
-        protected string ClientId { get; set; }
-        protected string ClientSecret { get; set; }
+        public Uri LoginUri { get; set; }
+        public string ClientId { get; set; }
+        public string ClientSecret { get; set; }
 
-        protected string Id { get; set; }
-        protected string InstanceUrl { get; set; }
-        protected string RefreshToken { get; set; }
-        protected string AccessToken { get; set; }
-        protected string ApiVersion { get; set; }
+        public string Id { get; set; }
+        public string InstanceUrl { get; set; }
+        public string RefreshToken { get; set; }
+        public string AccessToken { get; set; }
+        public string ApiVersion { get; set; }
+        public long? IssuedAt { get; set; }
 
         public Action<string> Logger { get; set; }
 

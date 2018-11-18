@@ -1,0 +1,88 @@
+﻿@using DotNetForce;
+@using LZStringCSharp;
+@inject Microsoft.AspNetCore.Blazor.Services.IUriHelper UriHelper;
+@page "/Org/"
+@page "/Org/Message/{Message}/"
+
+<div class="container-fluid">
+    @if (!string.IsNullOrEmpty(Message))
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            @Message
+            <button type="button" class="close" data-dismiss="alert" aria-label="Close" onclick="@(() => Message = null)">
+                <span aria-hidden="true">&times;</span>
+            </button>
+        </div>
+    }
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="#" onclick="@(() => logout())">Home</a></li>
+            <li class="breadcrumb-item active">@SelectedDomain</li>
+        </ol>
+    </nav>
+    <div class="card">
+        <div class="card-header">
+            @SelectedDomain
+        </div>
+        <div class="card-body">
+            under construction
+            <hr class="my-4">
+            <div class="progress">
+                <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100" style="width: 100%"></div>
+            </div>
+        </div>
+    </div>
+</div>
+@*<SurveyPrompt Title="How is Blazor working for you?" />*@
+
+@functions
+{
+    private string RedirectUri { get => "https://ste80.github.io/DotNetForce/oauth2"; }
+    private string ClientId { get => "3MVG910YPh8zrcR3w3cOaVxURhJtcv8fxvL19jvXzqO_F819av8P2cc9VMnBOKkKTdK.uMAfUGRU_4aYDm5A3"; }
+
+    private string LoginPath
+    {
+        get => "/services/oauth2/authorize" +
+            "?response_type=" + Uri.EscapeDataString("code") +
+            "&redirect_uri=" + Uri.EscapeDataString(RedirectUri) +
+            "&client_id=" + Uri.EscapeDataString(ClientId) +
+            "&display=" + Uri.EscapeDataString("popup") +
+            "&state=";
+    }
+
+    private string Domain { get; set; }
+    private string InputtedDomain { get; set; }
+    private string Code { get; set; }
+    private string Message { get; set; }
+
+    private AppStorage Storage { get; set; }
+
+    private string SelectedDomain { get => !IsCustomDomain(Domain) ? Domain : InputtedDomain?.Contains('.') == true ? InputtedDomain : InputtedDomain + ".my.salesforce.com"; }
+
+    protected override async Task OnInitAsync()
+    {
+        Storage = await AppStorage.GetAsync();
+    }
+
+    private void SelectDomain(string domain)
+    {
+        Domain = domain;
+        InputtedDomain = null;
+    }
+
+    private string GetOauthHref(string domain)
+    {
+        return "https://" + domain + LoginPath + Uri.EscapeDataString(domain);
+    }
+
+
+    private bool IsCustomDomain(string domain) => !string.IsNullOrEmpty(domain) && domain != "login.salesforce.com" && domain != "test.salesforce.com";
+
+    private void logout()
+    {
+        Domain = null;
+        InputtedDomain = null;
+        Code = null;
+        Message = null;
+    }
+}

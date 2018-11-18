@@ -9,6 +9,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="LZStringCSharp" Version="1.3.0.26157" />
     <PackageReference Include="Microsoft.AspNetCore.Blazor.Browser" Version="0.7.0" />
     <PackageReference Include="Microsoft.AspNetCore.Blazor.Build" Version="0.7.0" PrivateAssets="all" />
     <PackageReference Include="Microsoft.CSharp" Version="4.5.0" />
@@ -23,6 +24,12 @@
   <ItemGroup>
     <ProjectReference Include="..\DotNetForce\DotNetForce.csproj" />
   </ItemGroup>
+
+  <ItemGroup>
+    <Content Update="Pages\Org.cshtml">
+      <Pack>$(IncludeRazorContentInPack)</Pack>
+    </Content>
+  </ItemGroup>
   
   <!--<ItemGroup>
     <BlazorLinkerDescriptor Include="Linker.xml" />
@@ -32,7 +39,7 @@
   </PropertyGroup>
 
   <Target Name="PostBuild" AfterTargets="PostBuildEvent">
-    <Exec Command="REM xcopy &quot;$(ProjectDir)wwwroot\*&quot; &quot;$(SolutionDir)&quot; /E/Y&#xD;&#xA;xcopy &quot;$(ProjectDir)$(OutDir)dist\*&quot; &quot;$(SolutionDir)&quot; /E/Y" />
+    <Exec Command="REM xcopy &quot;$(ProjectDir)wwwroot\*&quot; &quot;$(SolutionDir)&quot; /E/Y&#xD;&#xA;xcopy &quot;$(ProjectDir)wwwroot\css&quot; &quot;$(SolutionDir)&quot; /E/Y&#xD;&#xA;xcopy &quot;$(ProjectDir)wwwroot\jsInterop.js&quot; &quot;$(SolutionDir)&quot; /Y&#xD;&#xA;xcopy &quot;$(ProjectDir)$(OutDir)dist\*&quot; &quot;$(SolutionDir)&quot; /E/Y" />
   </Target>
 
 </Project>

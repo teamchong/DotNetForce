@@ -1,18 +1,17 @@
 ﻿@using DotNetForce;
-@using Newtonsoft.Json;
-@using Newtonsoft.Json.Linq;
-@using System.Reactive;
+@using LZStringCSharp;
 @inject Microsoft.AspNetCore.Blazor.Services.IUriHelper UriHelper;
 @page "/"
+@page "/Home/{Message}/"
 
 <div class="container-fluid">
     @if (!string.IsNullOrEmpty(Message))
     {
         <div class="alert alert-danger alert-dismissible fade show" role="alert">
-          @Message
-          <button type="button" class="close" data-dismiss="alert" aria-label="Close" onclick="@(() => Message = null)">
-            <span aria-hidden="true">&times;</span>
-          </button>
+            @Message
+            <button type="button" class="close" data-dismiss="alert" aria-label="Close" onclick="@(() => Message = null)">
+                <span aria-hidden="true">&times;</span>
+            </button>
         </div>
     }
     @if (!string.IsNullOrEmpty(Code))
@@ -28,9 +27,11 @@
                 @SelectedDomain
             </div>
             <div class="card-body">
-                Still under construction...
-                @*
-                @Code*@
+                Logging in...
+                <hr class="my-4">
+                <div class="progress">
+                    <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100" style="width: 100%"></div>
+                </div>
             </div>
         </div>
     }
@@ -72,7 +73,7 @@
             <a class="btn btn-outline-primary btn-lg btn-block" href="@GetOauthHref("login.salesforce.com")">
                 <span class="oi oi-account-login"></span> Production
             </a>
-            <a class="btn btn-outline-primary btn-lg btn-block"  href="@GetOauthHref("test.salesforce.com")">
+            <a class="btn btn-outline-primary btn-lg btn-block" href="@GetOauthHref("test.salesforce.com")">
                 <span class="oi oi-account-login"></span> Test
             </a>
             <button type="button" class="btn btn-outline-primary btn-lg btn-block" onclick="@(() => SelectDomain("?.my.salesforce.com"))">
@@ -85,12 +86,11 @@
 
 @functions
 {
-    private Dictionary<string, string> OAuth2 { get; set; }
-
     private string RedirectUri { get => "https://ste80.github.io/DotNetForce/oauth2"; }
     private string ClientId { get => "3MVG910YPh8zrcR3w3cOaVxURhJtcv8fxvL19jvXzqO_F819av8P2cc9VMnBOKkKTdK.uMAfUGRU_4aYDm5A3"; }
 
-    private string LoginPath {
+    private string LoginPath
+    {
         get => "/services/oauth2/authorize" +
             "?response_type=" + Uri.EscapeDataString("code") +
             "&redirect_uri=" + Uri.EscapeDataString(RedirectUri) +
@@ -104,112 +104,79 @@
     private string Code { get; set; }
     private string Message { get; set; }
 
+    private AppStorage Storage { get; set; }
+
     private string SelectedDomain { get => !IsCustomDomain(Domain) ? Domain : InputtedDomain?.Contains('.') == true ? InputtedDomain : InputtedDomain + ".my.salesforce.com"; }
 
-    protected override async Task OnInitAsync() {
-        var url = UriHelper.GetAbsoluteUri();
-        var hashSplit = url.Split(new [] { '#' }, 2);
-        var hash = hashSplit.Length > 1 ? hashSplit[1] : "";
-        OAuth2 = DecodeOAuth2(hash.StartsWith("/oauth2/") ? hash.Substring("/oauth2/".Length) : null);
+    protected override async Task OnInitAsync()
+    {
+        Storage = await AppStorage.GetAsync();
+        var oAuth2 = UriHelper.GetHashAsDictionary("/oauth2/");
 
-        if (OAuth2 != null && OAuth2.ContainsKey("state") && OAuth2.ContainsKey("code")) {
-            try {
-                Domain = OAuth2["state"];
-                Code = OAuth2["code"];
-                
+        if (oAuth2 != null)
+        {
+            try
+            {
+                Domain = oAuth2["state"];
+                Code = oAuth2["code"];
+
                 DNFClient.Proxy = uri => new Uri(new Uri("https://dotnetforce.herokuapp.com"), uri.PathAndQuery);
-                var client = await DNFClient.OAuthLoginAsync(new OAuthProfile {
+                var client = await DNFClient.OAuthLoginAsync(new OAuthProfile
+                {
                     ClientId = ClientId,
                     Code = Code,
                     LoginUri = new Uri("https://" + Domain),
                     RedirectUri = RedirectUri
                 });
+                if (!Storage.Data.Organizations.TryGetValue(client.InstanceUrl, out var orgSetting))
+                {
+                    orgSetting = new OrgSetting();
+                }
+                orgSetting.AccessToken = client.AccessToken;
+                orgSetting.RefreshToken = client.RefreshToken;
+                orgSetting.InstanceUrl = client.InstanceUrl;
+                orgSetting.LoginUri = client.LoginUri.ToString();
+                await Storage.SaveChangeAsync();
+                UriHelper.NavigateTo($"/Org/{Uri.EscapeDataString(client.InstanceUrl)}");
             }
-            catch (Exception ex) {
-                Message = ex.ToString();
-                //OAuth2 = null;
-                //Domain = null;
-                //Code = null;
+            catch (Exception ex)
+            {
+                UriHelper.NavigateTo($"/Home/{Uri.EscapeDataString(ex.ToString())}");
             }
-        } else {
-            OAuth2 = null;
-            Domain = null;
-            Code = null;
         }
-
-        //await JSRuntime.Current.InvokeAsync<object>("jsInterop.addEventListener", "message", new DotNetObjectRef(new JsEventHandler((type, ev) => {
-        //    switch (type) {
-        //        case "message":
-        //            if (!string.IsNullOrEmpty(Domain)) {
-        //                var match = Regex.Match((string)ev?.data ?? "", @"^DNF:https://ste80\.github\.io/DotNetForce/oauth2\?(.+)$");
-
-        //                if (match.Success && match.Groups.Count > 1) {
-        //                    var dictParam = match.Groups[1].Value.Split('&').Select(val => val.Split('=')).ToDictionary(val => val[0], val => val.Length > 1 ? val[1] : "");
-
-        //                    if (dictParam.TryGetValue("code", out var code)) {
-        //                        Code = code;
-        //                        Message = "Loading Schema...";
-        //                    }
-        //                }
-        //            }
-        //            break;
-        //    }
-        //    return null;
-        //})));
-
-        //await JSRuntime.Current.InvokeAsync<object>("jsInterop.waitForForSession", "oauth2", new SessionHandler(value => {
-        //    if (!string.IsNullOrEmpty(Domain)) {
-        //        var match = Regex.Match(value ?? "", @"^https://ste80\.github\.io/DotNetForce/oauth2\?(.+)$");
-
-        //        if (match.Success && match.Groups.Count > 1) {
-        //            var dictParam = match.Groups[1].Value.Split('&').Select(val => val.Split('=')).ToDictionary(val => val[0], val => val.Length > 1 ? val[1] : "");
-
-        //            if (dictParam.TryGetValue("code", out var code)) {
-        //                Code = code;
-        //                Message = "Loading Schema...";
-        //            }
-        //        }
-        //    }
-        //    return null;
-        //}));
     }
 
-    private Dictionary<string, string> DecodeOAuth2(string oauth2) {
-        if (oauth2 == null) return null;
-        var oauth2Obj = oauth2.Split('&').Select(o => o.Split('=')).ToDictionary(o => Uri.UnescapeDataString(o[0]), o => o.Length > 1 ? Uri.UnescapeDataString(o[1]) : "");
-        oauth2Obj.Remove("display");
-        return oauth2Obj;
+    private Dictionary<string, string> DecodeOAuth2(string oauth2)
+    {
+        if (oauth2 != null)
+        {
+            var oauth2Obj = oauth2.Split('&').Select(o => o.Split('=')).ToDictionary(o => Uri.UnescapeDataString(o[0]), o => o.Length > 1 ? Uri.UnescapeDataString(o[1]) : "");
+
+            if (oauth2Obj.ContainsKey("state") && oauth2Obj.ContainsKey("code"))
+            {
+                oauth2Obj.Remove("display");
+                return oauth2Obj;
+            }
+        }
+        return null;
     }
 
-    private string EncodeOAuth2(IDictionary<string, string> oauth2) {
-        return string.Join("&", oauth2.Select(o => Uri.EscapeDataString(o.Key) + "=" + Uri.EscapeDataString(o.Value)));
-    }
-
-    //private async Task OpenAuthWindow(string domain)
-    //{
-    //    Domain = domain;
-    //    InputtedDomain = null;
-    //    await OpenAuthWindow();
-    //}
-
-    //private async Task OpenAuthWindow()
-    //{
-    //    await JSRuntime.Current.InvokeAsync<object>("jsInterop.openAuthWindow", "https://" + SelectedDomain + LoginPath + Uri.EscapeDataString(SelectedDomain));
-    //}
-
-    private void SelectDomain(string domain) {
+    private void SelectDomain(string domain)
+    {
         Domain = domain;
         InputtedDomain = null;
     }
 
-    private string GetOauthHref(string domain) {
+    private string GetOauthHref(string domain)
+    {
         return "https://" + domain + LoginPath + Uri.EscapeDataString(domain);
     }
 
 
     private bool IsCustomDomain(string domain) => !string.IsNullOrEmpty(domain) && domain != "login.salesforce.com" && domain != "test.salesforce.com";
 
-    private void logout() {
+    private void logout()
+    {
         Domain = null;
         InputtedDomain = null;
         Code = null;

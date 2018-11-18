@@ -29,7 +29,7 @@ namespace DotNetForce.Common
             if (httpClient == null) throw new ArgumentNullException("httpClient");
 
             _httpClient = httpClient;
-            ApiVersion = "v36.0";
+            ApiVersion = DNFClient.DefaultApiVersion;
         }
 
         public Task UsernamePasswordAsync(string clientId, string clientSecret, string username, string password)
