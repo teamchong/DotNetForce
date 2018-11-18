@@ -30,7 +30,7 @@ private string Code { get; set; }
 private AppStorage Storage { get; set; }
 
 [Parameter]
-private Action ParentStateHasChanged { get; set; }
+private Action Reload { get; set; }
 
 [Parameter]
 private Action Cancel { get; set; }
@@ -64,7 +64,7 @@ protected override async Task OnInitAsync()
         await Storage.SaveChangeAsync();
         Message = "Login successfully, redirecting...";
         await JSRuntime.Current.InvokeAsync<object>("DNF.history.replaceState", null, null, $"#/org/{Uri.EscapeDataString(client.InstanceUrl)}");
-        ParentStateHasChanged();
+        Reload();
     }
     catch (Exception ex)
     {

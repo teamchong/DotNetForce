@@ -20,7 +20,7 @@
         if (Hash.StartsWith("/oauth2/"))
         {
             var oauth2 = UriHelper.GetHashAsDictionary("/oauth2/");
-            <OAuth2 Code="@oauth2["code"]" LoginDomain="@oauth2["state"]" Storage="@Storage" ParentStateHasChanged="@(() => StateHasChanged())" Cancel="@Cancel"></OAuth2>
+            <OAuth2 Code="@oauth2["code"]" LoginDomain="@oauth2["state"]" Storage="@Storage" Reload="@Reload" Cancel="@Cancel"></OAuth2>
         }
         else if (Hash.StartsWith("/org/"))
         {
@@ -56,12 +56,19 @@
         UriHelper.OnLocationChanged += OnLocationChanged;
     }
 
+    private void Reload()
+    {
+        Url = UriHelper.GetAbsoluteUri();
+        Hash = UriHelper.GetHash() ?? "";
+        StateHasChanged();
+    }
+
     private void OnLocationChanged(object sender, string newUriAbsolute)
     {
         Url = newUriAbsolute;
         Hash = UriHelper.GetHash() ?? "";
         StateHasChanged();
-        Console.WriteLine($"Url: {Url}");
+        //Console.WriteLine($"Url: {Url}");
     }
 
     private void Cancel()
