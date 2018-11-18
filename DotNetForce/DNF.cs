@@ -352,7 +352,8 @@ namespace DotNetForce
             {
                 if (ex.Error == Error.NonJsonErrorResponse)
                 {
-                    return JsonConvert.DeserializeObject<T>(ex.Message);
+                    //return JsonConvert.DeserializeObject<T>(ex.Message);
+                    return Microsoft.JSInterop.Json.Deserialize<T>(ex.Message);
                 }
                 throw ex;
             }
