@@ -28,8 +28,7 @@ namespace DotNetForce.Common
         {
             try
             {
-                //var errorResponse = JsonConvert.DeserializeObject<ErrorResponses>(responseMessage);
-                var errorResponse = Microsoft.JSInterop.Json.Deserialize<ErrorResponses>(responseMessage);
+                var errorResponse = JsonConvert.DeserializeObject<ErrorResponses>(responseMessage);
                 return new ForceException(errorResponse[0].ErrorCode, errorResponse[0].Message);
             }
             catch (JsonSerializationException)
@@ -208,8 +207,7 @@ namespace DotNetForce.Common
 
             if (responseMessage.IsSuccessStatusCode)
             {
-                //return JsonConvert.DeserializeObject<T>(response);
-                return Microsoft.JSInterop.Json.Deserialize<T>(response);
+                return JsonConvert.DeserializeObject<T>(response);
             }
 
             throw ParseForceException(response);
@@ -253,8 +251,7 @@ namespace DotNetForce.Common
                 var response = await base.HttpPatchAsync(json, uri);
                 return string.IsNullOrEmpty(response) ?
                     new SuccessResponse { Id = "", Errors = "", Success = true } :
-                    //JsonConvert.DeserializeObject<SuccessResponse>(response);
-                    Microsoft.JSInterop.Json.Deserialize<SuccessResponse>(response);
+                    JsonConvert.DeserializeObject<SuccessResponse>(response);
             }
             catch (BaseHttpClientException e)
             {
@@ -280,8 +277,7 @@ namespace DotNetForce.Common
                 var response = await base.HttpPatchAsync(json, uri);
                 return string.IsNullOrEmpty(response) ?
                     new SuccessResponse { Id = "", Errors = "", Success = true } :
-                    //JsonConvert.DeserializeObject<SuccessResponse>(response);
-                    Microsoft.JSInterop.Json.Deserialize<SuccessResponse>(response);
+                    JsonConvert.DeserializeObject<SuccessResponse>(response);
             }
             catch (BaseHttpClientException e)
             {

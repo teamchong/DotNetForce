@@ -117,11 +117,11 @@
                 Domain = OAuth2["state"];
                 Code = OAuth2["code"];
                 
+                DNFClient.Proxy = uri => new Uri(new Uri("https://dotnetforce.herokuapp.com"), uri.PathAndQuery);
                 var client = await DNFClient.OAuthLoginAsync(new OAuthProfile {
                     ClientId = ClientId,
                     Code = Code,
-                    //LoginUri = new Uri("https://" + Domain),
-                    LoginUri = new Uri("https://dotnetforce.herokuapp.com/"),
+                    LoginUri = new Uri("https://" + Domain),
                     RedirectUri = RedirectUri
                 });
             }

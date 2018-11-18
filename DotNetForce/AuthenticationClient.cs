@@ -69,8 +69,7 @@ namespace DotNetForce.Common
 
             if (responseMessage.IsSuccessStatusCode)
             {
-                //var authToken = JsonConvert.DeserializeObject<AuthToken>(response);
-                var authToken = Microsoft.JSInterop.Json.Deserialize<AuthToken>(response);
+                var authToken = JsonConvert.DeserializeObject<AuthToken>(response);
 
                 AccessToken = authToken.AccessToken;
                 InstanceUrl = authToken.InstanceUrl;
@@ -78,8 +77,7 @@ namespace DotNetForce.Common
             }
             else
             {
-                //var errorResponse = JsonConvert.DeserializeObject<AuthErrorResponse>(response);
-                var errorResponse = Microsoft.JSInterop.Json.Deserialize<AuthErrorResponse>(response);
+                var errorResponse = JsonConvert.DeserializeObject<AuthErrorResponse>(response);
                 throw new ForceAuthException(errorResponse.Error, errorResponse.ErrorDescription, responseMessage.StatusCode);
             }
         }
@@ -129,8 +127,7 @@ namespace DotNetForce.Common
 
             if (responseMessage.IsSuccessStatusCode)
             {
-                //var authToken = JsonConvert.DeserializeObject<AuthToken>(response);
-                var authToken = Microsoft.JSInterop.Json.Deserialize<AuthToken>(response);
+                var authToken = JsonConvert.DeserializeObject<AuthToken>(response);
 
                 AccessToken = authToken.AccessToken;
                 InstanceUrl = authToken.InstanceUrl;
@@ -141,8 +138,7 @@ namespace DotNetForce.Common
             {
                 try
                 {
-                    //var errorResponse = JsonConvert.DeserializeObject<AuthErrorResponse>(response);
-                    var errorResponse = Microsoft.JSInterop.Json.Deserialize<AuthErrorResponse>(response);
+                    var errorResponse = JsonConvert.DeserializeObject<AuthErrorResponse>(response);
                     throw new ForceAuthException(errorResponse.Error, errorResponse.ErrorDescription);
                 }
                 catch (Exception ex)
@@ -179,8 +175,7 @@ namespace DotNetForce.Common
 
             if (responseMessage.IsSuccessStatusCode)
             {
-                //var authToken = JsonConvert.DeserializeObject<AuthToken>(response);
-                var authToken =  Microsoft.JSInterop.Json.Deserialize<AuthToken>(response);
+                var authToken = JsonConvert.DeserializeObject<AuthToken>(response);
 
                 AccessToken = authToken.AccessToken;
                 RefreshToken = refreshToken;
@@ -189,8 +184,7 @@ namespace DotNetForce.Common
             }
             else
             {
-                //var errorResponse = JsonConvert.DeserializeObject<AuthErrorResponse>(response);
-                var errorResponse = Microsoft.JSInterop.Json.Deserialize<AuthErrorResponse>(response);
+                var errorResponse = JsonConvert.DeserializeObject<AuthErrorResponse>(response);
                 throw new ForceException(errorResponse.Error, errorResponse.ErrorDescription);
             }
         }

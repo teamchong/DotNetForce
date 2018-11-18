@@ -1,0 +1,3 @@
+<assembly fullname="System.ComponentModel">
+    <type fullname="System.ComponentModel.INotifyPropertyChanging" />
+</assembly>
