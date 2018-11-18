@@ -45,7 +45,6 @@ protected override async Task OnInitAsync()
     {
         IsLoading = true;
         Message = $"Connecting to {LoginDomain}...";
-        DNFClient.Proxy = uri => new Uri(new Uri("https://dotnetforce.herokuapp.com"), uri.PathAndQuery);
         var client = await DNFClient.OAuthLoginAsync(new OAuthProfile
         {
             ClientId = OAuthSetting.Default.ClientId,

@@ -22,6 +22,7 @@ namespace DotNetForce
 {
     public partial class DNFClient : IForceClient// : IDisposable
     {
+        public static bool UseCompression = true;
         public static string DefaultApiVersion = "v44.0";
         public static Func<Uri, Uri> Proxy = uri => uri;
 
@@ -59,22 +60,49 @@ namespace DotNetForce
 
         #endregion
 
+        public DNFClient(string instanceUrl, string accessToken)
+            : this(instanceUrl, accessToken, null, null)
+        {
+        }
+
         public DNFClient(string instanceUrl, string accessToken, Action<string> logger)
+            : this(instanceUrl, accessToken, null, logger)
+        {
+        }
+
+        public DNFClient(string instanceUrl, string accessToken, string refreshToken)
+            : this(instanceUrl, accessToken, refreshToken, null)
+        {
+        }
+
+        public DNFClient(string instanceUrl, string accessToken, string refreshToken, Action<string> logger)
         {
             Logger = logger;
-            
-            var httpHandler = new HttpClientHandler
+
+            HttpClient jsonClient;
+            HttpClient xmlClient;
+            if (UseCompression)
             {
-                AutomaticDecompression = System.Net.DecompressionMethods.GZip | System.Net.DecompressionMethods.Deflate
-            };
-            var jsonClient = new HttpClient(httpHandler) { Timeout = TimeSpan.FromSeconds(60 * 30) };
-            //jsonClient.DefaultRequestHeaders.ConnectionClose = true;
-            jsonClient.DefaultRequestHeaders.AcceptEncoding.Add(new System.Net.Http.Headers.StringWithQualityHeaderValue("gzip"));
-            var xmlClient = new HttpClient(httpHandler) { Timeout = TimeSpan.FromSeconds(60 * 30) };
+                var httpHandler = new HttpClientHandler
+                {
+                    AutomaticDecompression = System.Net.DecompressionMethods.GZip | System.Net.DecompressionMethods.Deflate
+                };
+                jsonClient = new HttpClient(httpHandler) { Timeout = TimeSpan.FromSeconds(60 * 30) };
+                //jsonClient.DefaultRequestHeaders.ConnectionClose = true;
+                jsonClient.DefaultRequestHeaders.AcceptEncoding.Add(new System.Net.Http.Headers.StringWithQualityHeaderValue("gzip"));
+                xmlClient = new HttpClient(httpHandler) { Timeout = TimeSpan.FromSeconds(60 * 30) };
+            }
+            else
+            {
+                jsonClient = new HttpClient() { Timeout = TimeSpan.FromSeconds(60 * 30) };
+                xmlClient = new HttpClient() { Timeout = TimeSpan.FromSeconds(60 * 30) };
+            }
+
             //xmlClient.DefaultRequestHeaders.ConnectionClose = true;
             xmlClient.DefaultRequestHeaders.AcceptEncoding.Add(new System.Net.Http.Headers.StringWithQualityHeaderValue("gzip"));
             InstanceUrl = instanceUrl;
             AccessToken = accessToken;
+            RefreshToken = refreshToken;
             ApiVersion = DefaultApiVersion;
 
             JsonHttp = new JsonHttpClient(InstanceUrl, ApiVersion, AccessToken, jsonClient);
@@ -104,7 +132,7 @@ namespace DotNetForce
                 await auth.UsernamePasswordAsync(clientId, clientSecret, userName, password, tokenRequestEndpointUrl).ConfigureAwait(false);
 
                 logger?.Invoke($"DNFClient connected ({timer.Elapsed.TotalSeconds} seconds)");
-                
+
                 var client = new DNFClient(auth.InstanceUrl, auth.AccessToken, logger);
                 client.RefreshToken = auth.RefreshToken;
                 client.ApiVersion = auth.ApiVersion;
@@ -126,7 +154,7 @@ namespace DotNetForce
             {
                 var tokenRequestEndpointUrl = new Uri(new Uri(oAuthProfile.LoginUri.GetLeftPart(UriPartial.Authority)), "/services/oauth2/token").ToString();
                 await auth.WebServerAsync(oAuthProfile.ClientId, oAuthProfile.ClientSecret, oAuthProfile.RedirectUri, oAuthProfile.Code, tokenRequestEndpointUrl).ConfigureAwait(false);
-                
+
                 logger?.Invoke($"DNFClient connected ({timer.Elapsed.TotalSeconds} seconds)");
 
                 var client = new DNFClient(auth.InstanceUrl, auth.AccessToken, logger);
@@ -366,7 +394,7 @@ namespace DotNetForce
             return await JsonHttp.HttpGetAsync<T>($"sobjects/{objectName}/{recordId}/{relationshipFieldName}" +
                 (fields?.Length > 0 ? $"?fields={string.Join(",", fields.Select(field => DNF.EscapeUriString(field)))}" : "")).ConfigureAwait(false);
         }
-        
+
         public async Task<IEnumerable<JToken>> GetEnumerableByIdsAsync(IEnumerable<string> source, string soql, string template)
         {
             var soqlList = DNF.ChunkIds(source, soql, template);

@@ -1,5 +1,7 @@
+using DotNetForce;
 using Microsoft.AspNetCore.Blazor.Builder;
 using Microsoft.Extensions.DependencyInjection;
+using System;
 
 namespace BlazorForce
 {
@@ -18,6 +20,9 @@ namespace BlazorForce
             //        .AllowAnyHeader()
             //        .AllowCredentials());
             //});
+            DNFClient.DefaultApiVersion = "v44.0";
+            DNFClient.UseCompression = false;
+                DNFClient.Proxy = uri => new Uri(new Uri("https://dotnetforce.herokuapp.com"), uri.PathAndQuery);
         }
 
         public void Configure(IBlazorApplicationBuilder app)

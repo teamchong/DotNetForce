@@ -43,22 +43,24 @@
         {
             IsLoading = true;
             Message = $"Loading...";
-            DNFClient.Proxy = uri => new Uri(new Uri("https://dotnetforce.herokuapp.com"), uri.PathAndQuery);
+            //Console.WriteLine(InstanceUrl);
+
             if (Storage.Data.Organizations.TryGetValue(InstanceUrl, out var orgSetting))
             {
                 Setting = orgSetting;
-                DNFClient.Proxy = uri => new Uri(new Uri("https://dotnetforce.herokuapp.com"), uri.PathAndQuery);
                 Client = new DNFClient(Setting.InstanceUrl, Setting.AccessToken, msg => Console.WriteLine(msg));
+                Client.RefreshToken = Setting.RefreshToken;
                 try {
                     Message = (await Client.LimitsAsync()).ToString();
                 }
                 catch (Exception ex1)
                 {
-                    if (!string.IsNullOrEmpty(Setting.RefreshToken))
+                    if (!string.IsNullOrEmpty(Client.RefreshToken))
                     {
                         try {
                             await Client.TokenRefreshAsync(new Uri(Setting.InstanceUrl), OAuthSetting.Default.ClientId);
                             Setting.AccessToken = Client.AccessToken;
+                            Message = (await Client.LimitsAsync()).ToString();
                         }
                         catch (Exception ex2)
                         {
