@@ -1,6 +1,6 @@
 ﻿@using DotNetForce;
 @using LZStringCSharp;
-@inject Microsoft.AspNetCore.Blazor.Services.IUriHelper UriHelper;
+@inject Microsoft.AspNetCore.Blazor.Services.IUriHelper UriHelper
 @page "/"
 
 <div class="container-fluid">
@@ -24,18 +24,11 @@
         }
         else if (Hash.StartsWith("/org/"))
         {
-            var org = Uri.UnescapeDataString(Hash.Substring("/org/".Length));
-            <Org InstanceUrl="@org" Storage="@Storage"></Org>
+            var instanceUrl = Uri.UnescapeDataString(Hash.Substring("/org/".Length));
+            <Org Storage="@Storage" InstanceUrl="@instanceUrl"></Org>
         }
-        else if (Hash.StartsWith("/DataExport/"))
+        else
         {
-            <DataExport></DataExport>
-        }
-        else if (Hash.StartsWith("/DataImport/"))
-        {
-            <DataImport></DataImport>
-        }
-        else {
             <Login Storage="@Storage"></Login>
         }
     }
@@ -56,28 +49,12 @@
         UriHelper.OnLocationChanged += OnLocationChanged;
     }
 
-    //private void Reload()
-    //{
-    //    Console.WriteLine($"Reload {Url} {Hash}");
-    //    Url = UriHelper.GetAbsoluteUri();
-    //    Hash = UriHelper.GetHash() ?? "";
-    //    Console.WriteLine($"Reload {Url} {Hash} complelte.");
-    //    StateHasChanged();
-    //}
-
     private void OnLocationChanged(object sender, string newUriAbsolute)
     {
         Url = newUriAbsolute;
         Hash = UriHelper.GetHash() ?? "";
         StateHasChanged();
-        //Console.WriteLine($"Url: {Url}");
     }
-
-    //private async Task CancelAsync()
-    //{
-    //    await JsInterop.Current.History.ReplaceState(null, null, "");
-    //    Reload();
-    //}
 
     public void Dispose()
     {

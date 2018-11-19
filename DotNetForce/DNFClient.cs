@@ -187,6 +187,15 @@ namespace DotNetForce
             DNF.ThrowIfError(result);
             return result.Queries<T>("q");
         }
+        public Task<JObject> ExplainAsync(string query) => ExplainAsync<JObject>(query);
+        public async Task<T> ExplainAsync<T>(string query)
+        {
+            var request = new CompositeRequest();
+            request.Explain("q", query);
+            var result = await Composite.PostAsync(request).ConfigureAwait(false);
+            DNF.ThrowIfError(result);
+            return result.Results("q").ToObject<T>();
+        }
         public async Task<IEnumerable<JObject>> GetEnumerableAsync(string query) => GetEnumerable(await QueryAsync<JObject>(query));
         public async Task<IEnumerable<T>> GetEnumerableAsync<T>(string query) => GetEnumerable(await QueryAsync<T>(query));
         public async Task<IEnumerable<JObject>> GetLazyEnumerableAsync(string query) => GetLazyEnumerable(await QueryAsync<JObject>(query));
@@ -203,6 +212,15 @@ namespace DotNetForce
             var result = await Composite.PostAsync(request).ConfigureAwait(false);
             DNF.ThrowIfError(result);
             return result.Results("q").ToObject<QueryResult<T>>();
+        }
+        public Task<JObject> ExplainAllAsync(string query) => ExplainAllAsync<JObject>(query);
+        public async Task<T> ExplainAllAsync<T>(string query)
+        {
+            var request = new CompositeRequest();
+            request.ExplainAll("q", query);
+            var result = await Composite.PostAsync(request).ConfigureAwait(false);
+            DNF.ThrowIfError(result);
+            return result.Results("q").ToObject<T>();
         }
         public async Task<IEnumerable<JObject>> GetAllEnumerableAsync(string query) => GetEnumerable(await QueryAllAsync<JObject>(query));
         public async Task<IEnumerable<T>> GetAllEnumerableAsync<T>(string query) => GetEnumerable(await QueryAllAsync<T>(query));

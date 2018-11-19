@@ -65,6 +65,14 @@ namespace DotNetForceTest
         }
 
         [Fact]
+        public async Task ExplainTest()
+        {
+            var client = await LoginTask;
+            var result = await client.ExplainAsync("SELECT Id, Account.Name, Account.Owner.Name, (SELECT TotalPrice, Product2.Name FROM OpportunityLineItems WHERE TotalPrice > 0) FROM Opportunity WHERE Account.Name LIKE 'Test%'");
+            WriteLine(result.ToString());
+        }
+
+        [Fact]
         public async Task GetEnumerableTest()
         {
             var expected = 100000;

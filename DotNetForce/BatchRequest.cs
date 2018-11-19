@@ -367,6 +367,19 @@ namespace DotNetForce
             return request;
         }
 
+        public BatchSubrequest Explain(string query)
+        {
+            if (string.IsNullOrEmpty(query)) throw new ArgumentNullException("query");
+
+            var request = new BatchSubrequest
+            {
+                Method = "GET",
+                Url = $"query?explain={DNF.EscapeDataString(query)}"
+            };
+            BatchRequests.Add(request);
+            return request;
+        }
+
         public BatchSubrequest QueryAll(string query)
         {
             if (string.IsNullOrEmpty(query)) throw new ArgumentNullException("query");
@@ -376,6 +389,19 @@ namespace DotNetForce
                 ResponseType = "query",
                 Method = "GET",
                 Url = $"queryAll?q={DNF.EscapeDataString(query)}"
+            };
+            BatchRequests.Add(request);
+            return request;
+        }
+
+        public BatchSubrequest ExplainAll(string query)
+        {
+            if (string.IsNullOrEmpty(query)) throw new ArgumentNullException("query");
+
+            var request = new BatchSubrequest
+            {
+                Method = "GET",
+                Url = $"queryAll?explain={DNF.EscapeDataString(query)}"
             };
             BatchRequests.Add(request);
             return request;

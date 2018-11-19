@@ -588,6 +588,21 @@ namespace DotNetForce
             return request;
         }
 
+        public CompositeSubrequest Explain(string referenceId, string query)
+        {
+            if (string.IsNullOrEmpty(referenceId)) throw new ArgumentNullException("referenceId");
+            if (string.IsNullOrEmpty(query)) throw new ArgumentNullException("query");
+
+            var request = new CompositeSubrequest
+            {
+                Method = "GET",
+                ReferenceId = referenceId,
+                Url = $@"query?explain={DNF.EscapeDataString(query)}"
+            };
+            CompositeRequests.Add(request);
+            return request;
+        }
+
         public CompositeSubrequest QueryAll(string referenceId, string query)
         {
             if (string.IsNullOrEmpty(referenceId)) throw new ArgumentNullException("referenceId");
@@ -599,6 +614,21 @@ namespace DotNetForce
                 Method = "GET",
                 ReferenceId = referenceId,
                 Url = $"queryAll?q={Uri.EscapeDataString(query)}"
+            };
+            CompositeRequests.Add(request);
+            return request;
+        }
+
+        public CompositeSubrequest ExplainAll(string referenceId, string query)
+        {
+            if (string.IsNullOrEmpty(referenceId)) throw new ArgumentNullException("referenceId");
+            if (string.IsNullOrEmpty(query)) throw new ArgumentNullException("query");
+
+            var request = new CompositeSubrequest
+            {
+                Method = "GET",
+                ReferenceId = referenceId,
+                Url = $"queryAll?explain={Uri.EscapeDataString(query)}"
             };
             CompositeRequests.Add(request);
             return request;

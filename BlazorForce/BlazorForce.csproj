@@ -34,13 +34,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Content Update="Pages\DataExport.cshtml">
-      <Pack>$(IncludeRazorContentInPack)</Pack>
-    </Content>
     <Content Update="Pages\Login.cshtml">
-      <Pack>$(IncludeRazorContentInPack)</Pack>
-    </Content>
-    <Content Update="Pages\DataImport.cshtml">
       <Pack>$(IncludeRazorContentInPack)</Pack>
     </Content>
     <Content Update="Pages\Org.cshtml">
@@ -63,7 +57,7 @@
   </PropertyGroup>
 
   <Target Name="PostBuild" AfterTargets="PostBuildEvent">
-    <Exec Command="xcopy &quot;$(ProjectDir)wwwroot\css&quot; &quot;$(SolutionDir)&quot; /E/Y&#xD;&#xA;xcopy &quot;$(ProjectDir)wwwroot\jsInterop.js&quot; &quot;$(SolutionDir)&quot; /Y&#xD;&#xA;&#xD;&#xA;IF $(ConfigurationName) == Debug (&#xD;&#xA;rmdir $(ProjectDir)bin\Release /S/Q&#xD;&#xA;rmdir $(ProjectDir)obj\Release /S/Q&#xD;&#xA;)&#xD;&#xA;IF $(ConfigurationName) == Release (&#xD;&#xA;xcopy &quot;$(ProjectDir)$(OutDir)dist\*&quot; &quot;$(SolutionDir)&quot; /E/Y&#xD;&#xA;rmdir $(ProjectDir)bin\$(ConfigurationName) /S/Q&#xD;&#xA;rmdir $(ProjectDir)obj\$(ConfigurationName) /S/Q&#xD;&#xA;)" />
+    <Exec Command="xcopy &quot;$(ProjectDir)wwwroot\css&quot; &quot;$(SolutionDir)&quot; /E/Y&#xD;&#xA;xcopy &quot;$(ProjectDir)wwwroot\canvas-datagrid.js&quot; &quot;$(SolutionDir)&quot; /Y&#xD;&#xA;xcopy &quot;$(ProjectDir)wwwroot\jsInterop.js&quot; &quot;$(SolutionDir)&quot; /Y&#xD;&#xA;&#xD;&#xA;IF $(ConfigurationName) == Debug (&#xD;&#xA;rmdir $(ProjectDir)bin\Release /S/Q&#xD;&#xA;rmdir $(ProjectDir)obj\Release /S/Q&#xD;&#xA;)&#xD;&#xA;IF $(ConfigurationName) == Release (&#xD;&#xA;xcopy &quot;$(ProjectDir)$(OutDir)dist\*&quot; &quot;$(SolutionDir)&quot; /E/Y&#xD;&#xA;rmdir $(ProjectDir)bin\$(ConfigurationName) /S/Q&#xD;&#xA;rmdir $(ProjectDir)obj\$(ConfigurationName) /S/Q&#xD;&#xA;)" />
   </Target>
 
 </Project>

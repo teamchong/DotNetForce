@@ -1,6 +1,6 @@
 ﻿@using DotNetForce;
 @using Newtonsoft.Json;
-@inject Microsoft.AspNetCore.Blazor.Services.IUriHelper UriHelper;
+@inject Microsoft.AspNetCore.Blazor.Services.IUriHelper UriHelper
 
 <div class="jumbotron mt-3">
     <h1 class="display-4">DotNetForce</h1>
@@ -30,9 +30,6 @@
     [Parameter]
     private AppStorageSetting Storage { get; set; }
 
-    //[Parameter]
-    //private Action Reload { get; set; }
-
     [Parameter]
     private Func<Task> CancelAsync { get; set; }
 
@@ -61,12 +58,10 @@
             orgSetting.AccessToken = client.AccessToken;
             orgSetting.RefreshToken = client.RefreshToken;
             orgSetting.InstanceUrl = client.InstanceUrl;
-            //Console.WriteLine(JsonConvert.SerializeObject(Storage.Data));
             await Storage.SaveChangeAsync();
             Message = "Login successfully, redirecting...";
-            await JsInterop.Current.History.ReplaceStateAsync(null, null, "");
-            //Reload();
-            UriHelper.NavigateTo($"#/org/{Uri.EscapeDataString(client.InstanceUrl)}");
+            await JsInterop.Current.History.ReplaceStateAsync(null, null, $"#/org/{Uri.UnescapeDataString(orgSetting.InstanceUrl)}");
+            UriHelper.NavigateTo($"#/org/{Uri.UnescapeDataString(orgSetting.InstanceUrl)}");
         }
         catch (Exception ex)
         {
@@ -77,6 +72,6 @@
 
     private void Cancel()
     {
-        UriHelper.NavigateTo("");
+        UriHelper.NavigateTo("#");
     }
 }

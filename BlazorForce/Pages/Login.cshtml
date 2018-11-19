@@ -1,6 +1,7 @@
 ﻿@using DotNetForce;
 @using Newtonsoft.Json;
 @using Newtonsoft.Json.Linq;
+@inject Microsoft.AspNetCore.Blazor.Services.IUriHelper UriHelper
 
 @if (!string.IsNullOrEmpty(Message))
 {
@@ -53,12 +54,12 @@ else
             {
                 <div class="form-group">
                     <div class="input-group">
-                        <a href="#/org/@(Uri.EscapeDataString(org.Key))" class="btn btn-primary form-control">
+                        <a href="#/org/@org.Key" class="btn btn-primary form-control">
                             <span class="oi oi-account-login"></span> @(org.Value.ToString())
                         </a>
-                      <div class="input-group-append">
-                        <button type="button" class="btn btn-outline-danger" onclick="@(async () => await DeleteOrgAsync(org.Key))"><span class="oi oi-x"></span></button>
-                      </div>
+                        <div class="input-group-append">
+                            <button type="button" class="btn btn-outline-danger" onclick="@(async () => await DeleteOrgAsync(org.Key))"><span class="oi oi-x"></span></button>
+                        </div>
                     </div>
                 </div>
             }
@@ -78,53 +79,53 @@ else
 
 @functions
 {
-    [Parameter]
-    private AppStorageSetting Storage { get; set; }
+[Parameter]
+private AppStorageSetting Storage { get; set; }
 
-    private string Domain { get; set; }
-    private string InputtedDomain { get; set; }
-    private string Message { get; set; }
+private string Domain { get; set; }
+private string InputtedDomain { get; set; }
+private string Message { get; set; }
 
-    private string LoginPath
+private string LoginPath
+{
+    get => "/services/oauth2/authorize" +
+        "?response_type=" + Uri.EscapeDataString("code") +
+        "&redirect_uri=" + Uri.EscapeDataString(OAuthSetting.Default.RedirectUri) +
+        "&client_id=" + Uri.EscapeDataString(OAuthSetting.Default.ClientId) +
+        "&display=" + Uri.EscapeDataString("popup") +
+        "&state=";
+}
+
+private string SelectedDomain { get => !IsCustomDomain(Domain) ? Domain : InputtedDomain?.Contains('.') == true ? InputtedDomain : InputtedDomain + ".my.salesforce.com"; }
+
+
+private bool IsCustomDomain(string domain) => !string.IsNullOrEmpty(domain) && domain != "login.salesforce.com" && domain != "test.salesforce.com";
+
+private void SelectDomain(string domain)
+{
+    Domain = domain;
+    InputtedDomain = null;
+}
+
+private async Task DeleteOrgAsync(string instanceUrl)
+{
+    if (Storage.Data.Organizations.ContainsKey(instanceUrl))
     {
-        get => "/services/oauth2/authorize" +
-            "?response_type=" + Uri.EscapeDataString("code") +
-            "&redirect_uri=" + Uri.EscapeDataString(OAuthSetting.Default.RedirectUri) +
-            "&client_id=" + Uri.EscapeDataString(OAuthSetting.Default.ClientId) +
-            "&display=" + Uri.EscapeDataString("popup") +
-            "&state=";
+        Storage.Data.Organizations.Remove(instanceUrl);
+        await Storage.SaveChangeAsync();
+        StateHasChanged();
     }
+}
 
-    private string SelectedDomain { get => !IsCustomDomain(Domain) ? Domain : InputtedDomain?.Contains('.') == true ? InputtedDomain : InputtedDomain + ".my.salesforce.com"; }
+private string GetOAuthHref(string domain)
+{
+    return "https://" + domain + LoginPath + Uri.EscapeDataString(domain);
+}
 
-
-    private bool IsCustomDomain(string domain) => !string.IsNullOrEmpty(domain) && domain != "login.salesforce.com" && domain != "test.salesforce.com";
-
-    private void SelectDomain(string domain)
-    {
-        Domain = domain;
-        InputtedDomain = null;
-    }
-
-    private async Task DeleteOrgAsync(string instanceUrl)
-    {
-        if (Storage.Data.Organizations.ContainsKey(instanceUrl))
-        {
-            Storage.Data.Organizations.Remove(instanceUrl);
-            await Storage.SaveChangeAsync();
-            StateHasChanged();
-        }
-    }
-
-    private string GetOAuthHref(string domain)
-    {
-        return "https://" + domain + LoginPath + Uri.EscapeDataString(domain);
-    }
-
-    private void Cancel()
-    {
-        Domain = null;
-        InputtedDomain = null;
-        Message = null;
-    }
+private void Cancel()
+{
+    Domain = null;
+    InputtedDomain = null;
+    Message = null;
+}
 }
