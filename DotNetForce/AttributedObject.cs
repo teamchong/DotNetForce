@@ -33,17 +33,12 @@ namespace DotNetForce
             Attributes = new ObjectAttributes { Type = type };
             AdditionalData = JObject.FromObject(content);
         }
-        public AttributedObject(string type, string referenceId, object content)
+        public AttributedObject(string type, string referenceId)
         {
             Attributes = new ObjectAttributes { Type = type, ReferenceId = referenceId };
-            AdditionalData = JObject.FromObject(content);
+            AdditionalData = new JObject();
         }
-        public AttributedObject(string type, params object[] content)
-        {
-            Attributes = new ObjectAttributes { Type = type };
-            AdditionalData = JObject.FromObject(content);
-        }
-        public AttributedObject(string type, string referenceId, params object[] content)
+        public AttributedObject(string type, string referenceId, object content)
         {
             Attributes = new ObjectAttributes { Type = type, ReferenceId = referenceId };
             AdditionalData = JObject.FromObject(content);

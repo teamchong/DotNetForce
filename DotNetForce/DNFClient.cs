@@ -359,7 +359,7 @@ namespace DotNetForce
             return await JsonHttp.HttpGetBlobAsync($"sobjects/{objectName}/{recordId}/{blobField}").ConfigureAwait(false);
         }
 
-        public Task<JObject> RetrieveExternalAsync(string objectName, string externalFieldName, string externalId, params string[] fields) => RetrieveExternalAsync(objectName, externalFieldName, externalId, fields);
+        public Task<JObject> RetrieveExternalAsync(string objectName, string externalFieldName, string externalId, params string[] fields) => RetrieveExternalAsync<JObject>(objectName, externalFieldName, externalId, fields);
         public async Task<T> RetrieveExternalAsync<T>(string objectName, string externalFieldName, string externalId, params string[] fields)
         {
             if (string.IsNullOrEmpty(objectName)) throw new ArgumentNullException("objectName");
@@ -380,7 +380,7 @@ namespace DotNetForce
             return await JsonHttp.HttpGetBlobAsync($"sobjects/{objectName}/{recordId}/richTextImageFields/{fieldName}/{contentReferenceId}").ConfigureAwait(false);
         }
 
-        public Task<JObject> RelationshipsAync(string objectName, string recordId, string relationshipFieldName, string[] fields = null) => RelationshipsAync(objectName, recordId, relationshipFieldName, fields = null);
+        public Task<JObject> RelationshipsAync(string objectName, string recordId, string relationshipFieldName, string[] fields = null) => RelationshipsAync<JObject>(objectName, recordId, relationshipFieldName, fields = null);
         public async Task<T> RelationshipsAync<T>(string objectName, string recordId, string relationshipFieldName, string[] fields = null)
         {
             if (string.IsNullOrEmpty(objectName)) throw new ArgumentNullException("objectName");

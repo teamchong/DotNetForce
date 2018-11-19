@@ -8,7 +8,7 @@ using System.Data;
 using System.IO;
 using System.Linq;
 using System.Reactive.Linq;
-using System.Security.Cryptography;
+//using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -360,70 +360,70 @@ namespace DotNetForce
 
 #endregion DataConvertion
 
-#region Encryption
+//#region Encryption
 
-        public static string Encrypt(string plainText, string passPhrase, string IV)
-        {
-            byte[] encrypted;
+//        public static string Encrypt(string plainText, string passPhrase, string IV)
+//        {
+//            byte[] encrypted;
 
-            using (AesCryptoServiceProvider aes = new AesCryptoServiceProvider())
-            {
-                aes.KeySize = 256;
-                aes.Key = Encoding.UTF8.GetBytes(passPhrase);
-                aes.IV = Encoding.UTF8.GetBytes(IV);
-                aes.Mode = CipherMode.CBC;
-                aes.Padding = PaddingMode.PKCS7;
+//            using (AesCryptoServiceProvider aes = new AesCryptoServiceProvider())
+//            {
+//                aes.KeySize = 256;
+//                aes.Key = Encoding.UTF8.GetBytes(passPhrase);
+//                aes.IV = Encoding.UTF8.GetBytes(IV);
+//                aes.Mode = CipherMode.CBC;
+//                aes.Padding = PaddingMode.PKCS7;
 
-                ICryptoTransform enc = aes.CreateEncryptor(aes.Key, aes.IV);
+//                ICryptoTransform enc = aes.CreateEncryptor(aes.Key, aes.IV);
 
-                using (MemoryStream ms = new MemoryStream())
-                {
-                    using (CryptoStream cs = new CryptoStream(ms, enc, CryptoStreamMode.Write))
-                    {
-                        using (StreamWriter sw = new StreamWriter(cs))
-                        {
-                            sw.Write(plainText);
-                        }
+//                using (MemoryStream ms = new MemoryStream())
+//                {
+//                    using (CryptoStream cs = new CryptoStream(ms, enc, CryptoStreamMode.Write))
+//                    {
+//                        using (StreamWriter sw = new StreamWriter(cs))
+//                        {
+//                            sw.Write(plainText);
+//                        }
 
-                        encrypted = ms.ToArray();
-                    }
-                }
-            }
+//                        encrypted = ms.ToArray();
+//                    }
+//                }
+//            }
 
-            return Convert.ToBase64String(encrypted);
-        }
+//            return Convert.ToBase64String(encrypted);
+//        }
 
-        public static string Decrypt(string encryptedText, string passPhrase, string IV)
-        {
-            string decrypted = null;
-            byte[] cipher = Convert.FromBase64String(encryptedText);
+//        public static string Decrypt(string encryptedText, string passPhrase, string IV)
+//        {
+//            string decrypted = null;
+//            byte[] cipher = Convert.FromBase64String(encryptedText);
 
-            using (AesCryptoServiceProvider aes = new AesCryptoServiceProvider())
-            {
-                aes.KeySize = 256;
-                aes.Key = Encoding.UTF8.GetBytes(passPhrase);
-                aes.IV = Encoding.UTF8.GetBytes(IV);
-                aes.Mode = CipherMode.CBC;
-                aes.Padding = PaddingMode.PKCS7;
+//            using (AesCryptoServiceProvider aes = new AesCryptoServiceProvider())
+//            {
+//                aes.KeySize = 256;
+//                aes.Key = Encoding.UTF8.GetBytes(passPhrase);
+//                aes.IV = Encoding.UTF8.GetBytes(IV);
+//                aes.Mode = CipherMode.CBC;
+//                aes.Padding = PaddingMode.PKCS7;
 
-                ICryptoTransform dec = aes.CreateDecryptor(aes.Key, aes.IV);
+//                ICryptoTransform dec = aes.CreateDecryptor(aes.Key, aes.IV);
 
-                using (MemoryStream ms = new MemoryStream(cipher))
-                {
-                    using (CryptoStream cs = new CryptoStream(ms, dec, CryptoStreamMode.Read))
-                    {
-                        using (StreamReader sr = new StreamReader(cs))
-                        {
-                            decrypted = sr.ReadToEnd();
-                        }
-                    }
-                }
-            }
+//                using (MemoryStream ms = new MemoryStream(cipher))
+//                {
+//                    using (CryptoStream cs = new CryptoStream(ms, dec, CryptoStreamMode.Read))
+//                    {
+//                        using (StreamReader sr = new StreamReader(cs))
+//                        {
+//                            decrypted = sr.ReadToEnd();
+//                        }
+//                    }
+//                }
+//            }
 
-            return decrypted;
-        }
+//            return decrypted;
+//        }
 
-#endregion Encryption
+//#endregion Encryption
 
 
 #region JObjectHelper
