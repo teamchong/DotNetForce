@@ -34,7 +34,13 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Content Update="Pages\DataExport.cshtml">
+      <Pack>$(IncludeRazorContentInPack)</Pack>
+    </Content>
     <Content Update="Pages\Login.cshtml">
+      <Pack>$(IncludeRazorContentInPack)</Pack>
+    </Content>
+    <Content Update="Pages\DataImport.cshtml">
       <Pack>$(IncludeRazorContentInPack)</Pack>
     </Content>
     <Content Update="Pages\Org.cshtml">
@@ -43,6 +49,10 @@
     <Content Update="Pages\OAuth2.cshtml">
       <Pack>$(IncludeRazorContentInPack)</Pack>
     </Content>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Services\" />
   </ItemGroup>
   
   <!--<ItemGroup>

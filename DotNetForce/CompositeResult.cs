@@ -31,20 +31,20 @@ namespace DotNetForce
             return !_Errors.TryGetValue(referenceId, out ErrorResponses value) ? null : value;
         }
 
-        protected Dictionary<string, JToken> _Queries = new Dictionary<string, JToken>();
-        public Dictionary<string, QueryResult<JToken>> Queries() => Queries<JToken>();
+        protected Dictionary<string, JObject> _Queries = new Dictionary<string, JObject>();
+        public Dictionary<string, QueryResult<JObject>> Queries() => Queries<JObject>();
         public Dictionary<string, QueryResult<T>> Queries<T>() => _Queries.ToDictionary(q => q.Key, q => q.Value.ToObject<QueryResult<T>>());
-        public QueryResult<JToken> Queries(string referenceId) => Queries<JToken>(referenceId);
+        public QueryResult<JObject> Queries(string referenceId) => Queries<JObject>(referenceId);
         public QueryResult<T> Queries<T>(string referenceId)
         {
-            return !_Queries.TryGetValue(referenceId, out JToken value) ? null : value.ToObject<QueryResult<T>>();
+            return !_Queries.TryGetValue(referenceId, out var value) ? null : value.ToObject<QueryResult<T>>();
         }
 
         protected Dictionary<string, JToken> _Results = new Dictionary<string, JToken>();
         public Dictionary<string, JToken> Results() => _Results;
         public JToken Results(string referenceId)
         {
-            return !_Results.TryGetValue(referenceId, out JToken value) ? null : value;
+            return !_Results.TryGetValue(referenceId, out var value) ? null : value;
         }
         public Dictionary<string, SuccessResponse> SuccessResponses()
         {
@@ -55,7 +55,7 @@ namespace DotNetForce
 
         public SuccessResponse SuccessResponses(string referenceId)
         {
-            return !_Results.TryGetValue(referenceId, out JToken value) ? default(SuccessResponse)
+            return !_Results.TryGetValue(referenceId, out var value) ? default(SuccessResponse)
                 : value == null ? default(SuccessResponse)
                 : DNF.IsSuccessResponse(value) ? value.ToObject<SuccessResponse>()
                 : default(SuccessResponse);
@@ -119,7 +119,7 @@ namespace DotNetForce
                                     {
                                         if (DNF.IsQueryResult(row))
                                         {
-                                            _Queries.Add(refId, row ?? JToken.FromObject(new Dictionary<string, JToken>()));
+                                            _Queries.Add(refId, (JObject)row ?? new JObject());
                                         }
                                         else if (DNF.IsSuccessResponse(row))
                                         {
@@ -168,7 +168,7 @@ namespace DotNetForce
                             {
                                 if (DNF.IsQueryResult(response.Body))
                                 {
-                                    _Queries.Add(subrequest.ReferenceId, response.Body ?? JToken.FromObject(new Dictionary<string, JToken>()));
+                                    _Queries.Add(subrequest.ReferenceId, (JObject)response.Body ?? new JObject());
                                 }
                                 else if (response.Body?.Type == JTokenType.Array)
                                 {
@@ -176,7 +176,7 @@ namespace DotNetForce
                                 }
                                 else
                                 {
-                                    _Results.Add(subrequest.ReferenceId, JToken.FromObject(new [] { response.Body }));
+                                    _Results.Add(subrequest.ReferenceId, new JArray { response.Body });
                                 }
                             }
                             else
@@ -218,7 +218,7 @@ namespace DotNetForce
 
         public override string ToString()
         {
-            var output = JToken.FromObject(new Dictionary<string, JToken>());
+            var output = new JObject();
             if (_Errors.Count > 0) output["Errors"] = JToken.FromObject(_Errors);
             if (_Queries.Count > 0) output["Queries"] = JToken.FromObject(_Queries);
             if (_Results.Count > 0) output["Objects"] = JToken.FromObject(_Results);
@@ -233,7 +233,7 @@ namespace DotNetForce
 
         public string ToString(bool includeRequests, Formatting formatting)
         {
-            var output = JToken.FromObject(new Dictionary<string, JToken>());
+            var output = new JObject();
             if (_Errors.Count > 0) output["Errors"] = JToken.FromObject(_Errors);
             if (_Queries.Count > 0) output["Queries"] = JToken.FromObject(_Queries);
             if (_Results.Count > 0) output["Objects"] = JToken.FromObject(_Results);

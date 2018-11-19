@@ -88,7 +88,7 @@ namespace DotNetForce
         {
             if (record == null) throw new ArgumentNullException("record");
 
-            var body = JToken.FromObject(record);
+            var body = JObject.FromObject(record);
             return UpdateAsync(metadataType, body["Id"]?.ToString(), DNF.Omit(body, "Id"));
         }
 

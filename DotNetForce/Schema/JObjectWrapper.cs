@@ -12,12 +12,12 @@ namespace DotNetForce
     public class JObjectWrapper : IAttributedObject
     {
         [JsonExtensionData]
-        protected JToken Object { get; set; }
+        protected JObject Object { get; set; }
 
         [JsonIgnore]
-        public ObjectAttributes Attributes { get => Object?["attributes"]?.ToObject<ObjectAttributes>(); set => Object["attributes"] = value == null ? null : JToken.FromObject(value); }
+        public ObjectAttributes Attributes { get => Object?["attributes"]?.ToObject<ObjectAttributes>(); set => Object["attributes"] = value == null ? null : JObject.FromObject(value); }
 
-        public JObjectWrapper(JToken obj) => Object = obj;
+        public JObjectWrapper(JObject obj) => Object = obj;
 
         public JObjectWrapper Spread()
         {
@@ -26,46 +26,46 @@ namespace DotNetForce
 
         public JObjectWrapper Spread(string sep)
         {
-            var result = JToken.FromObject(new Dictionary<string, JToken>());
+            var result = new JObject();
             if (Object != null)
             {
-                foreach (var prop in (IDictionary<string, JToken>)Object)
+                foreach (var prop in Object.Properties())
                 {
-                    var splits = prop.Key.Split(new[]{ sep }, 2, StringSplitOptions.None);
+                    var splits = prop.Name.Split(new[]{ sep }, 2, StringSplitOptions.None);
                     if (splits.Length == 1)
                     {
-                        result[prop.Key] = prop.Value;
+                        result[prop.Name] = prop.Value;
                     }
-                    else if (result[prop.Key]?.Type == JTokenType.Object)
+                    else if (result[prop.Name]?.Type == JTokenType.Object)
                     {
-                        var subObj = result[prop.Key];
+                        var subObj = result[prop.Name];
                         subObj[splits[1]] = prop.Value;
-                        result[splits[0]] = new JObjectWrapper(subObj).Spread();
+                        result[splits[0]] = new JObjectWrapper((JObject)subObj).Spread();
                     }
                     else
                     {
-                        result[splits[0]] = new JObjectWrapper(JToken.FromObject(new Dictionary<string, JToken> { [splits[1]] = prop.Value })).Spread();
+                        result[splits[0]] = new JObjectWrapper(new JObject { [splits[1]] = prop.Value }).Spread();
                     }
                 }
             }
             return new JObjectWrapper(result);
         }
 
-        public JToken Unwrap() => Object;
+        public JObject Unwrap() => Object;
         
-        public JToken Unwrap(SfObjectBase type) => Unwrap(type?.ToString());
+        public JObject Unwrap(SfObjectBase type) => Unwrap(type?.ToString());
 
-        public JToken Unwrap(string type)
+        public JObject Unwrap(string type)
         {
-            if (Object != null) Object["attributes"] = JToken.FromObject(new Dictionary<string, JToken> { ["type"] = type });
+            if (Object != null) Object["attributes"] = new JObject { ["type"] = type };
             return Object;
         }
         
-        public JToken Unwrap(SfObjectBase type, string referenceId) => Unwrap(type?.ToString(), referenceId);
+        public JObject Unwrap(SfObjectBase type, string referenceId) => Unwrap(type?.ToString(), referenceId);
 
-        public JToken Unwrap(string type, string referenceId)
+        public JObject Unwrap(string type, string referenceId)
         {
-            if (Object != null) Object["attributes"] = JToken.FromObject(new Dictionary<string, JToken> { ["type"] = type, ["referenceId"] = referenceId });
+            if (Object != null) Object["attributes"] = new JObject { ["type"] = type, ["referenceId"] = referenceId };
             return Object;
         }
 
@@ -80,7 +80,7 @@ namespace DotNetForce
             {
                 if (Object[paths[0]]?.Type == JTokenType.Object)
                 {
-                    return new JObjectWrapper(Object[paths[0]]).Get(paths[1]);
+                    return new JObjectWrapper((JObject)Object[paths[0]]).Get(paths[1]);
                 }
             }
             return null;
@@ -97,7 +97,7 @@ namespace DotNetForce
             {
                 if (Object[paths[0]]?.Type != JTokenType.Object)
                 {
-                    Object[paths[0]] = JToken.FromObject(new Dictionary<string, JToken>());
+                    Object[paths[0]] = new JObject();
                 }
                 return Set(paths[1], value);
             }
@@ -110,7 +110,7 @@ namespace DotNetForce
             return Get(field?.ToString());
         }
 
-        public JObjectWrapper Set<T>(SfAddressField<T> field, JToken value) where T : SfObjectBase
+        public JObjectWrapper Set<T>(SfAddressField<T> field, JObject value) where T : SfObjectBase
         {
             return Set(field?.ToString(), value);
         }
@@ -121,7 +121,7 @@ namespace DotNetForce
             return Get(field?.ToString());
         }
 
-        public JObjectWrapper Set<T>(SfAnyTypeField<T> field, JToken value) where T : SfObjectBase
+        public JObjectWrapper Set<T>(SfAnyTypeField<T> field, JObject value) where T : SfObjectBase
         {
             return Set(field?.ToString(), value);
         }
@@ -149,13 +149,13 @@ namespace DotNetForce
         }
 
 
-        public QueryResult<JToken> Get<T, TChild>(SfChildRelationship<T, TChild> field)
+        public QueryResult<JObject> Get<T, TChild>(SfChildRelationship<T, TChild> field)
             where T : SfObjectBase, new() where TChild : SfObjectBase, new()
         {
-            return Get(field?.ToString())?.ToObject<QueryResult<JToken>>();
+            return Get(field?.ToString())?.ToObject<QueryResult<JObject>>();
         }
 
-        public JObjectWrapper Set<T, TChild>(SfChildRelationship<T, TChild> field, JToken value)
+        public JObjectWrapper Set<T, TChild>(SfChildRelationship<T, TChild> field, JObject value)
             where T : SfObjectBase, new() where TChild: SfObjectBase, new()
         {
             return Set(field?.ToString(), value);
@@ -178,7 +178,7 @@ namespace DotNetForce
             return Get(field?.ToString());
         }
 
-        public JObjectWrapper Set<T>(SfComplexValueField<T> field, JToken value) where T : SfObjectBase
+        public JObjectWrapper Set<T>(SfComplexValueField<T> field, JObject value) where T : SfObjectBase
         {
             return Set(field?.ToString(), value);
         }
@@ -276,7 +276,7 @@ namespace DotNetForce
             return Get(field?.ToString());
         }
 
-        public JObjectWrapper Set<T>(SfLocationField<T> field, JToken value) where T : SfObjectBase
+        public JObjectWrapper Set<T>(SfLocationField<T> field, JObject value) where T : SfObjectBase
         {
             return Set(field?.ToString(), value);
         }
@@ -384,7 +384,7 @@ namespace DotNetForce
             return Object?.ToString(formatting, converters);
         }
 
-        public static implicit operator JObjectWrapper(JToken obj) => new JObjectWrapper(obj);
-        public static implicit operator JToken(JObjectWrapper wrapper) => wrapper.Unwrap();
+        public static implicit operator JObjectWrapper(JObject obj) => new JObjectWrapper(obj);
+        public static implicit operator JObject(JObjectWrapper wrapper) => wrapper.Unwrap();
     }
 }

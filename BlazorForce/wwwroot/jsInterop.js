@@ -16,17 +16,21 @@ window.DNF = {
             history.replaceState(data, title, location.pathname + url);
         }
     },
-    getSessionStorage(key) {
-        return sessionStorage.getItem(key);
+    sessionStorage: {
+        getItem(key) {
+            return sessionStorage.getItem(key);
+        },
+        setItem(key, value) {
+            sessionStorage.setItem(key, value);
+        }
     },
-    setSessionStorage(key, value) {
-        sessionStorage.setItem(key, value);
-    },
-    getLocalStorage(key) {
-        return localStorage.getItem(key);
-    },
-    setLocalStorage(key, value) {
-        localStorage.setItem(key, value);
+    localStorage: {
+        getItem(key) {
+            return localStorage.getItem(key);
+        },
+        setItem(key, value) {
+            localStorage.setItem(key, value);
+        }
     },
     addEventListener(type, callback) {
         addEventListener(type, function (ev) {

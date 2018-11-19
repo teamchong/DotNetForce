@@ -67,12 +67,12 @@ SELECT Id FROM Contact WHERE Name LIKE 'UnitTest%'")).Select(r => r["Id"]?.ToStr
 SELECT Id FROM Product2 WHERE Source_Product_ID__c LIKE 'UnitTest%'")).Select(r => r["Id"]?.ToString())));
         }
 
-        protected JToken GetTestProduct2()
+        protected JObject GetTestProduct2()
         {
             var id = Guid.NewGuid();
-            return JToken.FromObject(new Dictionary<string, JToken>
+            return new JObject
             {
-                ["attributes"] = JToken.FromObject(new Dictionary<string, JToken> { ["type"] = "Product2" }),
+                ["attributes"] = new JObject { ["type"] = "Product2" },
                 ["Name"] = $"UnitTest{id:N}",
                 ["Contract_Type_ID__c"] = "U",
                 ["Contract_Type__c"] = "U",
@@ -82,7 +82,7 @@ SELECT Id FROM Product2 WHERE Source_Product_ID__c LIKE 'UnitTest%'")).Select(r 
                 ["Venue_ID__c"] = "U",
                 ["Zone_ID__c"] = "U",
                 ["Source_Product_ID__c"] = $"UnitTest{id:N}",
-            });
+            };
         }
 
         protected void WriteLine(string message)

@@ -6,34 +6,34 @@ using System.Reactive.Linq;
 
 namespace DotNetForce
 {
-    internal class JObjectHelper<T> where T : JToken
+    internal class JObjectHelper
     {
-        public T Source { get; set; }
+        public JObject Source { get; set; }
         
-        internal JObjectHelper(T src)
+        internal JObjectHelper(JObject src)
         {
             Source = src;
         }
 
-        public T UnFlatten() 
+        public JObject UnFlatten() 
         {
             if (Source == null)
             {
                 return Source;
             }
 
-            var result = JToken.FromObject(new Dictionary<string, JToken>());
-            foreach (var prop in (IDictionary<string, JToken>)Source)
+            var result = new JObject();
+            foreach (var prop in Source.Properties())
             {
-                var propNames = prop.Key.Split(new[] { ':' }, 2);
+                var propNames = prop.Name.Split(new[] { ':' }, 2);
                 result[propNames[0]] = prop.Value?.Type == JTokenType.Object
-                    ? new JObjectHelper<T>((T)prop.Value).UnFlatten(propNames.Skip(1).FirstOrDefault())
+                    ? new JObjectHelper((JObject)prop.Value).UnFlatten(propNames.Skip(1).FirstOrDefault())
                     : prop.Value;
             }
-            return (T)result;
+            return result;
         }
 
-        public T UnFlatten(string name)
+        public JObject UnFlatten(string name)
         {
             if (Source == null || string.IsNullOrEmpty(name))
             {
@@ -43,13 +43,13 @@ namespace DotNetForce
             var names = name.Split(new[] { ':' }, 2);
             if (names.Length > 1)
             {
-                return (T)JToken.FromObject(new Dictionary<string, JToken> { [names[0]] = UnFlatten(names[1]) });
+                return new JObject { [names[0]] = UnFlatten(names[1]) };
             }
 
-            return (T)JToken.FromObject(new Dictionary<string, JToken> { [name] = Source });
+            return new JObject { [name] = Source };
         }
 
-        public T Assign(params JToken[] others)
+        public JObject Assign(params JObject[] others)
         {
             if (Source == null)
             {
@@ -58,71 +58,71 @@ namespace DotNetForce
 
             if (others?.Length > 0)
             {
-                foreach (JToken other in others)
+                foreach (var other in others)
                 {
-                    foreach (var prop in ((IDictionary<string, JToken>)other))
+                    foreach (var prop in other.Properties())
                     {
-                        Source[prop.Key] = prop.Value;
+                        Source[prop.Name] = prop.Value;
                     }
                 }
             }
             return Source;
         }
 
-        public T Pick(params string[] colNames)
+        public JObject Pick(params string[] colNames)
         {
             if (Source == null)
             {
                 return Source;
             }
 
-            var result = JToken.FromObject(new Dictionary<string, JToken>());
+            var result = new JObject();
             if ((colNames?.Length ?? 0) == 0)
             {
-                foreach (var prop in (IDictionary<string, JToken>)Source)
+                foreach (var prop in Source.Properties())
                 {
-                    result[prop.Key] = prop.Value;
+                    result[prop.Name] = prop.Value;
                 }
             }
             else
             {
-                foreach (var prop in (IDictionary<string, JToken>)Source)
+                foreach (var prop in Source.Properties())
                 {
-                    if (colNames.Contains(prop.Key))
+                    if (colNames.Contains(prop.Name))
                     {
-                        result[prop.Key] = prop.Value;
+                        result[prop.Name] = prop.Value;
                     }
                 }
             }
-            return (T)result;
+            return result;
         }
 
-        public T Omit(params string[] colNames)
+        public JObject Omit(params string[] colNames)
         {
             if (Source == null)
             {
                 return Source;
             }
 
-            var result = JToken.FromObject(new Dictionary<string, JToken>());
+            var result = new JObject();
             if ((colNames?.Length ?? 0) == 0)
             {
-                foreach (var prop in (IDictionary<string, JToken>)Source)
+                foreach (var prop in Source.Properties())
                 {
-                    result[prop.Key] = prop.Value;
+                    result[prop.Name] = prop.Value;
                 }
             }
             else
             {
-                foreach (var prop in (IDictionary<string, JToken>)Source)
+                foreach (var prop in Source.Properties())
                 {
-                    if (!colNames.Contains(prop.Key))
+                    if (!colNames.Contains(prop.Name))
                     {
-                        result[prop.Key] = prop.Value;
+                        result[prop.Name] = prop.Value;
                     }
                 }
             }
-            return (T)result;
+            return result;
         }
     }
 }

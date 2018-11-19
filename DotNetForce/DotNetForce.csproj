@@ -5,13 +5,18 @@
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <Authors>Steven Chong</Authors>
     <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
-    <Version>5.0.1</Version>
+    <Version>5.0.3</Version>
     <Company />
     <Description>https://ste80.github.io/DotNetForce</Description>
     <RepositoryUrl>https://github.com/ste80/DotNetForce</RepositoryUrl>
     <PackageTags>salesforce</PackageTags>
     <PackageProjectUrl>https://ste80.github.io/DotNetForce</PackageProjectUrl>
-    <PackageReleaseNotes>https://ste80.github.io/DotNetForce</PackageReleaseNotes>
+    <PackageReleaseNotes>V5.0.3
+Add support for Blazor (WebAssembly)
++Setup https://ste80.github.io/DotNetForce/ for demo running C# on web client
++DNFClient.DefaultApiVersion = "v44.0"; // to change API Version
++DNFClient.UseCompression = false; // to disabled UseCompression
++DNFClient.Proxy = uri =&gt; new Uri(new Uri("https://yourproxy"), uri.PathAndQuery); // to send to proxy instead of instanceUrl</PackageReleaseNotes>
     <PackageLicenseUrl>https://raw.githubusercontent.com/ste80/DotNetForce/master/LICENSE</PackageLicenseUrl>
     <Copyright>Copyright (c) 2018 Steven Chong</Copyright>
   </PropertyGroup>

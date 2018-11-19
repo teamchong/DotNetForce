@@ -27,13 +27,13 @@
             var org = Uri.UnescapeDataString(Hash.Substring("/org/".Length));
             <Org InstanceUrl="@org" Storage="@Storage"></Org>
         }
-        else if (Hash.StartsWith("/DataImport/"))
-        {
-            <text>Under construction...</text>
-        }
         else if (Hash.StartsWith("/DataExport/"))
         {
-            <text>Under construction...</text>
+            <DataExport></DataExport>
+        }
+        else if (Hash.StartsWith("/DataImport/"))
+        {
+            <DataImport></DataImport>
         }
         else {
             <Login Storage="@Storage"></Login>
@@ -44,13 +44,13 @@
 
 @functions
 {
-    private AppStorage Storage { get; set; }
+    private AppStorageSetting Storage { get; set; }
     private string Url { get; set; }
     private string Hash { get; set; }
 
     protected override async Task OnInitAsync()
     {
-        Storage = await AppStorage.GetAsync();
+        Storage = await AppStorageSetting.GetAsync();
         Url = UriHelper.GetAbsoluteUri();
         Hash = UriHelper.GetHash() ?? "";
         UriHelper.OnLocationChanged += OnLocationChanged;
@@ -75,7 +75,7 @@
 
     //private async Task CancelAsync()
     //{
-    //    await JSRuntime.Current.InvokeAsync<object>("DNF.history.replaceState", null, null, "");
+    //    await JsInterop.Current.History.ReplaceState(null, null, "");
     //    Reload();
     //}
 

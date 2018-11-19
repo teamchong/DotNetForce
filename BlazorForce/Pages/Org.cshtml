@@ -30,7 +30,7 @@
                 var used = (double)license["UsedLicenses"];
                 var percent = total == 0 ? 0 : Math.Round(100 * used / total, 1);
                 var bg = percent > 90 ? "bg-danger" : percent > 50 ? "bg-warning" : "bg-success";
-                <div class="col-sm-6 col-xl-4">
+                <div class="col-sm-6 col-lg-4 col-xl-3">
                     <div>
                         <a href="@Setting.InstanceUrl/@license["Id"]" target="_blank">@license["Name"]</a>
                         ( @used / @total )
@@ -57,7 +57,7 @@
                 var used = total - (double)limit["Remaining"];
                 var percent = total == 0 ? 0 : Math.Round(100 * used / total, 1);
                 var bg = percent > 90 ? "bg-danger" : percent > 50 ? "bg-warning" : "bg-success";
-                <div class="col-sm-6 col-xl-4">
+                <div class="col-sm-6 col-lg-4 col-xl-3">
                     <div>@apiName ( @used / @total )</div>
                     <div class="progress">
                         <div class="progress-bar @bg" role="progressbar" aria-valuenow="@percent" aria-valuemin="0" aria-valuemax="@total" style="width: @percent%">@percent%</div>
@@ -75,7 +75,7 @@
     private string InstanceUrl { get; set; }
 
     [Parameter]
-    private AppStorage Storage { get; set; }
+    private AppStorageSetting Storage { get; set; }
 
     private JToken Limits { get; set; }
 

@@ -14,7 +14,7 @@ namespace DotNetForce
         public RecordsObject()
         {
             Records = new List<IAttributedObject>();
-            AdditionalData = JToken.FromObject(new Dictionary<string, JToken>());
+            AdditionalData = new JObject();
         }
 
         public RecordsObject(IEnumerable<IAttributedObject> enumerable)
@@ -24,14 +24,14 @@ namespace DotNetForce
             {
                 Records.Add(item);
             }
-            AdditionalData = JToken.FromObject(new Dictionary<string, JToken>());
+            AdditionalData = new JObject();
         }
 
         [JsonProperty(PropertyName = "records", NullValueHandling = NullValueHandling.Ignore)]
         public List<IAttributedObject> Records { get; set; }
 
         [JsonExtensionData]
-        public JToken AdditionalData { get; set; }
+        public JObject AdditionalData { get; set; }
 
         public CreateRequest ToCreateRequest()
         {
@@ -47,18 +47,11 @@ namespace DotNetForce
             set => AdditionalData[propertyName] = value;
         }
 
-        public static implicit operator JToken(RecordsObject obj)
+        public static implicit operator JObject(RecordsObject obj)
         {
-            var dict = new Dictionary<string, JToken>((IDictionary<string, JToken>)obj.AdditionalData);
-            if (dict.ContainsKey("attributes"))
-            {
-                dict["records"] = JToken.FromObject(obj.Records);
-            }
-            else
-            {
-                dict.Add("records", JToken.FromObject(obj.Records));
-            }
-            return JToken.FromObject(dict);
+            var dict = new JObject(obj.AdditionalData);
+            dict["records"] = JToken.FromObject(obj.Records);
+            return dict;
         }
     }
 }

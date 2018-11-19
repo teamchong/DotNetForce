@@ -42,7 +42,7 @@ namespace DotNetForce
             return null;
         }
 
-        public JToken NullIfError()
+        public JObject NullIfError()
         {
             if (Body?.Type == JTokenType.Array)
             {
@@ -50,12 +50,12 @@ namespace DotNetForce
             }
             else if (Body.Type == JTokenType.Object)
             {
-                return Body;
+                return (JObject)Body;
             }
-            return JToken.FromObject(new Dictionary<string, JToken>
+            return new JObject
             {
                 ["message"] = Body
-            });
+            };
         }
 
         public override string ToString()

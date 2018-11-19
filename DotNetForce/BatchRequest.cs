@@ -107,7 +107,7 @@ namespace DotNetForce
 
             var request = new BatchSubrequest
             {
-                RichInput = DNF.UnFlatten(JToken.FromObject(record)),
+                RichInput = DNF.UnFlatten(JObject.FromObject(record)),
                 Url = $"sobjects/{objectName}"
             };
             BatchRequests.Add(request);
@@ -169,7 +169,7 @@ namespace DotNetForce
             if (string.IsNullOrEmpty(objectName)) throw new ArgumentNullException("objectName");
             if (record == null) throw new ArgumentNullException("record");
 
-            var richInput = DNF.UnFlatten(JToken.FromObject(record));
+            var richInput = DNF.UnFlatten(JObject.FromObject(record));
             return Update(objectName, richInput["Id"]?.ToString(), DNF.Omit(richInput, "Id"));
         }
 
@@ -179,7 +179,7 @@ namespace DotNetForce
             if (string.IsNullOrEmpty(recordId)) throw new ArgumentNullException("recordId");
             if (record == null) throw new ArgumentNullException("record");
 
-            var richInput = DNF.UnFlatten(JToken.FromObject(record));
+            var richInput = DNF.UnFlatten(JObject.FromObject(record));
             var request = new BatchSubrequest
             {
                 RichInput = DNF.Omit(richInput, "Id"),
@@ -195,7 +195,7 @@ namespace DotNetForce
             if (string.IsNullOrEmpty(objectName)) throw new ArgumentNullException("objectName");
             if (record == null) throw new ArgumentNullException("record");
 
-            var richInput = DNF.UnFlatten(JToken.FromObject(record));
+            var richInput = DNF.UnFlatten(JObject.FromObject(record));
             return UpsertExternal(objectName, externalFieldName, richInput[externalFieldName]?.ToString(), DNF.Omit(richInput, externalFieldName));
         }
 
@@ -205,7 +205,7 @@ namespace DotNetForce
             if (string.IsNullOrEmpty(externalId)) throw new ArgumentNullException("externalId");
             if (record == null) throw new ArgumentNullException("record");
 
-            var richInput = DNF.UnFlatten(JToken.FromObject(record));
+            var richInput = DNF.UnFlatten(JObject.FromObject(record));
             var request = new BatchSubrequest
             {
                 RichInput = DNF.Omit(richInput, externalFieldName),

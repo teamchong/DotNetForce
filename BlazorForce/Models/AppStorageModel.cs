@@ -4,7 +4,7 @@ using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 
-namespace BlazorForce
+namespace BlazorForce.Models
 {
     public class AppStorageModel
     {

@@ -16,14 +16,14 @@ namespace DotNetForce
         public AttributedObject(string type)
         {
             Attributes = new ObjectAttributes { Type = type };
-            AdditionalData = JToken.FromObject(new Dictionary<string, JToken>());
+            AdditionalData = new JObject();
         }
-        public AttributedObject(string type, JToken other)
+        public AttributedObject(string type, JObject other)
         {
             Attributes = new ObjectAttributes { Type = type };
             AdditionalData = other;
         }
-        public AttributedObject(string type, string referenceId, JToken other)
+        public AttributedObject(string type, string referenceId, JObject other)
         {
             Attributes = new ObjectAttributes { Type = type, ReferenceId = referenceId };
             AdditionalData = other;
@@ -31,29 +31,29 @@ namespace DotNetForce
         public AttributedObject(string type, object content)
         {
             Attributes = new ObjectAttributes { Type = type };
-            AdditionalData = JToken.FromObject(content);
+            AdditionalData = JObject.FromObject(content);
         }
         public AttributedObject(string type, string referenceId, object content)
         {
             Attributes = new ObjectAttributes { Type = type, ReferenceId = referenceId };
-            AdditionalData = JToken.FromObject(content);
+            AdditionalData = JObject.FromObject(content);
         }
         public AttributedObject(string type, params object[] content)
         {
             Attributes = new ObjectAttributes { Type = type };
-            AdditionalData = JToken.FromObject(content);
+            AdditionalData = JObject.FromObject(content);
         }
         public AttributedObject(string type, string referenceId, params object[] content)
         {
             Attributes = new ObjectAttributes { Type = type, ReferenceId = referenceId };
-            AdditionalData = JToken.FromObject(content);
+            AdditionalData = JObject.FromObject(content);
         }
 
         [JsonProperty(PropertyName = "attributes", NullValueHandling = NullValueHandling.Ignore)]
         public ObjectAttributes Attributes { get; set; }
 
         [JsonExtensionData]
-        public JToken AdditionalData { get; set; }
+        public JObject AdditionalData { get; set; }
         
         public JToken this[string propertyName]
         {
@@ -61,9 +61,9 @@ namespace DotNetForce
             set => AdditionalData[propertyName] = value;
         }
 
-        public static implicit operator JToken(AttributedObject obj)
+        public static implicit operator JObject(AttributedObject obj)
         {
-            var dict = new Dictionary<string, JToken>((IDictionary<string, JToken>)obj.AdditionalData);
+            var dict = JObject.FromObject(obj.AdditionalData);
             if (dict.ContainsKey("attributes"))
             {
                 dict["attributes"] = JToken.FromObject(obj.Attributes);
@@ -72,7 +72,7 @@ namespace DotNetForce
             {
                 dict.Add("attributes", JToken.FromObject(obj.Attributes));
             }
-            return JToken.FromObject(dict);
+            return dict;
         }
     }
 }

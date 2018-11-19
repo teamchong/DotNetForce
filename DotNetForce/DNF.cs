@@ -428,15 +428,15 @@ namespace DotNetForce
 
 #region JObjectHelper
         
-        public static T UnFlatten<T>(T source) where T : JToken => new JObjectHelper<T>(source).UnFlatten();
+        public static JObject UnFlatten(JObject source) => new JObjectHelper(source).UnFlatten();
 
-        public static T UnFlatten<T>(T source, string name) where T : JToken => new JObjectHelper<T>(source).UnFlatten(name);
+        public static JObject UnFlatten(JObject source, string name) => new JObjectHelper(source).UnFlatten(name);
 
-        public static T Assign<T>(T source, params JToken[] others) where T : JToken => new JObjectHelper<T>(source).Assign( others);
+        public static JObject Assign(JObject source, params JObject[] others) => new JObjectHelper(source).Assign( others);
 
-        public static T Pick<T>(T source, params string[] colNames) where T : JToken => new JObjectHelper<T>(source).Pick(colNames);
+        public static JObject Pick(JObject source, params string[] colNames) => new JObjectHelper(source).Pick(colNames);
 
-        public static T Omit<T>(T source, params string[] colNames) where T : JToken => new JObjectHelper<T>(source).Omit(colNames);
+        public static JObject Omit(JObject source, params string[] colNames) => new JObjectHelper(source).Omit(colNames);
         
 #endregion JObjectHelper
 

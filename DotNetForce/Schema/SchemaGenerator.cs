@@ -27,7 +27,7 @@ public class SchemaGenerator
         // ErrorLogger = errorLogger;
     }
 
-    //public JToken ReadProfile(string path)
+    //public JObject ReadProfile(string path)
     //{
     //    try
     //    {
@@ -39,7 +39,7 @@ public class SchemaGenerator
     //                {
     //                    using (var jsonReader = new JsonTextReader(reader))
     //                    {
-    //                        return new JsonSerializer().Deserialize<JToken>(jsonReader);
+    //                        return new JsonSerializer().Deserialize<JObject>(jsonReader);
     //                    }
     //                }
     //            }
@@ -49,7 +49,7 @@ public class SchemaGenerator
     //    return null;
     //}
 
-    public async Task<JToken> RetreiveSObjectsAsync(DNFClient client)
+    public async Task<JObject> RetreiveSObjectsAsync(DNFClient client)
     {
         //var folder = Path.Combine(ProjectDir, InstanceName);
         //var solutionDir = Path.GetDirectoryName(ProjectDir);
@@ -70,7 +70,7 @@ public class SchemaGenerator
         //}
 
         // var client = await DNFClient.LoginAsync(loginUri, clientId, clientSecret, userName, password, Logger).ConfigureAwait(false);
-        var describeGlobalResult = await client.GetObjectsAsync<JToken>().ConfigureAwait(false);
+        var describeGlobalResult = await client.GetObjectsAsync().ConfigureAwait(false);
 
         var request = new CompositeRequest();
         foreach (var sobject in describeGlobalResult.SObjects)
@@ -91,7 +91,7 @@ public class SchemaGenerator
         //    Logger?.Invoke($"{error.Key}\n{error.Value}");
         //}
 
-        var objects = JToken.FromObject(describeResult.Results());
+        var objects = JObject.FromObject(describeResult.Results());
         return objects;
     }
 
@@ -131,17 +131,17 @@ namespace ").Append(objNamespace).Append(@"
 {");
 		GenerateSchema(objNamespace, objects);
 
-		foreach (var prop in (IDictionary<string, JToken>)objects)
+		foreach (var prop in objects.Properties())
 		{
 			// await WriteJsonAsync(prop.Name, prop.Value).ConfigureAwait(false);
-			GenerateObject(objNamespace, prop.Key, prop.Value);
+			GenerateObject(objNamespace, prop.Name, prop.Value);
 		}
         GenerationEnvironment.Append(@"
 }");
         return GenerationEnvironment.ToString();
     }
 
-    public void GenerateSchema(string objNamespace, JToken objects)
+    public void GenerateSchema(string objNamespace, JObject objects)
     {
         GenerationEnvironment.Append(@"
 	public class Schema
@@ -161,12 +161,12 @@ namespace ").Append(objNamespace).Append(@"
         public static T Of<T>(Func<Schema, T> func) { return func(Instance); }
         public static void Of<T>(Func<Schema, T> func, Action<T> action) { action(func(Instance)); }
         public static TOut Of<T, TOut>(Func<Schema, T> func, Func<T, TOut> getter) { return getter(func(Instance)); }
-        public static JObjectWrapper Wrap(JToken obj) { return new JObjectWrapper(obj); }
-        public static async Task<IEnumerable<JObjectWrapper>> Wrap(Task<IEnumerable<JToken>> objs) { return Wrap(await objs); }
-        public static IEnumerable<JObjectWrapper> Wrap(IEnumerable<JToken> objs) { return objs?.Select(o => new JObjectWrapper(o)); }
+        public static JObjectWrapper Wrap(JObject obj) { return new JObjectWrapper(obj); }
+        public static async Task<IEnumerable<JObjectWrapper>> Wrap(Task<IEnumerable<JObject>> objs) { return Wrap(await objs); }
+        public static IEnumerable<JObjectWrapper> Wrap(IEnumerable<JObject> objs) { return objs?.Select(o => new JObjectWrapper(o)); }
 
 ");
-		foreach (var objName in ((IDictionary<string, JToken>)objects).Keys)
+		foreach (var objName in objects.Properties())
 		{
             GenerationEnvironment.Append(@"
 		public Sf").Append(objName).Append(@" ").Append(objName).Append(@" { get { return new Sf").Append(objName).Append(@"(); } }
