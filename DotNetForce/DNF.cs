@@ -440,10 +440,10 @@ namespace DotNetForce
         
 #endregion JObjectHelper
 
-        public static string EscapeUriString(string uri)
+        public static string EscapeDataString(string uri)
         {
             if (uri == null) return null;
-            return string.Join("", DNF.Chunk(uri, 65519).Select(c => Uri.EscapeUriString(new string(c.ToArray()))));
+            return string.Join("", DNF.Chunk(uri, 65519).Select(c => Uri.EscapeDataString(new string(c.ToArray()))));
         }
         
         public static IEnumerable<List<T>> Chunk<T>(IEnumerable<T> source, int size) => new EnumerableChunk<T>(source, size).GetEnumerable();

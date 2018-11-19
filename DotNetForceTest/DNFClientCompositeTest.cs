@@ -37,7 +37,7 @@ namespace DotNetForceTest
                 // $ url param injection
                 var testSubject = "UnitTest @!~-.,=_[]()*`";
 
-                var request = new CompositeRequest(allOrNone: true);
+                var request = new CompositeRequest(allOrNone: false);
                 request.Create("1create", "Product2", DNF.Assign(GetTestProduct2(), new  JObject
                 {
                     ["Name"] = $"UnitTest{Guid.NewGuid():N}",
