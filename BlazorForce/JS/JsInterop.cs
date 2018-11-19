@@ -16,27 +16,27 @@ namespace BlazorForce
         {
             public async Task BackAsync()
             {
-               await JSRuntime.Current.InvokeAsync<object>("DNF.history.back");
+                await JSRuntime.Current.InvokeAsync<object>("DNF.history.back");
             }
             public async Task ForwardAsync()
             {
-               await JSRuntime.Current.InvokeAsync<object>("DNF.history.forward");
+                await JSRuntime.Current.InvokeAsync<object>("DNF.history.forward");
             }
             public async Task GoAsync(int? delta = null)
             {
-               await JSRuntime.Current.InvokeAsync<object>("DNF.history.go", delta);
+                await JSRuntime.Current.InvokeAsync<object>("DNF.history.go", delta);
             }
             public async Task GoAsync(string delta)
             {
-               await JSRuntime.Current.InvokeAsync<object>("DNF.history.go", delta);
+                await JSRuntime.Current.InvokeAsync<object>("DNF.history.go", delta);
             }
             public async Task PushStateAsync(object data, string title, string url)
             {
-               await JSRuntime.Current.InvokeAsync<object>("DNF.history.pushState", data, title, url);
+                await JSRuntime.Current.InvokeAsync<object>("DNF.history.pushState", data, title, url);
             }
             public async Task ReplaceStateAsync(object data, string title, string url)
             {
-               await JSRuntime.Current.InvokeAsync<object>("DNF.history.replaceState", data, title, url);
+                await JSRuntime.Current.InvokeAsync<object>("DNF.history.replaceState", data, title, url);
             }
         }
 
@@ -46,11 +46,22 @@ namespace BlazorForce
         {
             public async Task<string> GetItemAsync(string key)
             {
-               return LZString.DecompressFromUTF16(await JSRuntime.Current.InvokeAsync<string>("DNF.sessionStorage.getItem", key));
+                try
+                {
+                    return LZString.DecompressFromUTF16(await JSRuntime.Current.InvokeAsync<string>("DNF.sessionStorage.getItem", key));
+                }
+                catch { }
+                return null;
             }
             public async Task SetItemAsync(string key, string value)
             {
-               await JSRuntime.Current.InvokeAsync<object>("DNF.sessionStorage.setItem", key, value);
+                var compressed = LZString.CompressToUTF16(value);
+                await JSRuntime.Current.InvokeAsync<object>("DNF.sessionStorage.setItem", key, compressed);
+            }
+            public async Task SetItemAsync(string key, object value)
+            {
+                var compressed = LZString.CompressToUTF16(JsonConvert.SerializeObject(value));
+                await JSRuntime.Current.InvokeAsync<object>("DNF.sessionStorage.setItem", key, compressed);
             }
         }
 
@@ -60,21 +71,27 @@ namespace BlazorForce
         {
             public async Task<string> GetItemAsync(string key)
             {
-               return LZString.DecompressFromUTF16(await JSRuntime.Current.InvokeAsync<string>("DNF.localStorage.getItem", key));
+                try
+                {
+                    return LZString.DecompressFromUTF16(await JSRuntime.Current.InvokeAsync<string>("DNF.localStorage.getItem", key));
+                }
+                catch { }
+                return null;
             }
             public async Task SetItemAsync(string key, string value)
             {
-                var compressed = LZString.DecompressFromUTF16(value);
+                var compressed = LZString.CompressToUTF16(value);
                 await JSRuntime.Current.InvokeAsync<object>("DNF.localStorage.setItem", key, compressed);
             }
             public async Task SetItemAsync(string key, object value)
             {
-                var compressed = LZString.DecompressFromUTF16(JsonConvert.SerializeObject(value));
+                var compressed = LZString.CompressToUTF16(JsonConvert.SerializeObject(value));
                 await JSRuntime.Current.InvokeAsync<object>("DNF.localStorage.setItem", key, compressed);
             }
         }
 
-        public async Task AddEventListenerAsync(string type) {
+        public async Task AddEventListenerAsync(string type)
+        {
             await JSRuntime.Current.InvokeAsync<object>("DNF.addEventListener", type);
         }
     }
