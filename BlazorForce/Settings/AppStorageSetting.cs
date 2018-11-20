@@ -16,8 +16,7 @@ namespace BlazorForce
             AppStorageModel data = null;
             try {
                 var storedData = await JsInterop.Current.LocalStorage.GetItemAsync("appStorage");
-                var uncompressed = LZString.DecompressFromUTF16(storedData);
-                data = JsonConvert.DeserializeObject<AppStorageModel>(uncompressed);
+                data = JsonConvert.DeserializeObject<AppStorageModel>(storedData);
             } catch { }
             return new AppStorageSetting { Data = data ?? new AppStorageModel() };
         }
