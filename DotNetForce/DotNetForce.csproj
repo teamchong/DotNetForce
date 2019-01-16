@@ -11,7 +11,9 @@
     <RepositoryUrl>https://github.com/ste80/DotNetForce</RepositoryUrl>
     <PackageTags>salesforce</PackageTags>
     <PackageProjectUrl>https://ste80.github.io/DotNetForce</PackageProjectUrl>
-    <PackageReleaseNotes>v5.0.6
+    <PackageReleaseNotes>This library provides an easy way for .NET developers to interact with the Salesforce REST &amp; Chatter APIs using native libraries.
+
+v5.0.7
 Remove ExplainAllAsync
 Fixed QueryAll
 (All = include deleted &amp; achieved)
