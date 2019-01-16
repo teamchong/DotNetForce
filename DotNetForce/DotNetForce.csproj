@@ -5,7 +5,7 @@
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <Authors>Steven Chong</Authors>
     <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
-    <Version>5.0.7</Version>
+    <Version>5.0.8</Version>
     <Company />
     <Description>https://ste80.github.io/DotNetForce</Description>
     <RepositoryUrl>https://github.com/ste80/DotNetForce</RepositoryUrl>
@@ -13,9 +13,11 @@
     <PackageProjectUrl>https://ste80.github.io/DotNetForce</PackageProjectUrl>
     <PackageReleaseNotes>This library provides an easy way for .NET developers to interact with the Salesforce REST &amp; Chatter APIs using native libraries.
 
+v5.0.8
+Bug Fixed JObjectWrapper.Set support relationship field
 v5.0.7
 Remove ExplainAllAsync
-Fixed QueryAll
+BugFixed: QueryAll
 (All = include deleted &amp; achieved)
 V5.0.5
 Add support for Blazor (WebAssembly)

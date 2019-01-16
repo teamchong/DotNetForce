@@ -99,7 +99,7 @@ namespace DotNetForce
                 {
                     Object[paths[0]] = new JObject();
                 }
-                return Set(paths[1], value);
+                new JObjectWrapper((JObject)Object[paths[0]]).Set(paths[1], value);
             }
             return this;
         }
