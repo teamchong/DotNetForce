@@ -409,9 +409,16 @@ namespace DotNetForce
                 (fields?.Length > 0 ? $"?fields={string.Join(",", fields.Select(field => Uri.EscapeDataString(field)))}" : "")).ConfigureAwait(false);
         }
 
-        public async Task<IEnumerable<JObject>> GetEnumerableByIdsAsync(IEnumerable<string> source, string soql, string template)
+        public async Task<IEnumerable<JObject>> GetEnumerableByIdsAsync(IEnumerable<string> source, string templatedSoql, string template)
         {
-            var soqlList = DNF.ChunkIds(source, soql, template);
+            var soqlList = DNF.ChunkIds(source, templatedSoql, template);
+            var result = await Task.WhenAll(soqlList.Select(soqlChunk => GetEnumerableAsync(soqlChunk)));
+            return result.SelectMany(r => r);
+        }
+
+        public async Task<IEnumerable<JObject>> GetEnumerableByFieldValuesAsync(IEnumerable<string> source, string templatedSoql, string template)
+        {
+            var soqlList = DNF.ChunkSoqlByFieldValues(source, templatedSoql, template);
             var result = await Task.WhenAll(soqlList.Select(soqlChunk => GetEnumerableAsync(soqlChunk)));
             return result.SelectMany(r => r);
         }

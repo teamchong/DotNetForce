@@ -26,14 +26,16 @@ namespace DotNetForce
         public const int BATCH_LIMIT = 25;
 
         public const int DEFAULT_CONCURRENT_LIMIT = 50;
-        
+
         public const int QUERY_CURSOR_LIMIT = 25;
+
+        public const int SOQL_MAX_LENGTH = 20000;
 
         // for Full DotNet Framework, please set ServicePointManager.DefaultConnectionLimit (Default is 2)
         // for safy reason, max no of concurrent api call with transactions longer than 20 seconds.
-        
 
-#region ResponseHandling
+
+        #region ResponseHandling
 
         public static bool IsQueryResult(JToken token)
         {
@@ -76,7 +78,7 @@ namespace DotNetForce
                 };
             }
         }
-        
+
 
         public static CompositeResult ThrowIfError(CompositeResult result)
         {
@@ -114,7 +116,7 @@ namespace DotNetForce
             }
             return response;
         }
-        
+
 
         public static BatchResult ThrowIfError(BatchResult result)
         {
@@ -149,9 +151,9 @@ namespace DotNetForce
             return response;
         }
 
-#endregion ResponseHandling
+        #endregion ResponseHandling
 
-#region DataConvertion
+        #region DataConvertion
 
         public static string SOQLString(object inputObj)
         {
@@ -358,107 +360,137 @@ namespace DotNetForce
             }
         }
 
-#endregion DataConvertion
+        #endregion DataConvertion
 
-//#region Encryption
+        //#region Encryption
 
-//        public static string Encrypt(string plainText, string passPhrase, string IV)
-//        {
-//            byte[] encrypted;
+        //        public static string Encrypt(string plainText, string passPhrase, string IV)
+        //        {
+        //            byte[] encrypted;
 
-//            using (AesCryptoServiceProvider aes = new AesCryptoServiceProvider())
-//            {
-//                aes.KeySize = 256;
-//                aes.Key = Encoding.UTF8.GetBytes(passPhrase);
-//                aes.IV = Encoding.UTF8.GetBytes(IV);
-//                aes.Mode = CipherMode.CBC;
-//                aes.Padding = PaddingMode.PKCS7;
+        //            using (AesCryptoServiceProvider aes = new AesCryptoServiceProvider())
+        //            {
+        //                aes.KeySize = 256;
+        //                aes.Key = Encoding.UTF8.GetBytes(passPhrase);
+        //                aes.IV = Encoding.UTF8.GetBytes(IV);
+        //                aes.Mode = CipherMode.CBC;
+        //                aes.Padding = PaddingMode.PKCS7;
 
-//                ICryptoTransform enc = aes.CreateEncryptor(aes.Key, aes.IV);
+        //                ICryptoTransform enc = aes.CreateEncryptor(aes.Key, aes.IV);
 
-//                using (MemoryStream ms = new MemoryStream())
-//                {
-//                    using (CryptoStream cs = new CryptoStream(ms, enc, CryptoStreamMode.Write))
-//                    {
-//                        using (StreamWriter sw = new StreamWriter(cs))
-//                        {
-//                            sw.Write(plainText);
-//                        }
+        //                using (MemoryStream ms = new MemoryStream())
+        //                {
+        //                    using (CryptoStream cs = new CryptoStream(ms, enc, CryptoStreamMode.Write))
+        //                    {
+        //                        using (StreamWriter sw = new StreamWriter(cs))
+        //                        {
+        //                            sw.Write(plainText);
+        //                        }
 
-//                        encrypted = ms.ToArray();
-//                    }
-//                }
-//            }
+        //                        encrypted = ms.ToArray();
+        //                    }
+        //                }
+        //            }
 
-//            return Convert.ToBase64String(encrypted);
-//        }
+        //            return Convert.ToBase64String(encrypted);
+        //        }
 
-//        public static string Decrypt(string encryptedText, string passPhrase, string IV)
-//        {
-//            string decrypted = null;
-//            byte[] cipher = Convert.FromBase64String(encryptedText);
+        //        public static string Decrypt(string encryptedText, string passPhrase, string IV)
+        //        {
+        //            string decrypted = null;
+        //            byte[] cipher = Convert.FromBase64String(encryptedText);
 
-//            using (AesCryptoServiceProvider aes = new AesCryptoServiceProvider())
-//            {
-//                aes.KeySize = 256;
-//                aes.Key = Encoding.UTF8.GetBytes(passPhrase);
-//                aes.IV = Encoding.UTF8.GetBytes(IV);
-//                aes.Mode = CipherMode.CBC;
-//                aes.Padding = PaddingMode.PKCS7;
+        //            using (AesCryptoServiceProvider aes = new AesCryptoServiceProvider())
+        //            {
+        //                aes.KeySize = 256;
+        //                aes.Key = Encoding.UTF8.GetBytes(passPhrase);
+        //                aes.IV = Encoding.UTF8.GetBytes(IV);
+        //                aes.Mode = CipherMode.CBC;
+        //                aes.Padding = PaddingMode.PKCS7;
 
-//                ICryptoTransform dec = aes.CreateDecryptor(aes.Key, aes.IV);
+        //                ICryptoTransform dec = aes.CreateDecryptor(aes.Key, aes.IV);
 
-//                using (MemoryStream ms = new MemoryStream(cipher))
-//                {
-//                    using (CryptoStream cs = new CryptoStream(ms, dec, CryptoStreamMode.Read))
-//                    {
-//                        using (StreamReader sr = new StreamReader(cs))
-//                        {
-//                            decrypted = sr.ReadToEnd();
-//                        }
-//                    }
-//                }
-//            }
+        //                using (MemoryStream ms = new MemoryStream(cipher))
+        //                {
+        //                    using (CryptoStream cs = new CryptoStream(ms, dec, CryptoStreamMode.Read))
+        //                    {
+        //                        using (StreamReader sr = new StreamReader(cs))
+        //                        {
+        //                            decrypted = sr.ReadToEnd();
+        //                        }
+        //                    }
+        //                }
+        //            }
 
-//            return decrypted;
-//        }
+        //            return decrypted;
+        //        }
 
-//#endregion Encryption
+        //#endregion Encryption
 
 
-#region JObjectHelper
-        
+        #region JObjectHelper
+
         public static JObject UnFlatten(JObject source) => new JObjectHelper(source).UnFlatten();
 
         public static JObject UnFlatten(JObject source, string name) => new JObjectHelper(source).UnFlatten(name);
 
-        public static JObject Assign(JObject source, params JObject[] others) => new JObjectHelper(source).Assign( others);
+        public static JObject Assign(JObject source, params JObject[] others) => new JObjectHelper(source).Assign(others);
 
         public static JObject Pick(JObject source, params string[] colNames) => new JObjectHelper(source).Pick(colNames);
 
         public static JObject Omit(JObject source, params string[] colNames) => new JObjectHelper(source).Omit(colNames);
-        
-#endregion JObjectHelper
+
+        #endregion JObjectHelper
 
         public static string EscapeDataString(string uri)
         {
             if (uri == null) return null;
             return string.Join("", DNF.Chunk(uri, 65519).Select(c => Uri.EscapeDataString(new string(c.ToArray()))));
         }
-        
+
         public static IEnumerable<List<T>> Chunk<T>(IEnumerable<T> source, int size) => new EnumerableChunk<T>(source, size).GetEnumerable();
-        
+
         public static IEnumerable<string> ChunkIds(IEnumerable<string> source, string soql, string template)
         {
             soql = soql.Trim().Replace("\r\n", "\n");
-            var soqlMaxLen = 20000;
+            // var soqlMaxLen = 20000;
             var nonTemplateLength = soql.Replace(template, "").Length;
-            var idsTextLen = soqlMaxLen - nonTemplateLength;
+            // var idsTextLen = soqlMaxLen - nonTemplateLength;
+            var idsTextLen = SOQL_MAX_LENGTH - nonTemplateLength;
             var numOfTemplate = (int)Math.Ceiling((soql.Length - nonTemplateLength) / (double)template.Length);
             var numOfId = (int)Math.Max(1, Math.Floor(idsTextLen / (18.0 * numOfTemplate)));
             return new EnumerableChunk<string>(source, numOfId).GetEnumerable()
                 .Select(l => soql.Replace(template, string.Join(",", l.Select(id => DNF.SOQLString(DNF.ToID15(id))))));
         }
 
+        public static IEnumerable<string> ChunkSoqlByFieldValues(IEnumerable<string> source, string templatedSoql, string template)
+        {
+            templatedSoql = templatedSoql.Trim().Replace("\r\n", "\n");
+            
+            var replacement = new List<string>();
+            var soql = templatedSoql.Replace(template, "null");
+
+            foreach (var sourceItem in source)
+            {
+                var soqlTest = templatedSoql.Replace(template, string.Join(",", replacement.Union(new[] { DNF.SOQLString(sourceItem) })));
+
+                if (soqlTest.Length <= SOQL_MAX_LENGTH)
+                {
+                    replacement.Add(DNF.SOQLString(sourceItem));
+                    soql = soqlTest;
+                }
+                else
+                {
+                    yield return soql;
+                    replacement = new List<string> { DNF.SOQLString(sourceItem) };
+                    soql = templatedSoql.Replace(template, string.Join(",", replacement));
+                }
+            }
+
+            if (replacement.Count > 0)
+            {
+                yield return soql;
+            }
+        }
     }
 }

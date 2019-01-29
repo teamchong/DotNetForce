@@ -5,7 +5,7 @@
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <Authors>Steven Chong</Authors>
     <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
-    <Version>5.0.8</Version>
+    <Version>5.0.9</Version>
     <Company />
     <Description>https://ste80.github.io/DotNetForce</Description>
     <RepositoryUrl>https://github.com/ste80/DotNetForce</RepositoryUrl>
@@ -13,6 +13,10 @@
     <PackageProjectUrl>https://ste80.github.io/DotNetForce</PackageProjectUrl>
     <PackageReleaseNotes>This library provides an easy way for .NET developers to interact with the Salesforce REST &amp; Chatter APIs using native libraries.
 
+v5.0.9
+new function GetEnumerableByFieldValues, support any string field
+Add test class for GetEnumerableByIds, GetEnumerableByFieldValues
+https://github.com/ste80/DotNetForce/blob/master/DotNetForceTest/DNFClientTest.cs
 v5.0.8
 Bug Fixed JObjectWrapper.Set support relationship field
 v5.0.7

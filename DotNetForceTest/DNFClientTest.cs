@@ -185,5 +185,37 @@ LIMIT 10"))).ToList();
                 Assert.Equal(peSize, client.GetEnumerable(o["PricebookEntries"].ToObject<QueryResult<JToken>>()).Count());
             });
         }
+
+        [Fact]
+        public async Task GetEnumerableByIdsTest()
+        {
+            var client = await LoginTask;
+            var oppIdList = (await client.GetEnumerableAsync(@"
+SELECT Id
+FROM Opportunity
+LIMIT 10000")).Select(i => i["Id"]?.ToString()).OrderBy(id => id).ToList();
+            var oppsResult = (await client.GetEnumerableByIdsAsync(oppIdList, @"
+SELECT Id
+FROM Opportunity
+WHERE Id IN(<ids>)
+LIMIT 10000", "<ids>")).Select(i => i["Id"]?.ToString()).OrderBy(id => id).ToList();
+            Assert.Equal(string.Join(",", oppIdList), string.Join(",", oppsResult));
+        }
+
+        [Fact]
+        public async Task GetEnumerableByFieldValuesTest()
+        {
+            var client = await LoginTask;
+            var oppIdList = (await client.GetEnumerableAsync(@"
+SELECT Id
+FROM Opportunity
+LIMIT 10000")).Select(i => i["Id"]?.ToString()).OrderBy(id => id).ToList();
+            var oppsResult = (await client.GetEnumerableByFieldValuesAsync(oppIdList, @"
+SELECT Id
+FROM Opportunity
+WHERE Id IN(<ids>)
+LIMIT 10000", "<ids>")).Select(i => i["Id"]?.ToString()).OrderBy(id => id).ToList();
+            Assert.Equal(string.Join(",", oppIdList), string.Join(",", oppsResult));
+        }
     }
 }
