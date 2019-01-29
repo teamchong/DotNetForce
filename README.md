@@ -5,8 +5,17 @@ Run this on nuget command to fix the binding problem
 ```
 Get-Project –All | Add-BindingRedirect
 ```
+Please check the TestClasses for code samples https://github.com/ste80/DotNetForce/tree/master/DotNetForceTest
 
-I have updated the library, but don't have time to document the changes, please check the TestClasses for code samples https://github.com/ste80/DotNetForce/tree/master/DotNetForceTest
+This library provides an easy way for .NET developers to interact with the Salesforce REST & Chatter APIs using native libraries.
+
+v5.0.8
+Bug Fixed JObjectWrapper.Set support relationship field
+v5.0.7
+Remove ExplainAllAsync
+BugFixed: QueryAll
+(All = include deleted & achieved)
+
 
 V5.0.1
 Add support for Blazor (WebAssembly)
