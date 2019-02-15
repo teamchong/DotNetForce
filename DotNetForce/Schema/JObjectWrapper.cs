@@ -16,6 +16,8 @@ namespace DotNetForce
 
         [JsonIgnore]
         public ObjectAttributes Attributes { get => Object?["attributes"]?.ToObject<ObjectAttributes>(); set => Object["attributes"] = value == null ? null : JObject.FromObject(value); }
+        
+        public JObjectWrapper() { Object = new JObject(); }
 
         public JObjectWrapper(JObject obj) { Object = obj; }
 
