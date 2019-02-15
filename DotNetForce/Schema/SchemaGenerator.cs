@@ -162,8 +162,20 @@ namespace ").Append(objNamespace).Append(@"
         public static void Of<T>(Func<Schema, T> func, Action<T> action) { action(func(Instance)); }
         public static TOut Of<T, TOut>(Func<Schema, T> func, Func<T, TOut> getter) { return getter(func(Instance)); }
         public static JObjectWrapper Wrap(JObject obj) { return new JObjectWrapper(obj); }
+        public static JObjectWrapper Wrap(JObject obj, SfObjectBase type) { return new JObjectWrapper(obj, type); }
+        public static JObjectWrapper Wrap(JObject obj, string type) { return new JObjectWrapper(obj, type); }
+        public static JObjectWrapper Wrap(JObject obj, SfObjectBase type, string referernceId) { return new JObjectWrapper(obj, type, referernceId); }
+        public static JObjectWrapper Wrap(JObject obj, string type, string referernceId) { return new JObjectWrapper(obj, type, referernceId); }
         public static async Task<IEnumerable<JObjectWrapper>> Wrap(Task<IEnumerable<JObject>> objs) { return Wrap(await objs); }
+        public static async Task<IEnumerable<JObjectWrapper>> Wrap(Task<IEnumerable<JObject>> objs, SfObjectBase type) { return Wrap(await objs, type); }
+        public static async Task<IEnumerable<JObjectWrapper>> Wrap(Task<IEnumerable<JObject>> objs, string type) { return Wrap(await objs, type); }
+        public static async Task<IEnumerable<JObjectWrapper>> Wrap(Task<IEnumerable<JObject>> objs, SfObjectBase type, string referernceId) { return Wrap(await objs, type, referernceId); }
+        public static async Task<IEnumerable<JObjectWrapper>> Wrap(Task<IEnumerable<JObject>> objs, string type, string referernceId) { return Wrap(await objs, type, referernceId); }
         public static IEnumerable<JObjectWrapper> Wrap(IEnumerable<JObject> objs) { return objs?.Select(o => new JObjectWrapper(o)); }
+        public static IEnumerable<JObjectWrapper> Wrap(IEnumerable<JObject> objs, SfObjectBase type) { return objs?.Select(o => new JObjectWrapper(o, type)); }
+        public static IEnumerable<JObjectWrapper> Wrap(IEnumerable<JObject> objs, string type) { return objs?.Select(o => new JObjectWrapper(o, type)); }
+        public static IEnumerable<JObjectWrapper> Wrap(IEnumerable<JObject> objs, SfObjectBase type, string referernceId) { return objs?.Select(o => new JObjectWrapper(o, type, referernceId)); }
+        public static IEnumerable<JObjectWrapper> Wrap(IEnumerable<JObject> objs, string type, string referernceId) { return objs?.Select(o => new JObjectWrapper(o, type, referernceId)); }
 
 ");
 		foreach (var objName in objects.Properties())

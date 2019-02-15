@@ -17,7 +17,29 @@ namespace DotNetForce
         [JsonIgnore]
         public ObjectAttributes Attributes { get => Object?["attributes"]?.ToObject<ObjectAttributes>(); set => Object["attributes"] = value == null ? null : JObject.FromObject(value); }
 
-        public JObjectWrapper(JObject obj) => Object = obj;
+        public JObjectWrapper(JObject obj) { Object = obj; }
+
+        public JObjectWrapper(JObject obj, SfObjectBase type) : this(obj, type?.ToString()) { }
+
+        public JObjectWrapper(JObject obj, string type)
+        {
+            if (obj != null)
+            {
+                obj["attributes"] = new JObject { ["type"] = type?.ToString() };
+            }
+            Object = obj;
+        }
+
+        public JObjectWrapper(JObject obj, SfObjectBase type, string referenceId) : this(obj, type?.ToString(), referenceId) { }
+
+        public JObjectWrapper(JObject obj, string type, string referenceId)
+        {
+            if (obj != null)
+            {
+                obj["attributes"] = new JObject { ["type"] = type?.ToString(), ["referenceId"] = referenceId };
+            }
+            Object = obj;
+        }
 
         public JObjectWrapper Spread()
         {
