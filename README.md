@@ -9,19 +9,39 @@ Please check the TestClasses for code samples https://github.com/ste80/DotNetFor
 
 This library provides an easy way for .NET developers to interact with the Salesforce REST & Chatter APIs using native libraries.
 
+v5.0.9
+
+new function GetEnumerableByFieldValues, support any string field
+
+Add test class for GetEnumerableByIds, GetEnumerableByFieldValues
+
+https://github.com/ste80/DotNetForce/blob/master/DotNetForceTest/DNFClientTest.cs
+
+
 v5.0.8
+
 Bug Fixed JObjectWrapper.Set support relationship field
+
+
 v5.0.7
+
 Remove ExplainAllAsync
+
 BugFixed: QueryAll
+
 (All = include deleted & achieved)
 
 
 V5.0.1
+
 Add support for Blazor (WebAssembly)
+
 +Setup https://ste80.github.io/DotNetForce/ for demo running C# on web client
+
 +DNFClient.DefaultApiVersion = "v44.0"; // to change API Version
+
 +DNFClient.UseCompression = false; // to disabled UseCompression
+
 +DNFClient.Proxy = uri => new Uri(new Uri("https://yourproxy"), uri.PathAndQuery); // to send to proxy instead of instanceUrl
 
 V4.0.0
