@@ -13,6 +13,7 @@
     <PackageProjectUrl>https://ste80.github.io/DotNetForce</PackageProjectUrl>
     <PackageReleaseNotes>This library provides an easy way for .NET developers to interact with the Salesforce REST &amp; Chatter APIs using native libraries.
 
+v5.0.10 bug fixes
 v5.0.9
 new function GetEnumerableByFieldValues, support any string field
 Add test class for GetEnumerableByIds, GetEnumerableByFieldValues
