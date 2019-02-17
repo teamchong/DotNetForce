@@ -133,7 +133,14 @@ namespace DotNetForce
                                         {
                                             _Results.Add(refId, row);
                                         }
-                                        else if (row["errors"]?.Type != JTokenType.Array)
+                                        else if (row["errors"]?.Type == JTokenType.Array)
+                                        {
+                                            if (row["errors"].Any())
+                                            {
+                                                _Errors.Add(refId, DNF.GetErrorResponses(row["errors"]));
+                                            }
+                                        }
+                                        else
                                         {
                                             _Errors.Add(refId, DNF.GetErrorResponses(row));
                                         }

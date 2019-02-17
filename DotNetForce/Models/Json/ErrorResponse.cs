@@ -1,5 +1,6 @@
 ﻿using System.Xml.Serialization;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
 namespace DotNetForce.Common.Models.Json
 {
@@ -15,5 +16,13 @@ namespace DotNetForce.Common.Models.Json
         [XmlElement(ElementName = "exceptionMessage")]
         [JsonProperty(PropertyName = "errorCode")]
         public string ErrorCode;
+
+        [XmlElement(ElementName = "exceptionStatusCode")]
+        [JsonProperty(PropertyName = "statusCode")]
+        public string StatusCode;
+
+        [XmlElement(ElementName = "exceptionFields")]
+        [JsonProperty(PropertyName = "fields")]
+        public string[] fields;
     }
 }
