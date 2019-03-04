@@ -37,6 +37,10 @@ namespace DotNetForce
         public string ApiVersion { get; set; }
         //public long? IssuedAt { get; set; }
 
+        public string Id {  get; set; }
+        public string IssuedAt {  get; set; }
+        public string Signature {  get; set; }
+
         public Action<string> Logger { get; set; }
 
         public int? ApiUsed { get => JsonHttp.ApiLastRetrieve < XmlHttp.ApiLastRetrieve ? XmlHttp.ApiUsed : JsonHttp.ApiUsed; }
@@ -134,6 +138,7 @@ namespace DotNetForce
                 logger?.Invoke($"DNFClient connected ({timer.Elapsed.TotalSeconds} seconds)");
 
                 var client = new DNFClient(auth.InstanceUrl, auth.AccessToken, auth.RefreshToken, logger);
+                client.Id = auth.Id;
                 return client;
             }
         }
@@ -156,6 +161,7 @@ namespace DotNetForce
                 logger?.Invoke($"DNFClient connected ({timer.Elapsed.TotalSeconds} seconds)");
 
                 var client = new DNFClient(auth.InstanceUrl, auth.AccessToken, auth.RefreshToken, logger);
+                client.Id = auth.Id;
                 return client;
             }
         }
@@ -166,6 +172,7 @@ namespace DotNetForce
             {
                 var tokenRequestEndpointUrl = new Uri(new Uri(loginUri.GetLeftPart(UriPartial.Authority)), "/services/oauth2/token").ToString();
                 await auth.TokenRefreshAsync(clientId, RefreshToken, clientSecret, tokenRequestEndpointUrl).ConfigureAwait(false);
+                Id = auth.Id;
 
                 //Id = auth.Id;
                 InstanceUrl = auth.InstanceUrl;
@@ -258,6 +265,8 @@ namespace DotNetForce
         public Task<T> RecentAsync<T>(int limit = 200) => Force.RecentAsync<T>(limit);
         public Task<List<JObject>> SearchAsync(string query) => SearchAsync<JObject>(query);
         public Task<List<T>> SearchAsync<T>(string query) => Force.SearchAsync<T>(query);
+        public Task<JObject> UserInfo() => UserInfo<JObject>(Id);
+        public Task<T> UserInfo<T>() => Force.UserInfo<T>(Id);
         public Task<JObject> UserInfo(string url) => UserInfo<JObject>(url);
         public Task<T> UserInfo<T>(string url) => Force.UserInfo<T>(url);
         #endregion

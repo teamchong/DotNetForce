@@ -1,8 +1,0 @@
-{
-  "profiles": {
-    "DataConvertForInspector": {
-      "commandName": "Project",
-      "commandLineArgs": "insert"
-    }
-  }
-}

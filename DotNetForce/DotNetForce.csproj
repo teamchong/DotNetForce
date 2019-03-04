@@ -5,7 +5,7 @@
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <Authors>Steven Chong</Authors>
     <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
-    <Version>5.0.10</Version>
+    <Version>5.0.11</Version>
     <Company />
     <Description>https://ste80.github.io/DotNetForce</Description>
     <RepositoryUrl>https://github.com/ste80/DotNetForce</RepositoryUrl>
@@ -13,6 +13,7 @@
     <PackageProjectUrl>https://ste80.github.io/DotNetForce</PackageProjectUrl>
     <PackageReleaseNotes>This library provides an easy way for .NET developers to interact with the Salesforce REST &amp; Chatter APIs using native libraries.
 
+5.0.11 Added Id field to DNFClient
 v5.0.10 bug fixes
 v5.0.9
 new function GetEnumerableByFieldValues, support any string field

@@ -11,10 +11,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DotNetForceTest", "DotNetFo
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BlazorForce", "BlazorForce\BlazorForce.csproj", "{F2A5F43D-657B-4833-9E42-E11A55299DC7}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "sql2csv", "sql2csv\sql2csv.csproj", "{E76EC5A3-F44E-4ACA-8806-65E5C5A32C10}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "sql2excel", "sql2excel\sql2excel.csproj", "{E0CE6DD0-439A-44DA-A2B7-E8CE77CB2A22}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -37,14 +33,6 @@ Global
 		{F2A5F43D-657B-4833-9E42-E11A55299DC7}.Debug|Any CPU.Build.0 = Release|Any CPU
 		{F2A5F43D-657B-4833-9E42-E11A55299DC7}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{F2A5F43D-657B-4833-9E42-E11A55299DC7}.Release|Any CPU.Build.0 = Release|Any CPU
-		{E76EC5A3-F44E-4ACA-8806-65E5C5A32C10}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{E76EC5A3-F44E-4ACA-8806-65E5C5A32C10}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{E76EC5A3-F44E-4ACA-8806-65E5C5A32C10}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{E76EC5A3-F44E-4ACA-8806-65E5C5A32C10}.Release|Any CPU.Build.0 = Release|Any CPU
-		{E0CE6DD0-439A-44DA-A2B7-E8CE77CB2A22}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{E0CE6DD0-439A-44DA-A2B7-E8CE77CB2A22}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{E0CE6DD0-439A-44DA-A2B7-E8CE77CB2A22}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{E0CE6DD0-439A-44DA-A2B7-E8CE77CB2A22}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

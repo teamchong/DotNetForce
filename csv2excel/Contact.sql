@@ -1,1 +1,0 @@
-﻿SELECT * FROM [UBMChina_MSCRM].[dbo].[testMigrate]
