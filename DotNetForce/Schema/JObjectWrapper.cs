@@ -19,6 +19,14 @@ namespace DotNetForce
         
         public JObjectWrapper() { Object = new JObject(); }
 
+        public JObjectWrapper(SfObjectBase type) : this(new JObject(), type?.ToString()) { }
+
+        public JObjectWrapper(SfObjectBase type, string referenceId) : this(new JObject(), type?.ToString(), referenceId) { }
+
+        public JObjectWrapper(string type) : this(new JObject(), type?.ToString()) { }
+
+        public JObjectWrapper(string type, string referenceId) : this(new JObject(), type?.ToString(), referenceId) { }
+
         public JObjectWrapper(JObject obj) { Object = obj; }
 
         public JObjectWrapper(JObject obj, SfObjectBase type) : this(obj, type?.ToString()) { }

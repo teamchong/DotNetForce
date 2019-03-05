@@ -335,11 +335,6 @@ namespace ").Append(objNamespace).Append(@"
 		public SfIdField<Sf").Append(objName).Append(@"> ").Append(fieldName).Append(@" { get { return new SfIdField<Sf").Append(objName).Append(@">(").Append(FormatPath(fieldName)).Append(@"); } }
 ");
                         break;
-                    case "string":
-                        GenerationEnvironment.Append(@"
-		public SfStringField<Sf").Append(objName).Append(@"> ").Append(fieldName).Append(@" { get { return new SfStringField<Sf").Append(objName).Append(@">(").Append(FormatPath(fieldName)).Append(@"); } }
-");
-                        break;
                     case "textarea":
                         GenerationEnvironment.Append(@"
 		public SfTextAreaField<Sf").Append(objName).Append(@"> ").Append(fieldName).Append(@" { get { return new SfTextAreaField<Sf").Append(objName).Append(@">(").Append(FormatPath(fieldName)).Append(@"); } }
@@ -355,10 +350,12 @@ namespace ").Append(objNamespace).Append(@"
 		public SfUrlField<Sf").Append(objName).Append(@"> ").Append(fieldName).Append(@" { get { return new SfUrlField<Sf").Append(objName).Append(@">(").Append(FormatPath(fieldName)).Append(@"); } }
 ");
                         break;
+                    case "string":
+                    case "encryptedstring":
                     default:
                         GenerationEnvironment.Append(@"
 		/* unknown type: ").Append(field["type"]?.ToString() ?? "").Append(@" */
-		public SfTextField<Sf").Append(objName).Append(@"> ").Append(fieldName).Append(@" { get { return new SfTextField<Sf").Append(objName).Append(@">(").Append(FormatPath(fieldName)).Append(@"); } }
+		public SfStringField<Sf").Append(objName).Append(@"> ").Append(fieldName).Append(@" { get { return new SfStringField<Sf").Append(objName).Append(@">(").Append(FormatPath(fieldName)).Append(@"); } }
 ");
                         break;
                 }
