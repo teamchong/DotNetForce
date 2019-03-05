@@ -116,7 +116,12 @@ public class SchemaGenerator
     //    await GenerateFileAsync("Json\\" + objName + ".json").ConfigureAwait(false);
     //}
     
-    public async Task<string> GenerateAsync(DNFClient client, string objNamespace)
+    public Task<string> GenerateAsync(DNFClient client, string objNamespace)
+    {
+        return GenerateAsync(client, objNamespace, prop =>  true);
+    }
+
+    public async Task<string> GenerateAsync(DNFClient client, string objNamespace, Func<JProperty, bool> filter)
     {
         var objects = await RetreiveSObjectsAsync(client);
         
@@ -131,7 +136,7 @@ namespace ").Append(objNamespace).Append(@"
 {");
 		GenerateSchema(objNamespace, objects);
 
-		foreach (var prop in objects.Properties())
+		foreach (var prop in objects.Properties().Where(p => filter?.Invoke(p) != false))
 		{
 			// await WriteJsonAsync(prop.Name, prop.Value).ConfigureAwait(false);
 			GenerateObject(objNamespace, prop.Name, prop.Value);
@@ -178,7 +183,7 @@ namespace ").Append(objNamespace).Append(@"
         public static IEnumerable<JObjectWrapper> Wrap(IEnumerable<JObject> objs, string type, string referernceId) { return objs?.Select(o => new JObjectWrapper(o, type, referernceId)); }
 
 ");
-		foreach (var objName in objects.Properties())
+		foreach (var objName in objects.Properties().Select(p => p.Name))
 		{
             GenerationEnvironment.Append(@"
 		public Sf").Append(objName).Append(@" ").Append(objName).Append(@" { get { return new Sf").Append(objName).Append(@"(); } }
@@ -319,8 +324,7 @@ namespace ").Append(objNamespace).Append(@"
                     case "reference":
                         if (field["referenceTo"].Count() != 1)
                         {
-                            GenerationEnvironment.Append(@"
-	/* referenceTo.Count != 1 ").Append(field["referenceTo"]).Append(@" */");
+                            System.Diagnostics.Debug.WriteLine("referenceTo.Count != 1 " + objName.Remove(50) + "." + fieldName.Remove(50) + " " + (field["referenceTo"]?.ToString() ?? "").Remove(50));
                             continue;
                         }
                         var relationshipName = field["relationshipName"]?.ToString();
@@ -352,11 +356,15 @@ namespace ").Append(objNamespace).Append(@"
                         break;
                     case "string":
                     case "encryptedstring":
-                    default:
                         GenerationEnvironment.Append(@"
-		/* unknown type: ").Append(field["type"]?.ToString() ?? "").Append(@" */
 		public SfStringField<Sf").Append(objName).Append(@"> ").Append(fieldName).Append(@" { get { return new SfStringField<Sf").Append(objName).Append(@">(").Append(FormatPath(fieldName)).Append(@"); } }
 ");
+                        break;
+                    default:
+                        System.Diagnostics.Debug.WriteLine("unknown type: " + objName.Remove(50) + "." + fieldName.Remove(50) + " " + (field["type"]?.ToString() ?? ""));
+//                        GenerationEnvironment.Append(@"
+//		public SfStringField<Sf").Append(objName).Append(@"> ").Append(fieldName).Append(@" { get { return new SfStringField<Sf").Append(objName).Append(@">(").Append(FormatPath(fieldName)).Append(@"); } }
+//");
                         break;
                 }
             }

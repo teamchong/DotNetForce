@@ -5,7 +5,7 @@
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <Authors>Steven Chong</Authors>
     <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
-    <Version>5.0.12</Version>
+    <Version>5.1</Version>
     <Company />
     <Description>https://ste80.github.io/DotNetForce</Description>
     <RepositoryUrl>https://github.com/ste80/DotNetForce</RepositoryUrl>
