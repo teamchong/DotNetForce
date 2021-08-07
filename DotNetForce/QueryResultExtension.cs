@@ -4,7 +4,6 @@
 //using System;
 //using System.Collections.Generic;
 //using System.Linq;
-//using System.Reactive.Linq;
 //using System.Text.RegularExpressions;
 //using System.Threading.Tasks;
 
@@ -12,16 +11,18 @@
 //{
 //    public static class QueryResultExtension
 //    {
-//        public static IEnumerable<T> GetEnumerable<T>(this QueryResult<T> queryResult, DNFClient client)
+//        public static IEnumerable<T> GetEnumerable<T>(this QueryResult<T> queryResult, DnfClient client)
 //        {
 //            return queryResult == null ? Enumerable.Empty<T>()
 //                : client?.GetEnumerable(queryResult) ?? Enumerable.Empty<T>();
 //        }
 
-//        public static IEnumerable<T> GetLazyEnumerable<T>(this QueryResult<T> queryResult, DNFClient client)
+//        public static IEnumerable<T> GetAsyncEnumerableByQueryResult<T>(this QueryResult<T> queryResult, DnfClient client)
 //        {
 //            return queryResult == null ? Enumerable.Empty<T>()
-//                : client?.GetLazyEnumerable(queryResult) ?? Enumerable.Empty<T>();
+//                : client?.GetAsyncEnumerableByQueryResult(queryResult) ?? Enumerable.Empty<T>();
 //        }
 //    }
 //}
+
+

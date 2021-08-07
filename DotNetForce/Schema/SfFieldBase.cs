@@ -1,13 +1,19 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace DotNetForce
+﻿namespace DotNetForce.Schema
 {
-    public abstract class SfFieldBase<T> where T: SfObjectBase
+    [JetBrains.Annotations.PublicAPI]
+    public abstract class SfFieldBase
     {
+        protected SfFieldBase(string path)
+        {
+            _Path = path;
+        }
+
+        // ReSharper disable once InconsistentNaming
         protected string _Path { get; set; }
-        public SfFieldBase(string path) => _Path = path;
-        public override string ToString() => _Path;
+
+        public override string ToString()
+        {
+            return _Path;
+        }
     }
 }

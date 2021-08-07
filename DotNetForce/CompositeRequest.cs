@@ -1,34 +1,117 @@
-﻿using DotNetForce.Common;
+﻿using System;
+using System.Collections.Generic;
+using System.Globalization;
+using System.Linq;
+using DotNetForce.Common;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Reactive.Linq;
 
 namespace DotNetForce
 {
     //https://developer.salesforce.com/docs/atlas.en-us.214.0.api_rest.meta/api_rest/resources_composite_composite.htm?search_text=connect
+    [JetBrains.Annotations.PublicAPI]
     public class CompositeRequest : ICompositeRequest
     {
-        public string Prefix { get; set; }
-        public bool AllOrNone { get; set; }
-        public List<CompositeSubrequest> CompositeRequests { get; set; }
-
         public CompositeRequest(bool allOrNone = false)
         {
             Prefix = "";
             AllOrNone = allOrNone;
-            CompositeRequests = new List<CompositeSubrequest>();
+            CompositeRequests = new List<CompositeSubRequest>();
+        }
+
+        public string Prefix { get; set; }
+        public bool AllOrNone { get; set; }
+        public IList<CompositeSubRequest> CompositeRequests { get; set; }
+
+        public CompositeSubRequest Query(string referenceId, string query)
+        {
+            if (string.IsNullOrEmpty(referenceId)) throw new ArgumentNullException(nameof(referenceId));
+            if (string.IsNullOrEmpty(query)) throw new ArgumentNullException(nameof(query));
+
+            var request = new CompositeSubRequest
+            {
+                ResponseType = "query",
+                Method = "GET",
+                ReferenceId = referenceId,
+                Url = $@"query?q={Dnf.EscapeDataString(query)}"
+            };
+            CompositeRequests.Add(request);
+            return request;
+        }
+
+        public CompositeSubRequest Explain(string referenceId, string query)
+        {
+            if (string.IsNullOrEmpty(referenceId)) throw new ArgumentNullException(nameof(referenceId));
+            if (string.IsNullOrEmpty(query)) throw new ArgumentNullException(nameof(query));
+
+            var request = new CompositeSubRequest
+            {
+                Method = "GET",
+                ReferenceId = referenceId,
+                Url = $@"query?explain={Dnf.EscapeDataString(query)}"
+            };
+            CompositeRequests.Add(request);
+            return request;
+        }
+
+        public CompositeSubRequest QueryAll(string referenceId, string query)
+        {
+            if (string.IsNullOrEmpty(referenceId)) throw new ArgumentNullException(nameof(referenceId));
+            if (string.IsNullOrEmpty(query)) throw new ArgumentNullException(nameof(query));
+
+            var request = new CompositeSubRequest
+            {
+                ResponseType = "query",
+                Method = "GET",
+                ReferenceId = referenceId,
+                Url = $"queryAll?q={Uri.EscapeDataString(query)}"
+            };
+            CompositeRequests.Add(request);
+            return request;
+        }
+
+        public CompositeSubRequest ExplainAll(string referenceId, string query)
+        {
+            if (string.IsNullOrEmpty(referenceId)) throw new ArgumentNullException(nameof(referenceId));
+            if (string.IsNullOrEmpty(query)) throw new ArgumentNullException(nameof(query));
+
+            var request = new CompositeSubRequest
+            {
+                Method = "GET",
+                ReferenceId = referenceId,
+                Url = $"queryAll?explain={Uri.EscapeDataString(query)}"
+            };
+            CompositeRequests.Add(request);
+            return request;
+        }
+
+        public CompositeSubRequest CreateTree(string referenceId, string objectName, IList<IAttributedObject> objectTree)
+        {
+            if (string.IsNullOrEmpty(objectName)) throw new ArgumentNullException(nameof(objectName));
+
+            var request = new CompositeSubRequest
+            {
+                Body = new RecordsObject(objectTree),
+                Method = "POST",
+                ReferenceId = referenceId,
+                Url = $"composite/tree/{objectName}"
+            };
+            CompositeRequests.Add(request);
+            return request;
+        }
+
+        public override string ToString()
+        {
+            return JsonConvert.SerializeObject(CompositeRequests);
         }
 
         #region SObject
 
-        public CompositeSubrequest GetObjects(string referenceId)
+        public CompositeSubRequest GetObjects(string referenceId)
         {
-            if (string.IsNullOrEmpty(referenceId)) throw new ArgumentNullException("referenceId");
+            if (string.IsNullOrEmpty(referenceId)) throw new ArgumentNullException(nameof(referenceId));
 
-            var request = new CompositeSubrequest
+            var request = new CompositeSubRequest
             {
                 Method = "GET",
                 ReferenceId = referenceId,
@@ -38,12 +121,12 @@ namespace DotNetForce
             return request;
         }
 
-        public CompositeSubrequest BasicInformation(string referenceId, string objectName)
+        public CompositeSubRequest BasicInformation(string referenceId, string objectName)
         {
-            if (string.IsNullOrEmpty(referenceId)) throw new ArgumentNullException("referenceId");
-            if (string.IsNullOrEmpty(objectName)) throw new ArgumentNullException("objectName");
+            if (string.IsNullOrEmpty(referenceId)) throw new ArgumentNullException(nameof(referenceId));
+            if (string.IsNullOrEmpty(objectName)) throw new ArgumentNullException(nameof(objectName));
 
-            var request = new CompositeSubrequest
+            var request = new CompositeSubRequest
             {
                 Method = "GET",
                 ReferenceId = referenceId,
@@ -53,12 +136,12 @@ namespace DotNetForce
             return request;
         }
 
-        public CompositeSubrequest Describe(string referenceId, string objectName)
+        public CompositeSubRequest Describe(string referenceId, string objectName)
         {
-            if (string.IsNullOrEmpty(referenceId)) throw new ArgumentNullException("referenceId");
-            if (string.IsNullOrEmpty(objectName)) throw new ArgumentNullException("objectName");
+            if (string.IsNullOrEmpty(referenceId)) throw new ArgumentNullException(nameof(referenceId));
+            if (string.IsNullOrEmpty(objectName)) throw new ArgumentNullException(nameof(objectName));
 
-            var request = new CompositeSubrequest
+            var request = new CompositeSubRequest
             {
                 Method = "GET",
                 ReferenceId = referenceId,
@@ -68,14 +151,14 @@ namespace DotNetForce
             return request;
         }
 
-        public CompositeSubrequest GetDeleted(string referenceId, string objectName, DateTime startDateTime, DateTime endDateTime)
+        public CompositeSubRequest GetDeleted(string referenceId, string objectName, DateTime startDateTime, DateTime endDateTime)
         {
-            if (string.IsNullOrEmpty(referenceId)) throw new ArgumentNullException("referenceId");
+            if (string.IsNullOrEmpty(referenceId)) throw new ArgumentNullException(nameof(referenceId));
 
-            var sdt = Uri.EscapeDataString(startDateTime.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ss+00:00", System.Globalization.CultureInfo.InvariantCulture));
-            var edt = Uri.EscapeDataString(endDateTime.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ss+00:00", System.Globalization.CultureInfo.InvariantCulture));
+            var sdt = Uri.EscapeDataString(startDateTime.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ss+00:00", CultureInfo.InvariantCulture));
+            var edt = Uri.EscapeDataString(endDateTime.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ss+00:00", CultureInfo.InvariantCulture));
 
-            var request = new CompositeSubrequest
+            var request = new CompositeSubRequest
             {
                 Method = "GET",
                 ReferenceId = referenceId,
@@ -85,14 +168,14 @@ namespace DotNetForce
             return request;
         }
 
-        public CompositeSubrequest GetUpdated(string referenceId, string objectName, DateTime startDateTime, DateTime endDateTime)
+        public CompositeSubRequest GetUpdated(string referenceId, string objectName, DateTime startDateTime, DateTime endDateTime)
         {
-            if (string.IsNullOrEmpty(referenceId)) throw new ArgumentNullException("referenceId");
+            if (string.IsNullOrEmpty(referenceId)) throw new ArgumentNullException(nameof(referenceId));
 
-            var sdt = Uri.EscapeDataString(startDateTime.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ss+00:00", System.Globalization.CultureInfo.InvariantCulture));
-            var edt = Uri.EscapeDataString(endDateTime.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ss+00:00", System.Globalization.CultureInfo.InvariantCulture));
+            var sdt = Uri.EscapeDataString(startDateTime.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ss+00:00", CultureInfo.InvariantCulture));
+            var edt = Uri.EscapeDataString(endDateTime.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ss+00:00", CultureInfo.InvariantCulture));
 
-            var request = new CompositeSubrequest
+            var request = new CompositeSubRequest
             {
                 Method = "GET",
                 ReferenceId = referenceId,
@@ -102,15 +185,15 @@ namespace DotNetForce
             return request;
         }
 
-        public CompositeSubrequest Create(string referenceId, string objectName, object record)
+        public CompositeSubRequest Create(string referenceId, string objectName, object record)
         {
-            if (string.IsNullOrEmpty(referenceId)) throw new ArgumentNullException("referenceId");
-            if (string.IsNullOrEmpty(objectName)) throw new ArgumentNullException("objectName");
-            if (record == null) throw new ArgumentNullException("record");
+            if (string.IsNullOrEmpty(referenceId)) throw new ArgumentNullException(nameof(referenceId));
+            if (string.IsNullOrEmpty(objectName)) throw new ArgumentNullException(nameof(objectName));
+            if (record == null) throw new ArgumentNullException(nameof(record));
 
-            var request = new CompositeSubrequest
+            var request = new CompositeSubRequest
             {
-                Body = DNF.UnFlatten(JObject.FromObject(record)),
+                Body = Dnf.UnFlatten(JObject.FromObject(record)),
                 Method = "POST",
                 ReferenceId = referenceId,
                 Url = $"sobjects/{objectName}"
@@ -119,83 +202,83 @@ namespace DotNetForce
             return request;
         }
 
-        public CompositeSubrequest Retrieve(string referenceId, string objectName, string recordId, params string[] fields)
+        public CompositeSubRequest Retrieve(string referenceId, string objectName, string recordId, params string[] fields)
         {
-            if (string.IsNullOrEmpty(referenceId)) throw new ArgumentNullException("referenceId");
-            if (string.IsNullOrEmpty(objectName)) throw new ArgumentNullException("objectName");
-            if (string.IsNullOrEmpty(recordId)) throw new ArgumentNullException("recordId");
+            if (string.IsNullOrEmpty(referenceId)) throw new ArgumentNullException(nameof(referenceId));
+            if (string.IsNullOrEmpty(objectName)) throw new ArgumentNullException(nameof(objectName));
+            if (string.IsNullOrEmpty(recordId)) throw new ArgumentNullException(nameof(recordId));
 
-            var request = new CompositeSubrequest
+            var request = new CompositeSubRequest
             {
                 Method = "GET",
                 ReferenceId = referenceId,
                 Url = fields?.Length > 0
-                    ? $"sobjects/{objectName}/{recordId}?fields={string.Join(",", fields.Select(field => Uri.EscapeDataString(field)))}"
+                    ? $"sobjects/{objectName}/{recordId}?fields={string.Join(",", fields.Select(Uri.EscapeDataString))}"
                     : $"sobjects/{objectName}/{recordId}"
             };
             CompositeRequests.Add(request);
             return request;
         }
 
-        public CompositeSubrequest RetrieveExternal(string referenceId, string objectName, string externalFieldName, string externalId, params string[] fields)
+        public CompositeSubRequest RetrieveExternal(string referenceId, string objectName, string externalFieldName, string externalId, params string[] fields)
         {
-            if (string.IsNullOrEmpty(referenceId)) throw new ArgumentNullException("referenceId");
-            if (string.IsNullOrEmpty(objectName)) throw new ArgumentNullException("objectName");
-            if (string.IsNullOrEmpty(externalFieldName)) throw new ArgumentNullException("externalFieldName");
-            if (string.IsNullOrEmpty(externalId)) throw new ArgumentNullException("externalId");
+            if (string.IsNullOrEmpty(referenceId)) throw new ArgumentNullException(nameof(referenceId));
+            if (string.IsNullOrEmpty(objectName)) throw new ArgumentNullException(nameof(objectName));
+            if (string.IsNullOrEmpty(externalFieldName)) throw new ArgumentNullException(nameof(externalFieldName));
+            if (string.IsNullOrEmpty(externalId)) throw new ArgumentNullException(nameof(externalId));
 
-            var request = new CompositeSubrequest
+            var request = new CompositeSubRequest
             {
                 Method = "GET",
                 ReferenceId = referenceId,
                 Url = fields?.Length > 0
-                    ? $"sobjects/{objectName}/{externalFieldName}/{Uri.EscapeDataString(externalId)}?fields={string.Join(",", fields.Select(field => Uri.EscapeDataString(field)))}"
+                    ? $"sobjects/{objectName}/{externalFieldName}/{Uri.EscapeDataString(externalId)}?fields={string.Join(",", fields.Select(Uri.EscapeDataString))}"
                     : $"sobjects/{objectName}/{externalFieldName}/{Uri.EscapeDataString(externalId)}"
             };
             CompositeRequests.Add(request);
             return request;
         }
 
-        public CompositeSubrequest Relationships(string referenceId, string objectName, string recordId, string relationshipFieldName, string[] fields = null)
+        public CompositeSubRequest Relationships(string referenceId, string objectName, string recordId, string relationshipFieldName, string[] fields = null)
         {
-            if (string.IsNullOrEmpty(referenceId)) throw new ArgumentNullException("referenceId");
-            if (string.IsNullOrEmpty(objectName)) throw new ArgumentNullException("objectName");
-            if (string.IsNullOrEmpty(recordId)) throw new ArgumentNullException("recordId");
-            if (string.IsNullOrEmpty(relationshipFieldName)) throw new ArgumentNullException("relationshipFieldName");
-            
-            var request = new CompositeSubrequest
+            if (string.IsNullOrEmpty(referenceId)) throw new ArgumentNullException(nameof(referenceId));
+            if (string.IsNullOrEmpty(objectName)) throw new ArgumentNullException(nameof(objectName));
+            if (string.IsNullOrEmpty(recordId)) throw new ArgumentNullException(nameof(recordId));
+            if (string.IsNullOrEmpty(relationshipFieldName)) throw new ArgumentNullException(nameof(relationshipFieldName));
+
+            var request = new CompositeSubRequest
             {
                 Method = "GET",
                 ReferenceId = referenceId,
                 Url = fields?.Length > 0
-                    ? $"sobjects/{objectName}/{recordId}/{relationshipFieldName}?fields={string.Join(",", fields.Select(field => Uri.EscapeDataString(field)))}"
+                    ? $"sobjects/{objectName}/{recordId}/{relationshipFieldName}?fields={string.Join(",", fields.Select(Uri.EscapeDataString))}"
                     : $"sobjects/{objectName}/{recordId}/{relationshipFieldName}"
             };
             CompositeRequests.Add(request);
             return request;
         }
 
-        public CompositeSubrequest Update(string referenceId, string objectName, object record)
+        public CompositeSubRequest Update(string referenceId, string objectName, object record)
         {
-            if (string.IsNullOrEmpty(referenceId)) throw new ArgumentNullException("referenceId");
-            if (string.IsNullOrEmpty(objectName)) throw new ArgumentNullException("objectName");
-            if (record == null) throw new ArgumentNullException("record");
+            if (string.IsNullOrEmpty(referenceId)) throw new ArgumentNullException(nameof(referenceId));
+            if (string.IsNullOrEmpty(objectName)) throw new ArgumentNullException(nameof(objectName));
+            if (record == null) throw new ArgumentNullException(nameof(record));
 
-            var body = DNF.UnFlatten(JObject.FromObject(record));
-            return Update(referenceId, objectName, body["Id"]?.ToString(), DNF.Omit(body, "Id"));
+            var body = Dnf.UnFlatten(JObject.FromObject(record));
+            return Update(referenceId, objectName, body["Id"]?.ToString(), Dnf.Omit(body, "Id"));
         }
 
-        public CompositeSubrequest Update(string referenceId, string objectName, string recordId, object record)
+        public CompositeSubRequest Update(string referenceId, string objectName, string recordId, object record)
         {
-            if (string.IsNullOrEmpty(referenceId)) throw new ArgumentNullException("referenceId");
-            if (string.IsNullOrEmpty(objectName)) throw new ArgumentNullException("objectName");
-            if (string.IsNullOrEmpty(recordId)) throw new ArgumentNullException("recordId");
-            if (record == null) throw new ArgumentNullException("record");
+            if (string.IsNullOrEmpty(referenceId)) throw new ArgumentNullException(nameof(referenceId));
+            if (string.IsNullOrEmpty(objectName)) throw new ArgumentNullException(nameof(objectName));
+            if (string.IsNullOrEmpty(recordId)) throw new ArgumentNullException(nameof(recordId));
+            if (record == null) throw new ArgumentNullException(nameof(record));
 
-            var body = DNF.UnFlatten(JObject.FromObject(record));
-            var request = new CompositeSubrequest
+            var body = Dnf.UnFlatten(JObject.FromObject(record));
+            var request = new CompositeSubRequest
             {
-                Body = DNF.Omit(body, "Id"),
+                Body = Dnf.Omit(body, "Id"),
                 Method = "PATCH",
                 ReferenceId = referenceId,
                 Url = $"sobjects/{objectName}/{recordId}"
@@ -204,27 +287,27 @@ namespace DotNetForce
             return request;
         }
 
-        public CompositeSubrequest UpsertExternal(string referenceId, string objectName, string externalFieldName, object record)
+        public CompositeSubRequest UpsertExternal(string referenceId, string objectName, string externalFieldName, object record)
         {
-            if (string.IsNullOrEmpty(referenceId)) throw new ArgumentNullException("referenceId");
-            if (string.IsNullOrEmpty(objectName)) throw new ArgumentNullException("objectName");
-            if (record == null) throw new ArgumentNullException("record");
+            if (string.IsNullOrEmpty(referenceId)) throw new ArgumentNullException(nameof(referenceId));
+            if (string.IsNullOrEmpty(objectName)) throw new ArgumentNullException(nameof(objectName));
+            if (record == null) throw new ArgumentNullException(nameof(record));
 
-            var body = DNF.UnFlatten(JObject.FromObject(record));
-            return UpsertExternal(referenceId, objectName, externalFieldName, body[externalFieldName]?.ToString(), DNF.Omit(body, externalFieldName));
+            var body = Dnf.UnFlatten(JObject.FromObject(record));
+            return UpsertExternal(referenceId, objectName, externalFieldName, body[externalFieldName]?.ToString(), Dnf.Omit(body, externalFieldName));
         }
 
-        public CompositeSubrequest UpsertExternal(string referenceId, string objectName, string externalFieldName, string externalId, object record)
+        public CompositeSubRequest UpsertExternal(string referenceId, string objectName, string externalFieldName, string externalId, object record)
         {
-            if (string.IsNullOrEmpty(referenceId)) throw new ArgumentNullException("referenceId");
-            if (string.IsNullOrEmpty(objectName)) throw new ArgumentNullException("objectName");
-            if (string.IsNullOrEmpty(externalId)) throw new ArgumentNullException("externalId");
-            if (record == null) throw new ArgumentNullException("record");
+            if (string.IsNullOrEmpty(referenceId)) throw new ArgumentNullException(nameof(referenceId));
+            if (string.IsNullOrEmpty(objectName)) throw new ArgumentNullException(nameof(objectName));
+            if (string.IsNullOrEmpty(externalId)) throw new ArgumentNullException(nameof(externalId));
+            if (record == null) throw new ArgumentNullException(nameof(record));
 
-            var body = DNF.UnFlatten(JObject.FromObject(record));
-            var request = new CompositeSubrequest
+            var body = Dnf.UnFlatten(JObject.FromObject(record));
+            var request = new CompositeSubRequest
             {
-                Body = DNF.Omit(body, externalFieldName),
+                Body = Dnf.Omit(body, externalFieldName),
                 Method = "PATCH",
                 ReferenceId = referenceId,
                 Url = $"sobjects/{objectName}/{externalFieldName}/{Uri.EscapeDataString(externalId)}"
@@ -233,13 +316,13 @@ namespace DotNetForce
             return request;
         }
 
-        public CompositeSubrequest Delete(string referenceId, string objectName, string recordId)
+        public CompositeSubRequest Delete(string referenceId, string objectName, string recordId)
         {
-            if (string.IsNullOrEmpty(referenceId)) throw new ArgumentNullException("referenceId");
-            if (string.IsNullOrEmpty(objectName)) throw new ArgumentNullException("objectName");
-            if (string.IsNullOrEmpty(recordId)) throw new ArgumentNullException("recordId");
+            if (string.IsNullOrEmpty(referenceId)) throw new ArgumentNullException(nameof(referenceId));
+            if (string.IsNullOrEmpty(objectName)) throw new ArgumentNullException(nameof(objectName));
+            if (string.IsNullOrEmpty(recordId)) throw new ArgumentNullException(nameof(recordId));
 
-            var request = new CompositeSubrequest
+            var request = new CompositeSubRequest
             {
                 Method = "DELETE",
                 ReferenceId = referenceId,
@@ -249,14 +332,14 @@ namespace DotNetForce
             return request;
         }
 
-        public CompositeSubrequest DeleteExternal(string referenceId, string objectName, string externalFieldName, string externalId)
+        public CompositeSubRequest DeleteExternal(string referenceId, string objectName, string externalFieldName, string externalId)
         {
-            if (string.IsNullOrEmpty(referenceId)) throw new ArgumentNullException("referenceId");
-            if (string.IsNullOrEmpty(objectName)) throw new ArgumentNullException("objectName");
-            if (string.IsNullOrEmpty(externalFieldName)) throw new ArgumentNullException("externalFieldName");
-            if (string.IsNullOrEmpty(externalId)) throw new ArgumentNullException("externalId");
-            
-            var request = new CompositeSubrequest
+            if (string.IsNullOrEmpty(referenceId)) throw new ArgumentNullException(nameof(referenceId));
+            if (string.IsNullOrEmpty(objectName)) throw new ArgumentNullException(nameof(objectName));
+            if (string.IsNullOrEmpty(externalFieldName)) throw new ArgumentNullException(nameof(externalFieldName));
+            if (string.IsNullOrEmpty(externalId)) throw new ArgumentNullException(nameof(externalId));
+
+            var request = new CompositeSubRequest
             {
                 Method = "DELETE",
                 ReferenceId = referenceId,
@@ -266,13 +349,13 @@ namespace DotNetForce
             return request;
         }
 
-        public CompositeSubrequest NamedLayouts(string referenceId, string objectName, string layoutName)
+        public CompositeSubRequest NamedLayouts(string referenceId, string objectName, string layoutName)
         {
-            if (string.IsNullOrEmpty(referenceId)) throw new ArgumentNullException("referenceId");
-            if (string.IsNullOrEmpty(objectName)) throw new ArgumentNullException("objectName");
-            if (string.IsNullOrEmpty(layoutName)) throw new ArgumentNullException("layoutName");
+            if (string.IsNullOrEmpty(referenceId)) throw new ArgumentNullException(nameof(referenceId));
+            if (string.IsNullOrEmpty(objectName)) throw new ArgumentNullException(nameof(objectName));
+            if (string.IsNullOrEmpty(layoutName)) throw new ArgumentNullException(nameof(layoutName));
 
-            var request = new CompositeSubrequest
+            var request = new CompositeSubRequest
             {
                 Method = "GET",
                 ReferenceId = referenceId,
@@ -282,12 +365,12 @@ namespace DotNetForce
             return request;
         }
 
-        public CompositeSubrequest ApprovalLayouts(string referenceId, string objectName, string approvalProcessName = "")
+        public CompositeSubRequest ApprovalLayouts(string referenceId, string objectName, string approvalProcessName = "")
         {
-            if (string.IsNullOrEmpty(referenceId)) throw new ArgumentNullException("referenceId");
-            if (string.IsNullOrEmpty(objectName)) throw new ArgumentNullException("objectName");
+            if (string.IsNullOrEmpty(referenceId)) throw new ArgumentNullException(nameof(referenceId));
+            if (string.IsNullOrEmpty(objectName)) throw new ArgumentNullException(nameof(objectName));
 
-            var request = new CompositeSubrequest
+            var request = new CompositeSubRequest
             {
                 Method = "GET",
                 ReferenceId = referenceId,
@@ -297,12 +380,12 @@ namespace DotNetForce
             return request;
         }
 
-        public CompositeSubrequest CompactLayouts(string referenceId, string objectName)
+        public CompositeSubRequest CompactLayouts(string referenceId, string objectName)
         {
-            if (string.IsNullOrEmpty(referenceId)) throw new ArgumentNullException("referenceId");
-            if (string.IsNullOrEmpty(objectName)) throw new ArgumentNullException("objectName");
+            if (string.IsNullOrEmpty(referenceId)) throw new ArgumentNullException(nameof(referenceId));
+            if (string.IsNullOrEmpty(objectName)) throw new ArgumentNullException(nameof(objectName));
 
-            var request = new CompositeSubrequest
+            var request = new CompositeSubRequest
             {
                 Method = "GET",
                 ReferenceId = referenceId,
@@ -312,12 +395,12 @@ namespace DotNetForce
             return request;
         }
 
-        public CompositeSubrequest DescribeLayouts(string referenceId, string objectName = "Global")
+        public CompositeSubRequest DescribeLayouts(string referenceId, string objectName = "Global")
         {
-            if (string.IsNullOrEmpty(referenceId)) throw new ArgumentNullException("referenceId");
-            if (string.IsNullOrEmpty(objectName)) throw new ArgumentNullException("objectName");
+            if (string.IsNullOrEmpty(referenceId)) throw new ArgumentNullException(nameof(referenceId));
+            if (string.IsNullOrEmpty(objectName)) throw new ArgumentNullException(nameof(objectName));
 
-            var request = new CompositeSubrequest
+            var request = new CompositeSubRequest
             {
                 Method = "GET",
                 ReferenceId = referenceId,
@@ -327,26 +410,26 @@ namespace DotNetForce
             return request;
         }
 
-        public CompositeSubrequest PlatformAction(string referenceId)
+        public CompositeSubRequest PlatformAction(string referenceId)
         {
-            if (string.IsNullOrEmpty(referenceId)) throw new ArgumentNullException("referenceId");
+            if (string.IsNullOrEmpty(referenceId)) throw new ArgumentNullException(nameof(referenceId));
 
-            var request = new CompositeSubrequest
+            var request = new CompositeSubRequest
             {
                 Method = "GET",
                 ReferenceId = referenceId,
-                Url = $"sobjects/PlatformAction"
+                Url = "sobjects/PlatformAction"
             };
             CompositeRequests.Add(request);
             return request;
         }
 
-        public CompositeSubrequest QuickActions(string referenceId, string objectName, string actionName = "")
+        public CompositeSubRequest QuickActions(string referenceId, string objectName, string actionName = "")
         {
-            if (string.IsNullOrEmpty(referenceId)) throw new ArgumentNullException("referenceId");
-            if (string.IsNullOrEmpty(objectName)) throw new ArgumentNullException("objectName");
+            if (string.IsNullOrEmpty(referenceId)) throw new ArgumentNullException(nameof(referenceId));
+            if (string.IsNullOrEmpty(objectName)) throw new ArgumentNullException(nameof(objectName));
 
-            var request = new CompositeSubrequest
+            var request = new CompositeSubRequest
             {
                 Method = "GET",
                 ReferenceId = referenceId,
@@ -356,13 +439,13 @@ namespace DotNetForce
             return request;
         }
 
-        public CompositeSubrequest QuickActionsDetails(string referenceId, string objectName, string actionName)
+        public CompositeSubRequest QuickActionsDetails(string referenceId, string objectName, string actionName)
         {
-            if (string.IsNullOrEmpty(referenceId)) throw new ArgumentNullException("referenceId");
-            if (string.IsNullOrEmpty(objectName)) throw new ArgumentNullException("objectName");
-            if (string.IsNullOrEmpty(actionName)) throw new ArgumentNullException("actionName");
+            if (string.IsNullOrEmpty(referenceId)) throw new ArgumentNullException(nameof(referenceId));
+            if (string.IsNullOrEmpty(objectName)) throw new ArgumentNullException(nameof(objectName));
+            if (string.IsNullOrEmpty(actionName)) throw new ArgumentNullException(nameof(actionName));
 
-            var request = new CompositeSubrequest
+            var request = new CompositeSubRequest
             {
                 Method = "GET",
                 ReferenceId = referenceId,
@@ -372,14 +455,14 @@ namespace DotNetForce
             return request;
         }
 
-        public CompositeSubrequest QuickActionsDefaultValues(string referenceId, string objectName, string actionName, string contextId)
+        public CompositeSubRequest QuickActionsDefaultValues(string referenceId, string objectName, string actionName, string contextId)
         {
-            if (string.IsNullOrEmpty(referenceId)) throw new ArgumentNullException("referenceId");
-            if (string.IsNullOrEmpty(objectName)) throw new ArgumentNullException("objectName");
-            if (string.IsNullOrEmpty(actionName)) throw new ArgumentNullException("actionName");
-            if (string.IsNullOrEmpty(contextId)) throw new ArgumentNullException("contextId");
+            if (string.IsNullOrEmpty(referenceId)) throw new ArgumentNullException(nameof(referenceId));
+            if (string.IsNullOrEmpty(objectName)) throw new ArgumentNullException(nameof(objectName));
+            if (string.IsNullOrEmpty(actionName)) throw new ArgumentNullException(nameof(actionName));
+            if (string.IsNullOrEmpty(contextId)) throw new ArgumentNullException(nameof(contextId));
 
-            var request = new CompositeSubrequest
+            var request = new CompositeSubRequest
             {
                 Method = "GET",
                 ReferenceId = referenceId,
@@ -388,24 +471,24 @@ namespace DotNetForce
             CompositeRequests.Add(request);
             return request;
         }
-        
+
         #endregion
 
         #region Collections
-        
-        public List<CompositeSubrequest> Create<T>(string referenceId, bool allOrNone, IEnumerable<T> records)
+
+        public IList<CompositeSubRequest> Create<T>(string referenceId, bool allOrNone, IList<T> records)
         {
-            if (string.IsNullOrEmpty(referenceId)) throw new ArgumentNullException("referenceId");
-            if (records == null || !records.Any()) throw new ArgumentNullException("records");
-            
-            if (allOrNone && records.Count() > 200) throw new ArgumentOutOfRangeException("records");
-            
-            var result = new List<CompositeSubrequest>();
-            
-            foreach (var (chunk, chunkIdx) in DNF.Chunk(records, 200).Select((chunk, chunkIdx) => (chunk, chunkIdx)))
+            if (string.IsNullOrEmpty(referenceId)) throw new ArgumentNullException(nameof(referenceId));
+            if (records == null || !records.Any()) throw new ArgumentNullException(nameof(records));
+
+            if (allOrNone && records.Count > 200) throw new ArgumentOutOfRangeException(nameof(records));
+
+            var result = new List<CompositeSubRequest>();
+
+            foreach (var (chunk, chunkIdx) in Dnf.Chunk(records, 200).Select((chunk, chunkIdx) => (chunk, chunkIdx)))
             {
-                var bodyRecords = JToken.FromObject(chunk.Select(record => DNF.UnFlatten(JObject.FromObject(record))));
-                var request = new CompositeSubrequest
+                var bodyRecords = JToken.FromObject(chunk.Select(record => Dnf.UnFlatten(JObject.FromObject(record))));
+                var request = new CompositeSubRequest
                 {
                     ResponseType = "collections",
                     Body = new JObject
@@ -423,18 +506,18 @@ namespace DotNetForce
             return result;
         }
 
-        public List<CompositeSubrequest> Retrieve(string referenceId, string objectName, IEnumerable<string> ids, params string[] fields)
+        public IList<CompositeSubRequest> Retrieve(string referenceId, string objectName, IList<string> ids, params string[] fields)
         {
-            if (string.IsNullOrEmpty(referenceId)) throw new ArgumentNullException("referenceId");
-            if (string.IsNullOrEmpty(objectName)) throw new ArgumentNullException("objectName");
-            if (ids == null) throw new ArgumentNullException("ids");
-            if (fields == null || fields.Length == 0) throw new ArgumentNullException("fields");
-            
-            var result = new List<CompositeSubrequest>();
+            if (string.IsNullOrEmpty(referenceId)) throw new ArgumentNullException(nameof(referenceId));
+            if (string.IsNullOrEmpty(objectName)) throw new ArgumentNullException(nameof(objectName));
+            if (ids == null) throw new ArgumentNullException(nameof(ids));
+            if (fields == null || fields.Length == 0) throw new ArgumentNullException(nameof(fields));
 
-            foreach (var (chunk, chunkIdx) in DNF.Chunk(ids, 2000).Select((chunk, chunkIdx) => (chunk, chunkIdx)))
+            var result = new List<CompositeSubRequest>();
+
+            foreach (var (chunk, chunkIdx) in Dnf.Chunk(ids, 2000).Select((chunk, chunkIdx) => (chunk, chunkIdx)))
             {
-                var request = new CompositeSubrequest
+                var request = new CompositeSubRequest
                 {
                     ResponseType = "collections",
                     Body = new JObject
@@ -452,19 +535,19 @@ namespace DotNetForce
             return result;
         }
 
-        public List<CompositeSubrequest> RetrieveExternal(string referenceId, string objectName, string externalFieldName, IEnumerable<string> externalIds, params string[] fields)
+        public IList<CompositeSubRequest> RetrieveExternal(string referenceId, string objectName, string externalFieldName, IList<string> externalIds, params string[] fields)
         {
-            if (string.IsNullOrEmpty(referenceId)) throw new ArgumentNullException("referenceId");
-            if (string.IsNullOrEmpty(objectName)) throw new ArgumentNullException("objectName");
-            if (string.IsNullOrEmpty(externalFieldName)) throw new ArgumentNullException("externalFieldName");
-            if (externalIds == null || !externalIds.Any()) throw new ArgumentNullException("externalIds");
-            if (fields == null || fields.Length == 0) throw new ArgumentNullException("fields");
+            if (string.IsNullOrEmpty(referenceId)) throw new ArgumentNullException(nameof(referenceId));
+            if (string.IsNullOrEmpty(objectName)) throw new ArgumentNullException(nameof(objectName));
+            if (string.IsNullOrEmpty(externalFieldName)) throw new ArgumentNullException(nameof(externalFieldName));
+            if (externalIds == null || !externalIds.Any()) throw new ArgumentNullException(nameof(externalIds));
+            if (fields == null || fields.Length == 0) throw new ArgumentNullException(nameof(fields));
 
-            var result = new List<CompositeSubrequest>();
+            var result = new List<CompositeSubRequest>();
 
-            foreach (var (chunk, chunkIdx) in DNF.Chunk(externalIds, 2000).Select((chunk, chunkIdx) => (chunk, chunkIdx)))
+            foreach (var (chunk, chunkIdx) in Dnf.Chunk(externalIds, 2000).Select((chunk, chunkIdx) => (chunk, chunkIdx)))
             {
-                var request = new CompositeSubrequest
+                var request = new CompositeSubRequest
                 {
                     ResponseType = "collections",
                     Body = new JObject
@@ -482,18 +565,18 @@ namespace DotNetForce
             return result;
         }
 
-        public List<CompositeSubrequest> Update<T>(string referenceId, bool allOrNone, IEnumerable<T> records)
+        public IList<CompositeSubRequest> Update<T>(string referenceId, bool allOrNone, IList<T> records)
         {
-            if (string.IsNullOrEmpty(referenceId)) throw new ArgumentNullException("referenceId");
-            if (records == null || !records.Any()) throw new ArgumentNullException("records");
+            if (string.IsNullOrEmpty(referenceId)) throw new ArgumentNullException(nameof(referenceId));
+            if (records == null || !records.Any()) throw new ArgumentNullException(nameof(records));
 
-            if (allOrNone && records.Count() > 200) throw new ArgumentOutOfRangeException("records");
-                        var result = new List<CompositeSubrequest>();
+            if (allOrNone && records.Count > 200) throw new ArgumentOutOfRangeException(nameof(records));
+            var result = new List<CompositeSubRequest>();
 
-            foreach (var (chunk, chunkIdx) in DNF.Chunk(records, 200).Select((chunk, chunkIdx) => (chunk, chunkIdx)))
+            foreach (var (chunk, chunkIdx) in Dnf.Chunk(records, 200).Select((chunk, chunkIdx) => (chunk, chunkIdx)))
             {
-                var bodyRecords = JToken.FromObject(chunk.Select(record => DNF.UnFlatten(JObject.FromObject(record))));
-                var request = new CompositeSubrequest
+                var bodyRecords = JToken.FromObject(chunk.Select(record => Dnf.UnFlatten(JObject.FromObject(record))));
+                var request = new CompositeSubRequest
                 {
                     ResponseType = "collections",
                     Body = new JObject
@@ -511,24 +594,24 @@ namespace DotNetForce
             return result;
         }
 
-        //public List<CompositeSubrequest> UpsertExternal<T>(string referenceId, string objectName, string externalFieldName, IEnumerable<T> records)
+        //public IList<CompositeSubRequest> UpsertExternal<T>(string referenceId, string objectName, string externalFieldName, IList<T> records)
         //{
         //    return UpsertExternal(referenceId, false, externalFieldName, records);
         //}
 
-        //public List<CompositeSubrequest> UpsertExternal<T>(string referenceId, bool allOrNone, string externalFieldName, IEnumerable<T> records)
+        //public IList<CompositeSubRequest> UpsertExternal<T>(string referenceId, bool allOrNone, string externalFieldName, IList<T> records)
         //{
         //    if (string.IsNullOrEmpty(referenceId)) throw new ArgumentNullException("referenceId");
         //    if (records == null || !records.Any()) throw new ArgumentNullException("records");
 
-        //    var result = new List<CompositeSubrequest>();
+        //    var result = new List<CompositeSubRequest>();
 
         //    if (allOrNone && records.Count() > 200) throw new ArgumentOutOfRangeException("records");
 
-        //    foreach (var (chunk, chunkIdx) in DNF.Chunk(records, 200).Select((chunk, chunkIdx) => (chunk, chunkIdx)))
+        //    foreach (var (chunk, chunkIdx) in Dnf.Chunk(records, 200).Select((chunk, chunkIdx) => (chunk, chunkIdx)))
         //    {
-        //        var bodyRecords = JToken.FromObject(chunk.Select(record => DNF.UnFlatten(JObject.FromObject(record))));
-        //        var request = new CompositeSubrequest
+        //        var bodyRecords = JToken.FromObject(chunk.Select(record => Dnf.UnFlatten(JObject.FromObject(record))));
+        //        var request = new CompositeSubRequest
         //        {
         //            ResponseType = "collections",
         //            Body = new JObject
@@ -546,23 +629,23 @@ namespace DotNetForce
         //    return result;
         //}
 
-        public List<CompositeSubrequest> Delete(string referenceId, bool allOrNone, params string[] ids)
+        public IList<CompositeSubRequest> Delete(string referenceId, bool allOrNone, params string[] ids)
         {
-            if (string.IsNullOrEmpty(referenceId)) throw new ArgumentNullException("referenceId");
-            if (ids == null || ids.Length == 0) throw new ArgumentNullException("ids");
+            if (string.IsNullOrEmpty(referenceId)) throw new ArgumentNullException(nameof(referenceId));
+            if (ids == null || ids.Length == 0) throw new ArgumentNullException(nameof(ids));
 
-            if (allOrNone && ids.Length > 200) throw new ArgumentOutOfRangeException("ids");
-            
-            var result = new List<CompositeSubrequest>();
+            if (allOrNone && ids.Length > 200) throw new ArgumentOutOfRangeException(nameof(ids));
 
-            foreach (var (chunk, chunkIdx) in DNF.Chunk(ids, 200).Select((chunk, chunkIdx) => (chunk, chunkIdx)))
+            var result = new List<CompositeSubRequest>();
+
+            foreach (var (chunk, chunkIdx) in Dnf.Chunk(ids, 200).Select((chunk, chunkIdx) => (chunk, chunkIdx)))
             {
-                var request = new CompositeSubrequest
+                var request = new CompositeSubRequest
                 {
                     ResponseType = "collections",
                     Method = "DELETE",
                     ReferenceId = $"{referenceId}_{chunkIdx}",
-                    Url = $"composite/sobjects?ids={string.Join(",", chunk.Select(id => Uri.EscapeDataString(id)))}{(allOrNone ? "&allOrNone=" : "")}"
+                    Url = $"composite/sobjects?ids={string.Join(",", chunk.Select(Uri.EscapeDataString))}{(allOrNone ? "&allOrNone=" : "")}"
                 };
                 CompositeRequests.Add(request);
                 result.Add(request);
@@ -571,87 +654,5 @@ namespace DotNetForce
         }
 
         #endregion
-
-        public CompositeSubrequest Query(string referenceId, string query)
-        {
-            if (string.IsNullOrEmpty(referenceId)) throw new ArgumentNullException("referenceId");
-            if (string.IsNullOrEmpty(query)) throw new ArgumentNullException("query");
-
-            var request = new CompositeSubrequest
-            {
-                ResponseType = "query",
-                Method = "GET",
-                ReferenceId = referenceId,
-                Url = $@"query?q={DNF.EscapeDataString(query)}"
-            };
-            CompositeRequests.Add(request);
-            return request;
-        }
-
-        public CompositeSubrequest Explain(string referenceId, string query)
-        {
-            if (string.IsNullOrEmpty(referenceId)) throw new ArgumentNullException("referenceId");
-            if (string.IsNullOrEmpty(query)) throw new ArgumentNullException("query");
-
-            var request = new CompositeSubrequest
-            {
-                Method = "GET",
-                ReferenceId = referenceId,
-                Url = $@"query?explain={DNF.EscapeDataString(query)}"
-            };
-            CompositeRequests.Add(request);
-            return request;
-        }
-
-        public CompositeSubrequest QueryAll(string referenceId, string query)
-        {
-            if (string.IsNullOrEmpty(referenceId)) throw new ArgumentNullException("referenceId");
-            if (string.IsNullOrEmpty(query)) throw new ArgumentNullException("query");
-
-            var request = new CompositeSubrequest
-            {
-                ResponseType = "query",
-                Method = "GET",
-                ReferenceId = referenceId,
-                Url = $"queryAll?q={Uri.EscapeDataString(query)}"
-            };
-            CompositeRequests.Add(request);
-            return request;
-        }
-
-        public CompositeSubrequest ExplainAll(string referenceId, string query)
-        {
-            if (string.IsNullOrEmpty(referenceId)) throw new ArgumentNullException("referenceId");
-            if (string.IsNullOrEmpty(query)) throw new ArgumentNullException("query");
-
-            var request = new CompositeSubrequest
-            {
-                Method = "GET",
-                ReferenceId = referenceId,
-                Url = $"queryAll?explain={Uri.EscapeDataString(query)}"
-            };
-            CompositeRequests.Add(request);
-            return request;
-        }
-
-        public CompositeSubrequest CreateTree(string referenceId, string objectName, IEnumerable<IAttributedObject> objectTree)
-        {
-            if (string.IsNullOrEmpty(objectName)) throw new ArgumentNullException("objectName");
-
-            var request = new CompositeSubrequest
-            {
-                Body = new RecordsObject(objectTree),
-                Method = "POST",
-                ReferenceId = referenceId,
-                Url = $"composite/tree/{objectName}"
-            };
-            CompositeRequests.Add(request);
-            return request;
-        }
-
-        public override string ToString()
-        {
-            return JsonConvert.SerializeObject(CompositeRequests);
-        }
     }
 }

@@ -1,12 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-using Newtonsoft.Json.Linq;
-
-namespace DotNetForce
+﻿namespace DotNetForce.Schema
 {
-    public class SfAddressField<T> : SfFieldBase<T> where T : SfObjectBase
+    public class SfAddressField<T> : SfFieldBase where T : SfObjectBase
     {
         public SfAddressField(string path) : base(path) { }
     }
