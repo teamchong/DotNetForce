@@ -1,15 +1,13 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 15
-VisualStudioVersion = 15.0.28010.2048
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.31424.327
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DotNetForce", "DotNetForce\DotNetForce.csproj", "{A3C7DE6A-BFC2-4045-8461-E386823F98BA}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DotNetForce.Schema", "DotNetForce.Schema\DotNetForce.Schema.csproj", "{CC2C8D36-14A2-4531-A557-0D9A1DB47DE8}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DotNetForceTest", "DotNetForceTest\DotNetForceTest.csproj", "{334303A4-8A25-45FB-BDF5-B7DAE29D2C68}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BlazorForce", "BlazorForce\BlazorForce.csproj", "{F2A5F43D-657B-4833-9E42-E11A55299DC7}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DotNetForceSchemaGenerator", "DotNetForceSchemaGenerator\DotNetForceSchemaGenerator.csproj", "{BF746E33-D67F-4548-9C2B-EDFF3DAF8489}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -21,18 +19,14 @@ Global
 		{A3C7DE6A-BFC2-4045-8461-E386823F98BA}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A3C7DE6A-BFC2-4045-8461-E386823F98BA}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{A3C7DE6A-BFC2-4045-8461-E386823F98BA}.Release|Any CPU.Build.0 = Release|Any CPU
-		{CC2C8D36-14A2-4531-A557-0D9A1DB47DE8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{CC2C8D36-14A2-4531-A557-0D9A1DB47DE8}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{CC2C8D36-14A2-4531-A557-0D9A1DB47DE8}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{CC2C8D36-14A2-4531-A557-0D9A1DB47DE8}.Release|Any CPU.Build.0 = Release|Any CPU
 		{334303A4-8A25-45FB-BDF5-B7DAE29D2C68}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{334303A4-8A25-45FB-BDF5-B7DAE29D2C68}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{334303A4-8A25-45FB-BDF5-B7DAE29D2C68}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{334303A4-8A25-45FB-BDF5-B7DAE29D2C68}.Release|Any CPU.Build.0 = Release|Any CPU
-		{F2A5F43D-657B-4833-9E42-E11A55299DC7}.Debug|Any CPU.ActiveCfg = Release|Any CPU
-		{F2A5F43D-657B-4833-9E42-E11A55299DC7}.Debug|Any CPU.Build.0 = Release|Any CPU
-		{F2A5F43D-657B-4833-9E42-E11A55299DC7}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{F2A5F43D-657B-4833-9E42-E11A55299DC7}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BF746E33-D67F-4548-9C2B-EDFF3DAF8489}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BF746E33-D67F-4548-9C2B-EDFF3DAF8489}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BF746E33-D67F-4548-9C2B-EDFF3DAF8489}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BF746E33-D67F-4548-9C2B-EDFF3DAF8489}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

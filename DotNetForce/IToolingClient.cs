@@ -1,24 +1,10 @@
-﻿using DotNetForce.Common;
+﻿using System.Threading.Tasks;
 using DotNetForce.Common.Models.Json;
-using DotNetForce.Force;
-using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-using System;
-using System.Collections.Generic;
-using System.Collections.Concurrent;
-using System.Diagnostics;
-using System.Net;
-using System.Net.Http;
-using System.Linq;
-using System.Reactive.Linq;
-using System.Text;
-using System.Text.RegularExpressions;
-using System.Threading;
-using System.Threading.Tasks;
-using System.Web;
 
 namespace DotNetForce
 {
+    [JetBrains.Annotations.PublicAPI]
     public interface IToolingClient
     {
         Task<DescribeGlobalResult<T>> GetObjectsAsync<T>();
@@ -33,9 +19,9 @@ namespace DotNetForce
 
         Task<SaveResponse> CreateAsync(MetadataType metadataType, object record);
 
-        Task<T> RetreiveAsync<T>(MetadataType metadataType, string recordId);
+        Task<T> RetrieveAsync<T>(MetadataType metadataType, string recordId);
 
-        Task<T> RetreiveAsync<T>(MetadataType metadataType, string recordId, string[] fields);
+        Task<T> RetrieveAsync<T>(MetadataType metadataType, string recordId, string[] fields);
 
         Task<SuccessResponse> UpdateAsync(MetadataType metadataType, object record);
 

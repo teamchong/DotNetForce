@@ -1,32 +1,20 @@
-﻿using DotNetForce.Common;
-using DotNetForce.Common.Models.Json;
-using DotNetForce.Force;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
-using System;
-using System.Collections.Generic;
-using System.Collections.Concurrent;
-using System.Diagnostics;
-using System.Net;
-using System.Net.Http;
+﻿using System;
 using System.Linq;
-using System.Reactive.Linq;
-using System.Text;
-using System.Text.RegularExpressions;
-using System.Threading;
 using System.Threading.Tasks;
-using System.Web;
+using DotNetForce.Common;
+using DotNetForce.Common.Models.Json;
+using Newtonsoft.Json.Linq;
 
 namespace DotNetForce
 {
     internal class ToolingClient : IToolingClient
     {
-        protected JsonHttpClient JsonHttp { get; set; }
-
         public ToolingClient(JsonHttpClient jsonHttp)
         {
             JsonHttp = jsonHttp;
         }
+
+        protected JsonHttpClient JsonHttp { get; set; }
 
 
         public async Task<DescribeGlobalResult<T>> GetObjectsAsync<T>()
@@ -49,53 +37,53 @@ namespace DotNetForce
 
         public async Task<QueryResult<T>> QueryAsync<T>(string q)
         {
-            if (string.IsNullOrEmpty(q)) throw new ArgumentNullException("q");
+            if (string.IsNullOrEmpty(q)) throw new ArgumentNullException(nameof(q));
 
-            var urlSuffix = $"tooling/query?q={DNF.EscapeDataString(q)}";
+            var urlSuffix = $"tooling/query?q={Dnf.EscapeDataString(q)}";
             return await JsonHttp.HttpGetAsync<QueryResult<T>>(urlSuffix).ConfigureAwait(false);
         }
 
         public async Task<QueryResult<T>> SearchAsync<T>(string q)
         {
-            if (string.IsNullOrEmpty(q)) throw new ArgumentNullException("q");
+            if (string.IsNullOrEmpty(q)) throw new ArgumentNullException(nameof(q));
 
-            var urlSuffix = $"tooling/search?q={DNF.EscapeDataString(q)}";
+            var urlSuffix = $"tooling/search?q={Dnf.EscapeDataString(q)}";
             return await JsonHttp.HttpGetAsync<QueryResult<T>>(urlSuffix).ConfigureAwait(false);
         }
 
         public async Task<SaveResponse> CreateAsync(MetadataType metadataType, object record)
         {
-            if (record == null) throw new ArgumentNullException("record");
+            if (record == null) throw new ArgumentNullException(nameof(record));
 
             var urlSuffix = $"tooling/sobjects/{metadataType}";
             return await JsonHttp.HttpPostAsync<SaveResponse>(record, urlSuffix).ConfigureAwait(false);
         }
 
-        public Task<T> RetreiveAsync<T>(MetadataType metadataType, string recordId)
+        public Task<T> RetrieveAsync<T>(MetadataType metadataType, string recordId)
         {
-            return RetreiveAsync<T>(metadataType, recordId, null);
+            return RetrieveAsync<T>(metadataType, recordId, null);
         }
 
-        public async Task<T> RetreiveAsync<T>(MetadataType metadataType, string recordId, string[] fields)
+        public async Task<T> RetrieveAsync<T>(MetadataType metadataType, string recordId, string[] fields)
         {
             var urlSuffix = fields?.Length > 0
-                ? $"tooling/sobjects/{metadataType}/{recordId}?fields={string.Join(",", fields.Select(field => Uri.EscapeDataString(field)))}"
+                ? $"tooling/sobjects/{metadataType}/{recordId}?fields={string.Join(",", fields.Select(Uri.EscapeDataString))}"
                 : $"tooling/sobjects/{metadataType}/{recordId}";
             return await JsonHttp.HttpGetAsync<T>(urlSuffix).ConfigureAwait(false);
         }
 
         public Task<SuccessResponse> UpdateAsync(MetadataType metadataType, object record)
         {
-            if (record == null) throw new ArgumentNullException("record");
+            if (record == null) throw new ArgumentNullException(nameof(record));
 
             var body = JObject.FromObject(record);
-            return UpdateAsync(metadataType, body["Id"]?.ToString(), DNF.Omit(body, "Id"));
+            return UpdateAsync(metadataType, body["Id"]?.ToString(), Dnf.Omit(body, "Id"));
         }
 
         public async Task<SuccessResponse> UpdateAsync(MetadataType metadataType, string recordId, object record)
         {
-            if (string.IsNullOrEmpty(recordId)) throw new ArgumentNullException("recordId");
-            if (record == null) throw new ArgumentNullException("record");
+            if (string.IsNullOrEmpty(recordId)) throw new ArgumentNullException(nameof(recordId));
+            if (record == null) throw new ArgumentNullException(nameof(record));
 
             var urlSuffix = $"tooling/sobjects/{metadataType}/{recordId}";
             return await JsonHttp.HttpPatchAsync(record, urlSuffix).ConfigureAwait(false);
@@ -103,7 +91,7 @@ namespace DotNetForce
 
         public async Task<bool> DeleteAsync(MetadataType metadataType, string recordId)
         {
-            if (string.IsNullOrEmpty(recordId)) throw new ArgumentNullException("recordId");
+            if (string.IsNullOrEmpty(recordId)) throw new ArgumentNullException(nameof(recordId));
 
             var urlSuffix = $"tooling/sobjects/{metadataType}/{recordId}";
             return await JsonHttp.HttpDeleteAsync(urlSuffix).ConfigureAwait(false);
@@ -112,7 +100,7 @@ namespace DotNetForce
 
         public async Task<JToken> CompletionsAsync(string type)
         {
-            if (string.IsNullOrEmpty(type)) throw new ArgumentNullException("type");
+            if (string.IsNullOrEmpty(type)) throw new ArgumentNullException(nameof(type));
 
             var urlSuffix = $"tooling/completions?type={Uri.EscapeDataString(type)}";
             return await JsonHttp.HttpGetAsync<JToken>(urlSuffix).ConfigureAwait(false);
@@ -120,15 +108,15 @@ namespace DotNetForce
 
         public async Task<ExecuteAnonymousResult> ExecuteAnonymousAsync(string anonymousBody)
         {
-            if (string.IsNullOrEmpty(anonymousBody)) throw new ArgumentNullException("anonymousBody");
+            if (string.IsNullOrEmpty(anonymousBody)) throw new ArgumentNullException(nameof(anonymousBody));
 
-            var urlSuffix = $"tooling/executeAnonymous?anonymousBody={DNF.EscapeDataString(anonymousBody)}";
+            var urlSuffix = $"tooling/executeAnonymous?anonymousBody={Dnf.EscapeDataString(anonymousBody)}";
             return await JsonHttp.HttpGetAsync<ExecuteAnonymousResult>(urlSuffix).ConfigureAwait(false);
         }
 
         public async Task<JToken> RunTestsAsynchronousAsync(JToken inputObject)
         {
-            if (inputObject == null) throw new ArgumentNullException("inputObject");
+            if (inputObject == null) throw new ArgumentNullException(nameof(inputObject));
 
             var urlSuffix = "tooling/runTestsAsynchronous";
             return await JsonHttp.HttpPostAsync<JToken>(inputObject, urlSuffix).ConfigureAwait(false);
@@ -136,7 +124,7 @@ namespace DotNetForce
 
         public async Task<JToken> RunTestsSynchronousAsync(JToken inputObject)
         {
-            if (inputObject == null) throw new ArgumentNullException("inputObject");
+            if (inputObject == null) throw new ArgumentNullException(nameof(inputObject));
 
             var urlSuffix = "tooling/runTestsSynchronous";
             return await JsonHttp.HttpPostAsync<JToken>(inputObject, urlSuffix).ConfigureAwait(false);

@@ -1,10 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace DotNetForce
+﻿namespace DotNetForce.Schema
 {
-    public class SfPhoneField<T> : SfFieldBase<T> where T: SfObjectBase
+    public class SfPhoneField : SfFieldBase
     {
         public SfPhoneField(string path) : base(path) { }
     }

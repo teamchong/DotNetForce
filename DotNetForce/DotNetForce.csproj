@@ -1,48 +1,31 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>netstandard2.0;netcoreapp2.1;net46</TargetFrameworks>
+    <TargetFrameworks>net5.0;netstandard2.1</TargetFrameworks>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <Authors>Steven Chong</Authors>
     <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
-    <Version>5.1</Version>
+    <Version>6.0.0</Version>
     <Company />
     <Description>https://ste80.github.io/DotNetForce</Description>
     <RepositoryUrl>https://github.com/ste80/DotNetForce</RepositoryUrl>
     <PackageTags>salesforce</PackageTags>
     <PackageProjectUrl>https://ste80.github.io/DotNetForce</PackageProjectUrl>
-    <PackageReleaseNotes>This library provides an easy way for .NET developers to interact with the Salesforce REST &amp; Chatter APIs using native libraries.
-
-v5.0.12 bug fixes SchemaGenerator
-v5.0.11 Added Id field to DNFClient
-v5.0.10 bug fixes
-v5.0.9
-new function GetEnumerableByFieldValues, support any string field
-Add test class for GetEnumerableByIds, GetEnumerableByFieldValues
-https://github.com/ste80/DotNetForce/blob/master/DotNetForceTest/DNFClientTest.cs
-v5.0.8
-Bug Fixed JObjectWrapper.Set support relationship field
-v5.0.7
-Remove ExplainAllAsync
-BugFixed: QueryAll
-(All = include deleted &amp; achieved)
-V5.0.5
-Add support for Blazor (WebAssembly)
-+Setup https://ste80.github.io/DotNetForce/ for demo running C# on web client
-+DNFClient.DefaultApiVersion = "v44.0"; // to change API Version
-+DNFClient.UseCompression = false; // to disabled UseCompression
-+DNFClient.Proxy = uri =&gt; new Uri(new Uri("https://yourproxy"), uri.PathAndQuery); // to send to proxy instead of instanceUrl</PackageReleaseNotes>
-    <PackageLicenseUrl>https://raw.githubusercontent.com/ste80/DotNetForce/master/LICENSE</PackageLicenseUrl>
+    <PackageReleaseNotes>This library provides an easy way for .NET developers to interact with the Salesforce REST &amp; Chatter APIs using native libraries.</PackageReleaseNotes>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <Copyright>Copyright (c) 2018 Steven Chong</Copyright>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Newtonsoft.Json" Version="12.0.1" />
+    <PackageReference Include="JetBrains.Annotations" Version="2021.2.0" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
     <PackageReference Include="System.Linq" Version="4.3.0" />
+    <PackageReference Include="System.Linq.Async" Version="5.0.0" />
     <PackageReference Include="System.Net.Http" Version="4.3.4" />
-    <PackageReference Include="System.Reactive" Version="4.1.3" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Properties\" />
+    <Folder Include="Serializer\" />
+    <Folder Include="Soql\" />
   </ItemGroup>
 
 </Project>

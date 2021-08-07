@@ -1,14 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace DotNetForce
+﻿namespace DotNetForce
 {
     public class MetadataType
     {
-        protected string Value { get; set; }
-
         public MetadataType(string value) { Value = value ?? ""; }
+        protected string Value { get; set; }
 
         public override string ToString()
         {

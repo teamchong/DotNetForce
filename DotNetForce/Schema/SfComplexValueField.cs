@@ -1,10 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace DotNetForce
+﻿namespace DotNetForce.Schema
 {
-    public class SfComplexValueField<T> : SfFieldBase<T> where T: SfObjectBase
+    public class SfComplexValueField<T> : SfFieldBase where T : SfObjectBase
     {
         public SfComplexValueField(string path) : base(path) { }
     }

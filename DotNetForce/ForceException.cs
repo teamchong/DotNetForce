@@ -1,20 +1,15 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Net;
-using DotNetForce.Common.Models;
 using DotNetForce.Common.Models.Json;
 
-namespace DotNetForce.Common
+namespace DotNetForce
 {
-    public class ForceException : Exception, IForceException
+    [JetBrains.Annotations.PublicAPI]
+    public class ForceException : AggregateException
     {
-        public string[] Fields { get; private set; }
-        public HttpStatusCode HttpStatusCode { get; private set; }
-        public Error Error { get; private set; }
-
         public ForceException(string error, string description)
-            : this(ParseError(error), description)
-        {
-        }
+            : this(ParseError(error), description) { }
 
         public ForceException(string error, string description, string[] fields)
             : this(error, description)
@@ -31,21 +26,30 @@ namespace DotNetForce.Common
         public ForceException(string error, string description, HttpStatusCode httpStatusCode)
             : this(ParseError(error), description)
         {
-            this.HttpStatusCode = httpStatusCode;
+            HttpStatusCode = httpStatusCode;
         }
 
         public ForceException(Error error, string description)
             : base(description)
         {
             Error = error;
-            Fields = new string[0];
+            Fields = Array.Empty<string>();
             HttpStatusCode = new HttpStatusCode();
         }
 
+        public ForceException(IEnumerable<Exception> exceptions)
+            : base(exceptions)
+        {
+
+        }
+
+        public string[] Fields { get; }
+        public HttpStatusCode HttpStatusCode { get; }
+        public Error Error { get; }
+
         private static Error ParseError(string error)
         {
-            Error value;
-            return Enum.TryParse(error.Replace("_", ""), true, out value) ? value : Error.Unknown;
+            return Enum.TryParse(error.Replace("_", ""), true, out Error value) ? value : Error.Unknown;
         }
     }
 }

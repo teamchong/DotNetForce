@@ -1,10 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace DotNetForce
+﻿namespace DotNetForce.Schema
 {
-    public class SfDateField<T> : SfFieldBase<T> where T: SfObjectBase
+    public class SfDateField<T> : SfFieldBase where T : SfObjectBase
     {
         public SfDateField(string path) : base(path) { }
     }

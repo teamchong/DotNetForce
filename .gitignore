@@ -1,4 +1,3 @@
-
 # Created by https://www.gitignore.io/api/csharp,visualstudio2017
 
 ### Csharp ###
@@ -342,3 +341,5 @@ ASALocalRun/
 
 # End of https://www.gitignore.io/api/csharp,visualstudio2017
 !/_framework/_bin/*.pdb
+
+LoginProfiles.json

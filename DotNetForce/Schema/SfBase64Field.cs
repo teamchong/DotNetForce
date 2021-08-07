@@ -1,10 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace DotNetForce
+﻿namespace DotNetForce.Schema
 {
-    public class SfBase64Field<T> : SfFieldBase<T> where T: SfObjectBase
+    public class SfBase64Field<T> : SfFieldBase where T : SfObjectBase
     {
         public SfBase64Field(string path) : base(path) { }
     }

@@ -1,7 +1,9 @@
-﻿namespace DotNetForce.Force
+﻿namespace DotNetForce
 {
+    [JetBrains.Annotations.PublicAPI]
     public static class BulkConstants
     {
+        [JetBrains.Annotations.PublicAPI]
         public sealed class OperationType
         {
             public static readonly OperationType Insert = new OperationType("insert");
@@ -23,6 +25,7 @@
             }
         }
 
+        [JetBrains.Annotations.PublicAPI]
         public sealed class BatchState
         {
             public static readonly BatchState Queued = new BatchState("Queued");
@@ -43,6 +46,5 @@
                 return _value;
             }
         }
-
     }
 }

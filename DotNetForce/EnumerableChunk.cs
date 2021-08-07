@@ -1,31 +1,19 @@
-﻿using DotNetForce;
-using DotNetForce.Common;
-using DotNetForce.Common.Models.Json;
-using DotNetForce.Common.Models.Xml;
-using DotNetForce.Force;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
-using System;
-using System.Linq;
-using System.Collections.Generic;
-using System.Reactive.Linq;
-using System.Threading.Tasks;
-using System.Collections;
+﻿using System.Collections.Generic;
 
 namespace DotNetForce
 {
     internal class EnumerableChunk<T>
     {
-        protected IEnumerable<T> Source { get; set; }
-        protected int Size { get; set; }
-
         internal EnumerableChunk(IEnumerable<T> source, int size)
         {
             Source = source;
             Size = size;
         }
 
-        public IEnumerable<List<T>> GetEnumerable()
+        protected IEnumerable<T> Source { get; set; }
+        protected int Size { get; set; }
+
+        public IEnumerable<IList<T>> GetEnumerable()
         {
             var bucket = new List<T>();
             //var count = 0;
@@ -42,10 +30,7 @@ namespace DotNetForce
                 //count = 0;
             }
 
-            if (bucket.Count > 0)
-            {
-                yield return bucket;
-            }
+            if (bucket.Count > 0) yield return bucket;
         }
     }
 }

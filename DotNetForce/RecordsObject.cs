@@ -1,14 +1,13 @@
-﻿using DotNetForce.Common;
+﻿using System.Collections.Generic;
+using System.Linq;
+using DotNetForce.Common;
 using DotNetForce.Common.Models.Json;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Linq;
 
 namespace DotNetForce
 {
+    [JetBrains.Annotations.PublicAPI]
     public class RecordsObject
     {
         public RecordsObject()
@@ -20,37 +19,33 @@ namespace DotNetForce
         public RecordsObject(IEnumerable<IAttributedObject> enumerable)
         {
             Records = new List<IAttributedObject>();
-            foreach (var item in enumerable)
-            {
-                Records.Add(item);
-            }
+            foreach (var item in enumerable) Records.Add(item);
             AdditionalData = new JObject();
         }
 
         [JsonProperty(PropertyName = "records", NullValueHandling = NullValueHandling.Ignore)]
-        public List<IAttributedObject> Records { get; set; }
+        public IList<IAttributedObject> Records { get; set; }
 
         [JsonExtensionData]
         public JObject AdditionalData { get; set; }
 
-        public CreateRequest ToCreateRequest()
-        {
-            return new CreateRequest
-            {
-                Records = Records.Cast<IAttributedObject>().ToList()
-            };
-        }
-        
         public JToken this[string propertyName]
         {
             get => AdditionalData[propertyName];
             set => AdditionalData[propertyName] = value;
         }
 
+        public CreateRequest ToCreateRequest()
+        {
+            return new CreateRequest
+            {
+                Records = Records.ToList()
+            };
+        }
+
         public static implicit operator JObject(RecordsObject obj)
         {
-            var dict = new JObject(obj.AdditionalData);
-            dict["records"] = JToken.FromObject(obj.Records);
+            var dict = new JObject(obj.AdditionalData) { ["records"] = JToken.FromObject(obj.Records) };
             return dict;
         }
     }

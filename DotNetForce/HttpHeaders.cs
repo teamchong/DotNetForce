@@ -1,41 +1,22 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 
 namespace DotNetForce
 {
+    [JetBrains.Annotations.PublicAPI]
     public class HttpHeaders : Dictionary<string, string>
     {
         public HttpHeaders AutoAssign(bool enable)
         {
-            if (enable)
-            {
-                Remove("Sforce-Auto-Assign");
-            }
-            else
-            {
-                Add("Sforce-Auto-Assign", "FALSE");
-            }
+            if (enable) Remove("Sforce-Auto-Assign");
+            else Add("Sforce-Auto-Assign", "FALSE");
             return this;
         }
 
         public HttpHeaders CallOptions(string client, string defaultNamespace = null)
         {
-            if (string.IsNullOrEmpty(client))
-            {
-                Remove("Sforce-Call-Options");
-            }
-            else
-            {
-                if (string.IsNullOrEmpty(defaultNamespace))
-                {
-                    Add("Sforce-Call-Options", $"client={client}");
-                }
-                else
-                {
-                    Add("Sforce-Call-Options", $"client={client}, defaultNamespace={defaultNamespace}");
-                }
-            }
+            if (string.IsNullOrEmpty(client)) Remove("Sforce-Call-Options");
+            else Add("Sforce-Call-Options", string.IsNullOrEmpty(defaultNamespace) ? $"client={client}" : $"client={client}, defaultNamespace={defaultNamespace}");
             return this;
         }
 
@@ -61,14 +42,8 @@ namespace DotNetForce
 
         public HttpHeaders PackageVersion(string packageNamespace, string version)
         {
-            if (string.IsNullOrEmpty(version))
-            {
-                Remove($"x-sfdc-packageversion-{packageNamespace}");
-            }
-            else
-            {
-                Add($"x-sfdc-packageversion-{packageNamespace}", version);
-            }
+            if (string.IsNullOrEmpty(version)) Remove($"x-sfdc-packageversion-{packageNamespace}");
+            else Add($"x-sfdc-packageversion-{packageNamespace}", version);
             return this;
         }
 
@@ -80,7 +55,7 @@ namespace DotNetForce
             }
             else
             {
-                if (batchSize < 200 || batchSize > 2000) throw new ArgumentOutOfRangeException("batchSize");
+                if (batchSize < 200 || batchSize > 2000) throw new ArgumentOutOfRangeException(nameof(batchSize));
                 Add("Sforce-Query-Options", $"batchSize={batchSize}");
             }
             return this;

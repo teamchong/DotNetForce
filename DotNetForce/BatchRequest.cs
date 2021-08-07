@@ -1,30 +1,30 @@
-﻿using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
-using System;
+﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
-using System.Reactive.Linq;
-using System.Web;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
 namespace DotNetForce
 {
     //https://developer.salesforce.com/docs/atlas.en-us.214.0.api_rest.meta/api_rest/resources_composite_batch.htm?search_text=connect
+    [JetBrains.Annotations.PublicAPI]
     public class BatchRequest : IBatchRequest
     {
-        public string Prefix { get; set; }
-        public bool HaltOnError { get; set; }
-        public List<BatchSubrequest> BatchRequests { get; set; }
-
         public BatchRequest(bool haltOnError = false)
         {
             Prefix = "";
             HaltOnError = haltOnError;
-            BatchRequests = new List<BatchSubrequest>();
+            BatchRequests = new List<BatchSubRequest>();
         }
 
-        public BatchSubrequest Limits()
+        public string Prefix { get; set; }
+        public bool HaltOnError { get; set; }
+        public IList<BatchSubRequest> BatchRequests { get; set; }
+
+        public BatchSubRequest Limits()
         {
-            var request = new BatchSubrequest
+            var request = new BatchSubRequest
             {
                 Method = "GET",
                 Url = "limits"
@@ -33,11 +33,87 @@ namespace DotNetForce
             return request;
         }
 
+        public BatchSubRequest Query(string query)
+        {
+            if (string.IsNullOrEmpty(query)) throw new ArgumentNullException(nameof(query));
+
+            var request = new BatchSubRequest
+            {
+                ResponseType = "query",
+                Method = "GET",
+                Url = $"query?q={Dnf.EscapeDataString(query)}"
+            };
+            BatchRequests.Add(request);
+            return request;
+        }
+
+        public BatchSubRequest Explain(string query)
+        {
+            if (string.IsNullOrEmpty(query)) throw new ArgumentNullException(nameof(query));
+
+            var request = new BatchSubRequest
+            {
+                Method = "GET",
+                Url = $"query?explain={Dnf.EscapeDataString(query)}"
+            };
+            BatchRequests.Add(request);
+            return request;
+        }
+
+        public BatchSubRequest QueryAll(string query)
+        {
+            if (string.IsNullOrEmpty(query)) throw new ArgumentNullException(nameof(query));
+
+            var request = new BatchSubRequest
+            {
+                ResponseType = "query",
+                Method = "GET",
+                Url = $"queryAll?q={Dnf.EscapeDataString(query)}"
+            };
+            BatchRequests.Add(request);
+            return request;
+        }
+
+        public BatchSubRequest ExplainAll(string query)
+        {
+            if (string.IsNullOrEmpty(query)) throw new ArgumentNullException(nameof(query));
+
+            var request = new BatchSubRequest
+            {
+                Method = "GET",
+                Url = $"queryAll?explain={Dnf.EscapeDataString(query)}"
+            };
+            BatchRequests.Add(request);
+            return request;
+        }
+
+
+        public BatchSubRequest Search(string query)
+        {
+            if (string.IsNullOrEmpty(query)) throw new ArgumentNullException(nameof(query));
+            if (!query.Contains("FIND")) throw new ArgumentException("query does not contain FIND");
+            if (!query.Contains("{") || !query.Contains("}")) throw new ArgumentException("search term must be wrapped in braces");
+
+            var request = new BatchSubRequest
+            {
+                ResponseType = "query",
+                Method = "GET",
+                Url = $"search?q={Dnf.EscapeDataString(query)}"
+            };
+            BatchRequests.Add(request);
+            return request;
+        }
+
+        public override string ToString()
+        {
+            return JsonConvert.SerializeObject(BatchRequests);
+        }
+
         #region SObject
 
-        public BatchSubrequest GetObjects()
+        public BatchSubRequest GetObjects()
         {
-            var request = new BatchSubrequest
+            var request = new BatchSubRequest
             {
                 Method = "GET",
                 Url = "sobjects"
@@ -46,11 +122,11 @@ namespace DotNetForce
             return request;
         }
 
-        public BatchSubrequest BasicInformation(string objectName)
+        public BatchSubRequest BasicInformation(string objectName)
         {
-            if (string.IsNullOrEmpty(objectName)) throw new ArgumentNullException("objectName");
+            if (string.IsNullOrEmpty(objectName)) throw new ArgumentNullException(nameof(objectName));
 
-            var request = new BatchSubrequest
+            var request = new BatchSubRequest
             {
                 Method = "GET",
                 Url = $"sobjects/{objectName}"
@@ -59,11 +135,11 @@ namespace DotNetForce
             return request;
         }
 
-        public BatchSubrequest Describe(string objectName)
+        public BatchSubRequest Describe(string objectName)
         {
-            if (string.IsNullOrEmpty(objectName)) throw new ArgumentNullException("objectName");
+            if (string.IsNullOrEmpty(objectName)) throw new ArgumentNullException(nameof(objectName));
 
-            var request = new BatchSubrequest
+            var request = new BatchSubRequest
             {
                 Method = "GET",
                 Url = $"sobjects/{objectName}/describe"
@@ -72,12 +148,12 @@ namespace DotNetForce
             return request;
         }
 
-        public BatchSubrequest GetDeleted(string objectName, DateTime startDateTime, DateTime endDateTime)
+        public BatchSubRequest GetDeleted(string objectName, DateTime startDateTime, DateTime endDateTime)
         {
-            var sdt = Uri.EscapeDataString(startDateTime.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ss+00:00", System.Globalization.CultureInfo.InvariantCulture));
-            var edt = Uri.EscapeDataString(endDateTime.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ss+00:00", System.Globalization.CultureInfo.InvariantCulture));
+            var sdt = Uri.EscapeDataString(startDateTime.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ss+00:00", CultureInfo.InvariantCulture));
+            var edt = Uri.EscapeDataString(endDateTime.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ss+00:00", CultureInfo.InvariantCulture));
 
-            var request = new BatchSubrequest
+            var request = new BatchSubRequest
             {
                 Method = "GET",
                 Url = $"sobjects/{objectName}/deleted/?start={sdt}&end={edt}"
@@ -86,12 +162,12 @@ namespace DotNetForce
             return request;
         }
 
-        public BatchSubrequest GetUpdated(string objectName, DateTime startDateTime, DateTime endDateTime)
+        public BatchSubRequest GetUpdated(string objectName, DateTime startDateTime, DateTime endDateTime)
         {
-            var sdt = Uri.EscapeDataString(startDateTime.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ss+00:00", System.Globalization.CultureInfo.InvariantCulture));
-            var edt = Uri.EscapeDataString(endDateTime.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ss+00:00", System.Globalization.CultureInfo.InvariantCulture));
+            var sdt = Uri.EscapeDataString(startDateTime.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ss+00:00", CultureInfo.InvariantCulture));
+            var edt = Uri.EscapeDataString(endDateTime.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ss+00:00", CultureInfo.InvariantCulture));
 
-            var request = new BatchSubrequest
+            var request = new BatchSubRequest
             {
                 Method = "GET",
                 Url = $"sobjects/{objectName}/updated/?start={sdt}&end={edt}"
@@ -100,89 +176,89 @@ namespace DotNetForce
             return request;
         }
 
-        public BatchSubrequest Create(string objectName, object record)
+        public BatchSubRequest Create(string objectName, object record)
         {
-            if (string.IsNullOrEmpty(objectName)) throw new ArgumentNullException("objectName");
-            if (record == null) throw new ArgumentNullException("record");
+            if (string.IsNullOrEmpty(objectName)) throw new ArgumentNullException(nameof(objectName));
+            if (record == null) throw new ArgumentNullException(nameof(record));
 
-            var request = new BatchSubrequest
+            var request = new BatchSubRequest
             {
-                RichInput = DNF.UnFlatten(JObject.FromObject(record)),
+                RichInput = Dnf.UnFlatten(JObject.FromObject(record)),
                 Url = $"sobjects/{objectName}"
             };
             BatchRequests.Add(request);
             return request;
         }
 
-        public BatchSubrequest Retrieve(string objectName, string recordId, params string[] fields)
+        public BatchSubRequest Retrieve(string objectName, string recordId, params string[] fields)
         {
-            if (string.IsNullOrEmpty(objectName)) throw new ArgumentNullException("objectName");
-            if (string.IsNullOrEmpty(recordId)) throw new ArgumentNullException("recordId");
+            if (string.IsNullOrEmpty(objectName)) throw new ArgumentNullException(nameof(objectName));
+            if (string.IsNullOrEmpty(recordId)) throw new ArgumentNullException(nameof(recordId));
 
-            var request = new BatchSubrequest
+            var request = new BatchSubRequest
             {
                 Method = "GET",
                 Url = fields?.Length > 0
-                    ? $"sobjects/{objectName}/{recordId}?fields={string.Join(",", fields.Select(field => Uri.EscapeDataString(field)))}"
+                    ? $"sobjects/{objectName}/{recordId}?fields={string.Join(",", fields.Select(Uri.EscapeDataString))}"
                     : $"sobjects/{objectName}/{recordId}"
             };
             BatchRequests.Add(request);
             return request;
         }
 
-        public BatchSubrequest RetrieveExternal(string objectName, string externalFieldName, string externalId, params string[] fields)
+        public BatchSubRequest RetrieveExternal(string objectName, string externalFieldName, string externalId, params string[] fields)
         {
-            if (string.IsNullOrEmpty(objectName)) throw new ArgumentNullException("objectName");
-            if (string.IsNullOrEmpty(externalFieldName)) throw new ArgumentNullException("externalFieldName");
-            if (string.IsNullOrEmpty(externalId)) throw new ArgumentNullException("externalId");
+            if (string.IsNullOrEmpty(objectName)) throw new ArgumentNullException(nameof(objectName));
+            if (string.IsNullOrEmpty(externalFieldName)) throw new ArgumentNullException(nameof(externalFieldName));
+            if (string.IsNullOrEmpty(externalId)) throw new ArgumentNullException(nameof(externalId));
 
-            var request = new BatchSubrequest
+            var request = new BatchSubRequest
             {
                 Method = "GET",
                 Url = fields?.Length > 0
-                    ? $"sobjects/{objectName}/{externalFieldName}/{Uri.EscapeDataString(externalId)}?fields={string.Join(",", fields.Select(field => Uri.EscapeDataString(field)))}"
+                    ? $"sobjects/{objectName}/{externalFieldName}/{Uri.EscapeDataString(externalId)}?fields={string.Join(",", fields.Select(Uri.EscapeDataString))}"
                     : $"sobjects/{objectName}/{externalFieldName}"
             };
             BatchRequests.Add(request);
             return request;
         }
 
-        public BatchSubrequest Relationships(string objectName, string recordId, string relationshipFieldName, string[] fields = null)
+        public BatchSubRequest Relationships(string objectName, string recordId, string relationshipFieldName, string[] fields = null)
         {
-            if (string.IsNullOrEmpty(objectName)) throw new ArgumentNullException("objectName");
-            if (string.IsNullOrEmpty(recordId)) throw new ArgumentNullException("recordId");
-            if (string.IsNullOrEmpty(relationshipFieldName)) throw new ArgumentNullException("relationshipFieldName");
-            
-            var request = new BatchSubrequest
+            if (string.IsNullOrEmpty(objectName)) throw new ArgumentNullException(nameof(objectName));
+            if (string.IsNullOrEmpty(recordId)) throw new ArgumentNullException(nameof(recordId));
+            if (string.IsNullOrEmpty(relationshipFieldName)) throw new ArgumentNullException(nameof(relationshipFieldName));
+
+            var request = new BatchSubRequest
             {
                 Method = "GET",
                 Url = fields?.Length > 0
-                    ? $"sobjects/{objectName}/{recordId}/{relationshipFieldName}?fields={string.Join(",", fields.Select(field => Uri.EscapeDataString(field)))}"
+                    ? $"sobjects/{objectName}/{recordId}/{relationshipFieldName}?fields={string.Join(",", fields.Select(Uri.EscapeDataString))}"
                     : $"sobjects/{objectName}/{recordId}/{relationshipFieldName}"
             };
             BatchRequests.Add(request);
             return request;
         }
 
-        public BatchSubrequest Update(string objectName, object record)
+        public BatchSubRequest Update(string objectName, object record)
         {
-            if (string.IsNullOrEmpty(objectName)) throw new ArgumentNullException("objectName");
-            if (record == null) throw new ArgumentNullException("record");
+            if (string.IsNullOrEmpty(objectName)) throw new ArgumentNullException(nameof(objectName));
+            if (record == null) throw new ArgumentNullException(nameof(record));
 
-            var richInput = DNF.UnFlatten(JObject.FromObject(record));
-            return Update(objectName, richInput["Id"]?.ToString(), DNF.Omit(richInput, "Id"));
+            var richInput = Dnf.UnFlatten(JObject.FromObject(record));
+            return Update(objectName, richInput["Id"]?.ToString(), Dnf.Omit(richInput, "Id"));
         }
 
-        public BatchSubrequest Update(string objectName, string recordId, object record)
+        public BatchSubRequest Update(string objectName, string recordId, object record)
         {
-            if (string.IsNullOrEmpty(objectName)) throw new ArgumentNullException("objectName");
-            if (string.IsNullOrEmpty(recordId)) throw new ArgumentNullException("recordId");
-            if (record == null) throw new ArgumentNullException("record");
+            if (string.IsNullOrEmpty(objectName)) throw new ArgumentNullException(nameof(objectName));
+            if (string.IsNullOrEmpty(recordId)) throw new ArgumentNullException(nameof(recordId));
+            if (record == null) throw new ArgumentNullException(nameof(record));
 
-            var richInput = DNF.UnFlatten(JObject.FromObject(record));
-            var request = new BatchSubrequest
+            var richInput = Dnf.UnFlatten(JObject.FromObject(record));
+            var request = new BatchSubRequest
             {
-                RichInput = DNF.Omit(richInput, "Id"),
+                RichInput = Dnf.Omit(richInput, "Id"),
                 Method = "PATCH",
                 Url = $"sobjects/{objectName}/{recordId}"
             };
@@ -190,25 +266,25 @@ namespace DotNetForce
             return request;
         }
 
-        public BatchSubrequest UpsertExternal(string objectName, string externalFieldName, object record)
+        public BatchSubRequest UpsertExternal(string objectName, string externalFieldName, object record)
         {
-            if (string.IsNullOrEmpty(objectName)) throw new ArgumentNullException("objectName");
-            if (record == null) throw new ArgumentNullException("record");
+            if (string.IsNullOrEmpty(objectName)) throw new ArgumentNullException(nameof(objectName));
+            if (record == null) throw new ArgumentNullException(nameof(record));
 
-            var richInput = DNF.UnFlatten(JObject.FromObject(record));
-            return UpsertExternal(objectName, externalFieldName, richInput[externalFieldName]?.ToString(), DNF.Omit(richInput, externalFieldName));
+            var richInput = Dnf.UnFlatten(JObject.FromObject(record));
+            return UpsertExternal(objectName, externalFieldName, richInput[externalFieldName]?.ToString(), Dnf.Omit(richInput, externalFieldName));
         }
 
-        public BatchSubrequest UpsertExternal(string objectName, string externalFieldName, string externalId, object record)
+        public BatchSubRequest UpsertExternal(string objectName, string externalFieldName, string externalId, object record)
         {
-            if (string.IsNullOrEmpty(objectName)) throw new ArgumentNullException("objectName");
-            if (string.IsNullOrEmpty(externalId)) throw new ArgumentNullException("externalId");
-            if (record == null) throw new ArgumentNullException("record");
+            if (string.IsNullOrEmpty(objectName)) throw new ArgumentNullException(nameof(objectName));
+            if (string.IsNullOrEmpty(externalId)) throw new ArgumentNullException(nameof(externalId));
+            if (record == null) throw new ArgumentNullException(nameof(record));
 
-            var richInput = DNF.UnFlatten(JObject.FromObject(record));
-            var request = new BatchSubrequest
+            var richInput = Dnf.UnFlatten(JObject.FromObject(record));
+            var request = new BatchSubRequest
             {
-                RichInput = DNF.Omit(richInput, externalFieldName),
+                RichInput = Dnf.Omit(richInput, externalFieldName),
                 Method = "PATCH",
                 Url = $"sobjects/{objectName}/{externalFieldName}/{Uri.EscapeDataString(externalId)}"
             };
@@ -216,12 +292,12 @@ namespace DotNetForce
             return request;
         }
 
-        public BatchSubrequest Delete(string objectName, string recordId)
+        public BatchSubRequest Delete(string objectName, string recordId)
         {
-            if (string.IsNullOrEmpty(objectName)) throw new ArgumentNullException("objectName");
-            if (string.IsNullOrEmpty(recordId)) throw new ArgumentNullException("recordId");
+            if (string.IsNullOrEmpty(objectName)) throw new ArgumentNullException(nameof(objectName));
+            if (string.IsNullOrEmpty(recordId)) throw new ArgumentNullException(nameof(recordId));
 
-            var request = new BatchSubrequest
+            var request = new BatchSubRequest
             {
                 Method = "DELETE",
                 Url = $"sobjects/{objectName}/{recordId}"
@@ -230,13 +306,13 @@ namespace DotNetForce
             return request;
         }
 
-        public BatchSubrequest DeleteExternal(string objectName, string externalFieldName, string externalId)
+        public BatchSubRequest DeleteExternal(string objectName, string externalFieldName, string externalId)
         {
-            if (string.IsNullOrEmpty(objectName)) throw new ArgumentNullException("objectName");
-            if (string.IsNullOrEmpty(externalFieldName)) throw new ArgumentNullException("externalFieldName");
-            if (string.IsNullOrEmpty(externalId)) throw new ArgumentNullException("externalId");
-            
-            var request = new BatchSubrequest
+            if (string.IsNullOrEmpty(objectName)) throw new ArgumentNullException(nameof(objectName));
+            if (string.IsNullOrEmpty(externalFieldName)) throw new ArgumentNullException(nameof(externalFieldName));
+            if (string.IsNullOrEmpty(externalId)) throw new ArgumentNullException(nameof(externalId));
+
+            var request = new BatchSubRequest
             {
                 Method = "DELETE",
                 Url = $"sobjects/{objectName}/{externalFieldName}/{Uri.EscapeDataString(externalId)}"
@@ -245,12 +321,12 @@ namespace DotNetForce
             return request;
         }
 
-        public BatchSubrequest NamedLayouts(string objectName, string layoutName)
+        public BatchSubRequest NamedLayouts(string objectName, string layoutName)
         {
-            if (string.IsNullOrEmpty(objectName)) throw new ArgumentNullException("objectName");
-            if (string.IsNullOrEmpty(layoutName)) throw new ArgumentNullException("layoutName");
+            if (string.IsNullOrEmpty(objectName)) throw new ArgumentNullException(nameof(objectName));
+            if (string.IsNullOrEmpty(layoutName)) throw new ArgumentNullException(nameof(layoutName));
 
-            var request = new BatchSubrequest
+            var request = new BatchSubRequest
             {
                 Method = "GET",
                 Url = $"sobjects/{objectName}/describe/namedLayouts/{layoutName}"
@@ -259,11 +335,11 @@ namespace DotNetForce
             return request;
         }
 
-        public BatchSubrequest ApprovalLayouts(string objectName, string approvalProcessName = "")
+        public BatchSubRequest ApprovalLayouts(string objectName, string approvalProcessName = "")
         {
-            if (string.IsNullOrEmpty(objectName)) throw new ArgumentNullException("objectName");
+            if (string.IsNullOrEmpty(objectName)) throw new ArgumentNullException(nameof(objectName));
 
-            var request = new BatchSubrequest
+            var request = new BatchSubRequest
             {
                 Method = "GET",
                 Url = $"sobjects/{objectName}/describe/approvalLayouts/{approvalProcessName}"
@@ -272,11 +348,11 @@ namespace DotNetForce
             return request;
         }
 
-        public BatchSubrequest CompactLayouts(string objectName)
+        public BatchSubRequest CompactLayouts(string objectName)
         {
-            if (string.IsNullOrEmpty(objectName)) throw new ArgumentNullException("objectName");
+            if (string.IsNullOrEmpty(objectName)) throw new ArgumentNullException(nameof(objectName));
 
-            var request = new BatchSubrequest
+            var request = new BatchSubRequest
             {
                 Method = "GET",
                 Url = $"sobjects/{objectName}/describe/compactLayouts/"
@@ -285,11 +361,11 @@ namespace DotNetForce
             return request;
         }
 
-        public BatchSubrequest DescribeLayouts(string objectName = "Global")
+        public BatchSubRequest DescribeLayouts(string objectName = "Global")
         {
-            if (string.IsNullOrEmpty(objectName)) throw new ArgumentNullException("objectName");
+            if (string.IsNullOrEmpty(objectName)) throw new ArgumentNullException(nameof(objectName));
 
-            var request = new BatchSubrequest
+            var request = new BatchSubRequest
             {
                 Method = "GET",
                 Url = $"sobjects/{objectName}/describe/layouts/"
@@ -298,22 +374,22 @@ namespace DotNetForce
             return request;
         }
 
-        public BatchSubrequest PlatformAction(string referenceId)
+        public BatchSubRequest PlatformAction(string referenceId)
         {
-            var request = new BatchSubrequest
+            var request = new BatchSubRequest
             {
                 Method = "GET",
-                Url = $"sobjects/PlatformAction"
+                Url = "sobjects/PlatformAction"
             };
             BatchRequests.Add(request);
             return request;
         }
 
-        public BatchSubrequest QuickActions(string objectName, string actionName = "")
+        public BatchSubRequest QuickActions(string objectName, string actionName = "")
         {
-            if (string.IsNullOrEmpty(objectName)) throw new ArgumentNullException("objectName");
+            if (string.IsNullOrEmpty(objectName)) throw new ArgumentNullException(nameof(objectName));
 
-            var request = new BatchSubrequest
+            var request = new BatchSubRequest
             {
                 Method = "GET",
                 Url = $"sobjects/{objectName}/quickActions/{actionName}"
@@ -322,12 +398,12 @@ namespace DotNetForce
             return request;
         }
 
-        public BatchSubrequest QuickActionsDetails(string objectName, string actionName)
+        public BatchSubRequest QuickActionsDetails(string objectName, string actionName)
         {
-            if (string.IsNullOrEmpty(objectName)) throw new ArgumentNullException("objectName");
-            if (string.IsNullOrEmpty(actionName)) throw new ArgumentNullException("actionName");
+            if (string.IsNullOrEmpty(objectName)) throw new ArgumentNullException(nameof(objectName));
+            if (string.IsNullOrEmpty(actionName)) throw new ArgumentNullException(nameof(actionName));
 
-            var request = new BatchSubrequest
+            var request = new BatchSubRequest
             {
                 Method = "GET",
                 Url = $"sobjects/{objectName}/quickActions/{actionName}/describe/"
@@ -336,13 +412,13 @@ namespace DotNetForce
             return request;
         }
 
-        public BatchSubrequest QuickActionsDefaultValues(string objectName, string actionName, string contextId)
+        public BatchSubRequest QuickActionsDefaultValues(string objectName, string actionName, string contextId)
         {
-            if (string.IsNullOrEmpty(objectName)) throw new ArgumentNullException("objectName");
-            if (string.IsNullOrEmpty(actionName)) throw new ArgumentNullException("actionName");
-            if (string.IsNullOrEmpty(contextId)) throw new ArgumentNullException("contextId");
+            if (string.IsNullOrEmpty(objectName)) throw new ArgumentNullException(nameof(objectName));
+            if (string.IsNullOrEmpty(actionName)) throw new ArgumentNullException(nameof(actionName));
+            if (string.IsNullOrEmpty(contextId)) throw new ArgumentNullException(nameof(contextId));
 
-            var request = new BatchSubrequest
+            var request = new BatchSubRequest
             {
                 Method = "GET",
                 Url = $"sobjects/{objectName}/quickActions/{actionName}/defaultValues/{contextId}"
@@ -350,98 +426,28 @@ namespace DotNetForce
             BatchRequests.Add(request);
             return request;
         }
-        
+
         #endregion
 
-        public BatchSubrequest Query(string query)
-        {
-            if (string.IsNullOrEmpty(query)) throw new ArgumentNullException("query");
-
-            var request = new BatchSubrequest
-            {
-                ResponseType = "query",
-                Method = "GET",
-                Url = $"query?q={DNF.EscapeDataString(query)}"
-            };
-            BatchRequests.Add(request);
-            return request;
-        }
-
-        public BatchSubrequest Explain(string query)
-        {
-            if (string.IsNullOrEmpty(query)) throw new ArgumentNullException("query");
-
-            var request = new BatchSubrequest
-            {
-                Method = "GET",
-                Url = $"query?explain={DNF.EscapeDataString(query)}"
-            };
-            BatchRequests.Add(request);
-            return request;
-        }
-
-        public BatchSubrequest QueryAll(string query)
-        {
-            if (string.IsNullOrEmpty(query)) throw new ArgumentNullException("query");
-
-            var request = new BatchSubrequest
-            {
-                ResponseType = "query",
-                Method = "GET",
-                Url = $"queryAll?q={DNF.EscapeDataString(query)}"
-            };
-            BatchRequests.Add(request);
-            return request;
-        }
-
-        public BatchSubrequest ExplainAll(string query)
-        {
-            if (string.IsNullOrEmpty(query)) throw new ArgumentNullException("query");
-
-            var request = new BatchSubrequest
-            {
-                Method = "GET",
-                Url = $"queryAll?explain={DNF.EscapeDataString(query)}"
-            };
-            BatchRequests.Add(request);
-            return request;
-        }
-        
-        
-        public BatchSubrequest Search(string query)
-        {
-            if (string.IsNullOrEmpty(query)) throw new ArgumentNullException("query");
-            if (!query.Contains("FIND")) throw new ArgumentException("query does not contain FIND");
-            if (!query.Contains("{") || !query.Contains("}")) throw new ArgumentException("search term must be wrapped in braces");
-
-            var request = new BatchSubrequest
-            {
-                ResponseType = "query",
-                Method = "GET",
-                Url = $"search?q={DNF.EscapeDataString(query)}"
-            };
-            BatchRequests.Add(request);
-            return request;
-        }
-
         #region Connect
+
         //https://developer.salesforce.com/docs/atlas.en-us.chatterapi.meta/chatterapi/connect_resources_connect.htm
         //to do
+
         #endregion
 
         #region Chatter
+
         //https://developer.salesforce.com/docs/atlas.en-us.chatterapi.meta/chatterapi/intro_what_is_chatter_connect.htm
         //to do
+
         #endregion
 
         #region action
+
         //https://developer.salesforce.com/docs/atlas.en-us.api_rest.meta/api_rest/resources_actions_invocable.htm
         //to do
-        #endregion
 
-        public override string ToString()
-        {
-            return JsonConvert.SerializeObject(BatchRequests);
-        }
+        #endregion
     }
 }
