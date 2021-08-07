@@ -8,9 +8,13 @@ Run this on nuget command to fix the binding problem
 Get-Project –All | Add-BindingRedirect
 ```
 
-Please check the TestClasses for code samples <https://github.com/ste80/DotNetForce/tree/master/DotNetForceTest>
+Please check the TestClasses for code samples <https://github.com/teamchong/DotNetForce/tree/master/DotNetForceTest>
 
 This library provides an easy way for .NET developers to interact with the Salesforce REST & Chatter APIs using native libraries.
+
+v6.0.0
+
+Rewrote to support netstandard 2.1
 
 v5.0.9
 
@@ -18,7 +22,7 @@ new function GetAsyncEnumerableByFieldValues, support any string field
 
 Add test class for GetAsyncEnumerableByIds, GetAsyncEnumerableByFieldValues
 
-<https://github.com/ste80/DotNetForce/blob/master/DotNetForceTest/DNFClientTest.cs>
+<https://github.com/teamchong/DotNetForce/blob/master/DotNetForceTest/DNFClientTest.cs>
 
 v5.0.8
 
@@ -36,7 +40,7 @@ V5.0.1
 
 Add support for Blazor (WebAssembly)
 
-+Setup <https://ste80.github.io/DotNetForce/> for demo running C# on web client
++Setup <https://teamchong.github.io/DotNetForce/> for demo running C# on web client
 
 +DNFClient.DefaultApiVersion = "v52.0"; // to change API Version
 
@@ -52,11 +56,11 @@ following is the step by step guide to generate Schema for your org
 
 1) Install the latest version from nuget (v4.0.0+) <https://nuget.org/packages/DotNetForce>
 
-2) Download all the files from (Except DotNetForce.Schema.csproj) <https://github.com/ste80/DotNetForce/tree/master/DotNetForce.Schema>
+2) Download all the files from (Except DotNetForce.Schema.csproj) <https://github.com/teamchong/DotNetForce/tree/master/DotNetForce.Schema>
 
 3) Place the files in the root of your project
 
-4) Open DEV.tt and update the your_app_client_id, your_app_client_secret, your_app_redirect_uri_for_server_flow_only, your_user_name_for_password_flow_only, your_password_for_password_flow_only <https://raw.githubusercontent.com/ste80/DotNetForce/master/DotNetForce.Schema/DEV.tt>
+4) Open DEV.tt and update the your_app_client_id, your_app_client_secret, your_app_redirect_uri_for_server_flow_only, your_user_name_for_password_flow_only, your_password_for_password_flow_only <https://raw.githubusercontent.com/teamchong/DotNetForce/master/DotNetForce.Schema/DEV.tt>
 
 5) Run the DEV.tt using T4
 
