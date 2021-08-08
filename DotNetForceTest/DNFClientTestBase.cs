@@ -2,11 +2,15 @@ using DotNetForce;
 using Microsoft.Extensions.Configuration;
 using Newtonsoft.Json.Linq;
 using System;
+#if DEBUG
 using System.Diagnostics;
+#endif
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 using Xunit.Abstractions;
+// ReSharper disable MemberCanBePrivate.Global
+// ReSharper disable MemberCanBeProtected.Global
 
 namespace DotNetForceTest
 {
@@ -36,43 +40,48 @@ namespace DotNetForceTest
             Password = config["DotNetForce:Password"] ?? "";
         }
 
-        protected Uri LoginUri { get; set; }
-        protected string ClientId { get; set; }
-        protected string ClientSecret { get; set; }
-        protected string UserName { get; set; }
-        protected string Password { get; set; }
+        protected Uri LoginUri { get; }
+        protected string ClientId { get; }
+        protected string ClientSecret { get; }
+        protected string UserName { get; }
+        protected string Password { get; }
 
-        protected async Task<DnfClient> LoginTask()
+        protected Task<DnfClient> LoginTask()
         {
-            return await DnfClient.LoginAsync(
-                LoginUri, ClientId, ClientSecret, UserName, Password, WriteLine).ConfigureAwait(false);
+            var client = DnfClient.LoginAsync(
+                LoginUri, ClientId, ClientSecret, UserName, Password, WriteLine);
+            return client;
         }
 
-        protected async Task DeleteTestingRecords(DnfClient client)
+        protected static async Task DeleteTestingRecords(DnfClient client)
         {
-            Dnf.ThrowIfError(await client.Composite.DeleteAsync(
-                await client.GetAsyncEnumerable(@"
-SELECT Id FROM Case WHERE Subject LIKE 'UnitTest%'")
-                    .Select(r => r["Id"]?.ToString()).ToListAsync().ConfigureAwait(false)
-                ).ConfigureAwait(false));
-            Dnf.ThrowIfError(await client.Composite.DeleteAsync(
-                await client.GetAsyncEnumerable(@"
-SELECT Id FROM Account WHERE Name LIKE 'UnitTest%'")
-                    .Select(r => r["Id"]?.ToString()).ToListAsync().ConfigureAwait(false)
-                ).ConfigureAwait(false));
-            Dnf.ThrowIfError(await client.Composite.DeleteAsync(
-                await client.GetAsyncEnumerable(@"
-SELECT Id FROM Contact WHERE Name LIKE 'UnitTest%'")
-                    .Select(r => r["Id"]?.ToString()).ToListAsync().ConfigureAwait(false)
-                ).ConfigureAwait(false));
-            Dnf.ThrowIfError(await client.Composite.DeleteAsync(
-                await client.GetAsyncEnumerable(@"
-SELECT Id FROM Product2 WHERE ProductCode LIKE 'UnitTest%'")
-                    .Select(r => r["Id"]?.ToString()).ToListAsync().ConfigureAwait(false)
-                ).ConfigureAwait(false));
+            (await client.Composite.DeleteAsync(
+                await client.QueryAsync(@"
+SELECT Id FROM Case WHERE Subject LIKE 'UnitTest%'").Pull()
+                    .Select(r => r["Id"]?.ToString()).ToListAsync()
+                    .ConfigureAwait(false))
+                .ConfigureAwait(false)).Assert();
+            (await client.Composite.DeleteAsync(
+                await client.QueryAsync(@"
+SELECT Id FROM Account WHERE Name LIKE 'UnitTest%'").Pull()
+                    .Select(r => r["Id"]?.ToString()).ToListAsync()
+                    .ConfigureAwait(false))
+                .ConfigureAwait(false)).Assert();
+            (await client.Composite.DeleteAsync(
+                await client.QueryAsync(@"
+SELECT Id FROM Contact WHERE Name LIKE 'UnitTest%'").Pull()
+                    .Select(r => r["Id"]?.ToString()).ToListAsync()
+                    .ConfigureAwait(false))
+                .ConfigureAwait(false)).Assert();
+            (await client.Composite.DeleteAsync(
+                await client.QueryAsync(@"
+SELECT Id FROM Product2 WHERE ProductCode LIKE 'UnitTest%'").Pull()
+                    .Select(r => r["Id"]?.ToString()).ToListAsync()
+                    .ConfigureAwait(false))
+                .ConfigureAwait(false)).Assert();
         }
 
-        protected JObject GetTestProduct2()
+        protected static JObject GetTestProduct2()
         {
             var id = Guid.NewGuid();
             return new JObject
@@ -87,7 +96,9 @@ SELECT Id FROM Product2 WHERE ProductCode LIKE 'UnitTest%'")
         protected void WriteLine(string message)
         {
             var msg = $"{DateTime.Now:yyyy-MM-dd HH:mm:ss.fff}\t{message}";
+#if DEBUG
             Debug.WriteLine(msg);
+#endif
             Output.WriteLine(msg);
         }
     }

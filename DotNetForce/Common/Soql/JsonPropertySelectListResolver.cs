@@ -1,10 +1,10 @@
 ﻿using System.Linq;
 using System.Reflection;
 using Newtonsoft.Json;
+// ReSharper disable UnusedType.Global
 
 namespace DotNetForce.Common.Soql
 {
-    [JetBrains.Annotations.PublicAPI]
     public class JsonPropertySelectListResolver : ISelectListResolver
     {
         private readonly bool _ignorePropsWithoutAttribute;

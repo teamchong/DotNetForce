@@ -3,13 +3,13 @@ using System.Collections.Generic;
 using System.Xml;
 using System.Xml.Schema;
 using System.Xml.Serialization;
+// ReSharper disable UnusedType.Global
 
 namespace DotNetForce.Common.Models.Xml
 {
-    [JetBrains.Annotations.PublicAPI]
     public sealed class SObject : Dictionary<string, object>, IXmlSerializable
     {
-        public XmlSchema GetSchema()
+        public XmlSchema? GetSchema()
         {
             return null;
         }
@@ -22,16 +22,16 @@ namespace DotNetForce.Common.Models.Xml
         public void WriteXml(XmlWriter writer)
         {
             writer.WriteRaw("<sObject>");
-            foreach (var entry in this)
-                if (entry.Value is IXmlSerializable value)
+            foreach (var (key, o) in this)
+                if (o is IXmlSerializable value)
                 {
-                    writer.WriteRaw($"<{entry.Key}>");
+                    writer.WriteRaw($"<{key}>");
                     value.WriteXml(writer);
-                    writer.WriteRaw($"</{entry.Key}>");
+                    writer.WriteRaw($"</{key}>");
                 }
                 else
                 {
-                    writer.WriteRaw(string.Format("<{0}>{1}</{0}>", entry.Key, entry.Value));
+                    writer.WriteRaw(string.Format("<{0}>{1}</{0}>", key, o));
                 }
             writer.WriteRaw("</sObject>");
         }

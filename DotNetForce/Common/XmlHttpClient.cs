@@ -12,28 +12,29 @@ namespace DotNetForce.Common
 {
     public class XmlHttpClient : BaseHttpClient, IXmlHttpClient
     {
-        public XmlHttpClient(string instanceUrl, string apiVersion, string accessToken, HttpClient httpClient)
+        public XmlHttpClient(string? instanceUrl, string apiVersion, string? accessToken, HttpClient httpClient)
             : base(instanceUrl, apiVersion, "application/xml", httpClient)
         {
-            if (ApiVersion.StartsWith("v", StringComparison.OrdinalIgnoreCase)) ApiVersion = ApiVersion.Substring(1);
+            if (ApiVersion.StartsWith("v", StringComparison.OrdinalIgnoreCase)) ApiVersion = ApiVersion[1..];
             HttpClient.DefaultRequestHeaders.Add("X-SFDC-Session", accessToken);
         }
 
         // GET
 
-        public async Task<T> HttpGetAsync<T>(string urlSuffix)
+        public Task<T?> HttpGetAsync<T>(string resourceName) where T : class
         {
-            var url = Common.FormatUrl(urlSuffix, InstanceUrl, ApiVersion);
-            return await HttpGetAsync<T>(url);
+            var uri = Common.FormatUrl(resourceName, InstanceUrl, ApiVersion);
+            return HttpGetAsync<T>(uri);
         }
 
-        public async Task<T> HttpGetAsync<T>(Uri uri)
+        public async Task<T?> HttpGetAsync<T>(Uri uri) where T : class
         {
             try
             {
-                //var response = await HttpGetAsync(uri);
+                //var response = await HttpGetAsync(uri).ConfigureAwait(false);
                 //return DeserializeXmlString<T>(response);
-                return await HttpGetXmlAsync<T>(uri);
+                return await HttpGetXmlAsync<T>(uri)
+                    .ConfigureAwait(false);
             }
             catch (BaseHttpClientException e)
             {
@@ -43,20 +44,22 @@ namespace DotNetForce.Common
 
         // POST
 
-        public async Task<T> HttpPostAsync<T>(object inputObject, string urlSuffix)
+        public Task<T?> HttpPostAsync<T>(object? inputObject, string resourceName) where T : class
         {
-            var url = Common.FormatUrl(urlSuffix, InstanceUrl, ApiVersion);
-            return await HttpPostAsync<T>(inputObject, url);
+            var uri = Common.FormatUrl(resourceName, InstanceUrl, ApiVersion);
+            return HttpPostAsync<T>(inputObject, uri);
         }
 
-        public async Task<T> HttpPostAsync<T>(object inputObject, Uri uri)
+        public async Task<T?> HttpPostAsync<T>(object? inputObject, Uri uri) where T : class
         {
-            var postBody = SerializeXmlObject(inputObject);
+            if (inputObject == null) throw new ArgumentNullException(nameof(inputObject));
+            var payload = SerializeXmlObject(inputObject);
             try
             {
-                //var response = await HttpPostAsync(postBody, uri);
+                //var response = await HttpPostAsync(postBody, uri).ConfigureAwait(false);
                 //return DeserializeXmlString<T>(response);
-                return await HttpPostXmlAsync<T>(postBody, uri);
+                return await HttpPostXmlAsync<T>(payload, uri)
+                    .ConfigureAwait(false);
             }
             catch (BaseHttpClientException e)
             {
@@ -69,7 +72,7 @@ namespace DotNetForce.Common
         private static ForceException ParseForceException(string responseMessage)
         {
             var errorResponse = DeserializeXmlString<ErrorResponse>(responseMessage);
-            return new ForceException(errorResponse.ErrorCode, errorResponse.Message);
+            return new ForceException(errorResponse.ErrorCode ?? string.Empty, errorResponse.Message ?? string.Empty);
         }
 
         private static string SerializeXmlObject(object inputObject)
@@ -91,7 +94,7 @@ namespace DotNetForce.Common
         }
 
         // Get/Post/Patch/Delete
-        private static T DeserializeXml<T>(StreamReader streamReader)
+        private static T DeserializeXml<T>(TextReader streamReader)
         {
             var serializer = new XmlSerializer(typeof(T));
             using var reader = new XmlTextReader(streamReader);
@@ -99,33 +102,39 @@ namespace DotNetForce.Common
             return result;
         }
 
-        private async Task<T> HttpGetXmlAsync<T>(Uri uri)
+        private async Task<T?> HttpGetXmlAsync<T>(Uri uri) where T : class
         {
-            var responseMessage = await HttpClient.GetAsync(DnfClient.Proxy(uri)).ConfigureAwait(false);
+            var responseMessage = await HttpClient.GetAsync(DnfClient.Proxy(uri))
+                .ConfigureAwait(false);
             ParseApiUsage(responseMessage);
 
-            var response = await responseMessage.Content.ReadAsStreamAsync().ConfigureAwait(false);
+            var response = await responseMessage.Content.ReadAsStreamAsync()
+                .ConfigureAwait(false);
 
             using var reader = new StreamReader(response);
             if (responseMessage.IsSuccessStatusCode) return DeserializeXml<T>(reader);
 
-            throw new BaseHttpClientException(await reader.ReadToEndAsync().ConfigureAwait(false), responseMessage.StatusCode);
+            throw new BaseHttpClientException(await reader.ReadToEndAsync()
+                .ConfigureAwait(false), responseMessage.StatusCode);
         }
 
-        private async Task<T> HttpPostXmlAsync<T>(string payload, Uri uri)
+        private async Task<T?> HttpPostXmlAsync<T>(string payload, Uri uri) where T : class
         {
             //var content = new StringContent(payload, Encoding.UTF8, _contentType);
             var content = !DnfClient.UseCompression ? (HttpContent)new StringContent(payload, Encoding.UTF8, _contentType) : GetGZipContent(payload);
 
-            var responseMessage = await HttpClient.PostAsync(DnfClient.Proxy(uri), content).ConfigureAwait(false);
+            var responseMessage = await HttpClient.PostAsync(DnfClient.Proxy(uri), content)
+                .ConfigureAwait(false);
             ParseApiUsage(responseMessage);
 
-            var response = await responseMessage.Content.ReadAsStreamAsync().ConfigureAwait(false);
+            var response = await responseMessage.Content.ReadAsStreamAsync()
+                .ConfigureAwait(false);
 
             using var reader = new StreamReader(response);
             if (responseMessage.IsSuccessStatusCode) return DeserializeXml<T>(reader);
 
-            throw new BaseHttpClientException(await reader.ReadToEndAsync().ConfigureAwait(false), responseMessage.StatusCode);
+            throw new BaseHttpClientException(await reader.ReadToEndAsync()
+                .ConfigureAwait(false), responseMessage.StatusCode);
         }
     }
 }

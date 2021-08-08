@@ -1,10 +1,12 @@
 ﻿using System;
 using System.Net;
 using DotNetForce.Common.Models.Json;
+// ReSharper disable UnusedMember.Global
+// ReSharper disable UnusedAutoPropertyAccessor.Global
+// ReSharper disable MemberCanBePrivate.Global
 
 namespace DotNetForce
 {
-    [JetBrains.Annotations.PublicAPI]
     public class ForceAuthException : Exception
     {
         public ForceAuthException(string error, string description)

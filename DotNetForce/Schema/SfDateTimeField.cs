@@ -1,6 +1,7 @@
-﻿namespace DotNetForce.Schema
+﻿// ReSharper disable ClassNeverInstantiated.Global
+namespace DotNetForce.Schema
 {
-    public class SfDateTimeField<T> : SfFieldBase where T : SfObjectBase
+    public class SfDateTimeField : SfFieldBase
     {
         public SfDateTimeField(string path) : base(path) { }
     }

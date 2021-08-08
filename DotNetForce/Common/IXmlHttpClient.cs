@@ -1,17 +1,17 @@
 ﻿using System;
 using System.Threading.Tasks;
+// ReSharper disable UnusedMemberInSuper.Global
 
 namespace DotNetForce.Common
 {
-    [JetBrains.Annotations.PublicAPI]
     public interface IXmlHttpClient : IDisposable
     {
         // GET
-        Task<T> HttpGetAsync<T>(string urlSuffix);
-        Task<T> HttpGetAsync<T>(Uri uri);
+        Task<T?> HttpGetAsync<T>(string resourceName) where T : class;
+        Task<T?> HttpGetAsync<T>(Uri uri) where T : class;
 
         // POST
-        Task<T> HttpPostAsync<T>(object inputObject, string urlSuffix);
-        Task<T> HttpPostAsync<T>(object inputObject, Uri uri);
+        Task<T?> HttpPostAsync<T>(object? inputObject, string resourceName) where T: class;
+        Task<T?> HttpPostAsync<T>(object? inputObject, Uri uri) where T: class;
     }
 }

@@ -4,11 +4,11 @@ using System.Net.Http;
 using System.Threading.Tasks;
 using DotNetForce.Common.Models.Json;
 using Newtonsoft.Json;
+// ReSharper disable MemberCanBePrivate.Global
 
 namespace DotNetForce.Common
 {
-    [JetBrains.Annotations.PublicAPI]
-    public class AuthenticationClient : IAuthenticationClient, IDisposable
+    public class AuthenticationClient : IAuthenticationClient
     {
         private const string UserAgent = "dotnetforce";
         private const string TokenRequestEndpointUrl = "https://login.salesforce.com/services/oauth2/token";
@@ -23,10 +23,10 @@ namespace DotNetForce.Common
             ApiVersion = DnfClient.DefaultApiVersion;
         }
 
-        public string InstanceUrl { get; set; }
-        public string AccessToken { get; set; }
-        public string RefreshToken { get; set; }
-        public string Id { get; set; }
+        public string? InstanceUrl { get; set; }
+        public string? AccessToken { get; set; }
+        public string? RefreshToken { get; set; }
+        public string? Id { get; set; }
         public string ApiVersion { get; set; }
 
         public Task UsernamePasswordAsync(string clientId, string clientSecret, string username, string password)
@@ -61,17 +61,19 @@ namespace DotNetForce.Common
 
             request.Headers.UserAgent.ParseAdd(string.Concat(UserAgent, "/", ApiVersion));
 
-            var responseMessage = await _httpClient.SendAsync(request).ConfigureAwait(false);
-            var response = await responseMessage.Content.ReadAsStringAsync().ConfigureAwait(false);
+            var responseMessage = await _httpClient.SendAsync(request)
+                .ConfigureAwait(false);
+            var response = await responseMessage.Content.ReadAsStringAsync()
+                .ConfigureAwait(false);
 
             if (responseMessage.IsSuccessStatusCode)
             {
                 try {
                     var authToken = JsonConvert.DeserializeObject<AuthToken>(response);
 
-                    AccessToken = authToken?.AccessToken;
-                    InstanceUrl = authToken?.InstanceUrl;
-                    Id = authToken?.Id;
+                    AccessToken = authToken?.AccessToken ?? string.Empty;
+                    InstanceUrl = authToken?.InstanceUrl ?? string.Empty;
+                    Id = authToken?.Id ?? string.Empty;
                 }
                 catch (Exception ex) {
                     throw new ForceAuthException(ex.Message, response, responseMessage.StatusCode);
@@ -80,7 +82,7 @@ namespace DotNetForce.Common
             else
             {
                 var errorResponse = JsonConvert.DeserializeObject<AuthErrorResponse>(response);
-                throw new ForceAuthException(errorResponse?.Error, errorResponse?.ErrorDescription, responseMessage.StatusCode);
+                throw new ForceAuthException(errorResponse?.Error ?? string.Empty, errorResponse?.ErrorDescription ?? string.Empty, responseMessage.StatusCode);
             }
         }
 
@@ -89,7 +91,7 @@ namespace DotNetForce.Common
             return WebServerAsync(clientId, clientSecret, redirectUri, code, TokenRequestEndpointUrl);
         }
 
-        public async Task WebServerAsync(string clientId, string clientSecret, string redirectUri, string code, string tokenRequestEndpointUrl)
+        public async Task WebServerAsync(string? clientId, string? clientSecret, string? redirectUri, string? code, string? tokenRequestEndpointUrl)
         {
             if (string.IsNullOrEmpty(clientId)) throw new ArgumentNullException(nameof(clientId));
             // if (string.IsNullOrEmpty(clientSecret)) throw new ArgumentNullException("clientSecret");
@@ -125,8 +127,10 @@ namespace DotNetForce.Common
 
             request.Headers.UserAgent.ParseAdd(string.Concat(UserAgent, "/", ApiVersion));
 
-            var responseMessage = await _httpClient.SendAsync(request).ConfigureAwait(false);
-            var response = await responseMessage.Content.ReadAsStringAsync().ConfigureAwait(false);
+            var responseMessage = await _httpClient.SendAsync(request)
+                .ConfigureAwait(false);
+            var response = await responseMessage.Content.ReadAsStringAsync()
+                .ConfigureAwait(false);
 
             if (responseMessage.IsSuccessStatusCode)
             {
@@ -142,7 +146,7 @@ namespace DotNetForce.Common
                 try
                 {
                     var errorResponse = JsonConvert.DeserializeObject<AuthErrorResponse>(response);
-                    throw new ForceAuthException(errorResponse?.Error, errorResponse?.ErrorDescription);
+                    throw new ForceAuthException(errorResponse?.Error ?? string.Empty, errorResponse?.ErrorDescription ?? string.Empty);
                 }
                 catch (Exception ex)
                 {
@@ -156,7 +160,7 @@ namespace DotNetForce.Common
             return TokenRefreshAsync(clientId, refreshToken, clientSecret, TokenRequestEndpointUrl);
         }
 
-        public async Task TokenRefreshAsync(string clientId, string refreshToken, string clientSecret, string tokenRequestEndpointUrl)
+        public async Task TokenRefreshAsync(string clientId, string? refreshToken, string clientSecret, string tokenRequestEndpointUrl)
         {
             var url = Common.FormatRefreshTokenUrl(
                 tokenRequestEndpointUrl,
@@ -172,22 +176,24 @@ namespace DotNetForce.Common
 
             request.Headers.UserAgent.ParseAdd(string.Concat(UserAgent, "/", ApiVersion));
 
-            var responseMessage = await _httpClient.SendAsync(request).ConfigureAwait(false);
-            var response = await responseMessage.Content.ReadAsStringAsync().ConfigureAwait(false);
+            var responseMessage = await _httpClient.SendAsync(request)
+                .ConfigureAwait(false);
+            var response = await responseMessage.Content.ReadAsStringAsync()
+                .ConfigureAwait(false);
 
             if (responseMessage.IsSuccessStatusCode)
             {
                 var authToken = JsonConvert.DeserializeObject<AuthToken>(response);
 
-                AccessToken = authToken?.AccessToken;
+                AccessToken = authToken?.AccessToken ?? string.Empty;
                 RefreshToken = refreshToken;
-                InstanceUrl = authToken?.InstanceUrl;
-                Id = authToken?.Id;
+                InstanceUrl = authToken?.InstanceUrl ?? string.Empty;
+                Id = authToken?.Id ?? string.Empty;
             }
             else
             {
                 var errorResponse = JsonConvert.DeserializeObject<AuthErrorResponse>(response);
-                throw new ForceException(errorResponse?.Error, errorResponse?.ErrorDescription);
+                throw new ForceException(errorResponse?.Error ?? string.Empty, errorResponse?.ErrorDescription ?? string.Empty);
             }
         }
 

@@ -6,6 +6,6 @@ namespace DotNetForce.Chatter.Models
     public class MessageBodyInput
     {
         [JsonProperty(PropertyName = "messageSegments")]
-        public IList<MessageSegmentInput> MessageSegments { get; set; }
+        public IList<MessageSegmentInput>? MessageSegments { get; set; }
     }
 }

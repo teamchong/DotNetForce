@@ -19,7 +19,7 @@ namespace DotNetForce.Common
     {
         private const string DateFormat = "s";
 
-        public JsonHttpClient(string instanceUrl, string apiVersion, string accessToken, HttpClient httpClient)
+        public JsonHttpClient(string? instanceUrl, string apiVersion, string? accessToken, HttpClient httpClient)
             : base(instanceUrl, apiVersion, "application/json", httpClient)
         {
             HttpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
@@ -27,17 +27,17 @@ namespace DotNetForce.Common
 
         // GET
 
-        public async Task<T> HttpGetAsync<T>(string urlSuffix)
+        public Task<T?> HttpGetAsync<T>(string resourceName) where T: class
         {
-            var url = Common.FormatUrl(urlSuffix, InstanceUrl, ApiVersion);
-            return await HttpGetAsync<T>(url);
+            var uri = Common.FormatUrl(resourceName, InstanceUrl, ApiVersion);
+            return HttpGetAsync<T>(uri);
         }
 
-        public async Task<T> HttpGetAsync<T>(Uri uri)
+        public async Task<T?> HttpGetAsync<T>(Uri uri) where T: class
         {
             try
             {
-                //var response = await HttpGetAsync(uri);
+                //var response = await HttpGetAsync(uri).ConfigureAwait(false);
                 //var jToken = JsonConvert.DeserializeObject<JToken>(response);
                 //if (jToken.Type == JTokenType.Array)
                 //{
@@ -54,7 +54,8 @@ namespace DotNetForce.Common
                 //{
                 //    return JsonConvert.DeserializeObject<T>(response);
                 //}
-                var jToken = await HttpGetJsonAsync(uri);
+                var jToken = await HttpGetJsonAsync(uri)
+                    .ConfigureAwait(false);
                 return jToken.ToObject<T>();
             }
             catch (BaseHttpClientException e)
@@ -63,26 +64,31 @@ namespace DotNetForce.Common
             }
         }
 
-        public async Task<IList<T>> HttpGetAsync<T>(string urlSuffix, string nodeName)
+        public async Task<IList<T>> HttpGetAsync<T>(string resourceName, string nodeName)
         {
-            string next = null;
+            string? next = null;
             var records = new List<T>();
-            var url = Common.FormatUrl(urlSuffix, InstanceUrl, ApiVersion);
+            var uri = Common.FormatUrl(resourceName, InstanceUrl, ApiVersion);
 
             do
             {
-                if (next != null) url = Common.FormatUrl($"query/{next.Split('/').Last()}", InstanceUrl, ApiVersion);
+                if (next != null)
+                {
+                    var nextResourceName = $"query/{next.Split('/').Last()}";
+                    uri = Common.FormatUrl(nextResourceName, InstanceUrl, ApiVersion);
+                }
                 try
                 {
-                    //var response = await HttpGetAsync(url);
+                    //var response = await HttpGetAsync(uri).ConfigureAwait(false);
                     //var jObject = JsonConvert.DeserializeObject<JToken>(response);
                     //var jToken = jObject.GetValue(nodeName);
                     //next = (jObject.GetValue("nextRecordsUrl") != null) ? jObject.GetValue("nextRecordsUrl").ToString() : null;
                     //records.AddRange(JsonConvert.DeserializeObject<IList<T>>(jToken.ToString()));
 
-                    var jObject = await HttpGetJsonAsync(url);
+                    var jObject = await HttpGetJsonAsync(uri)
+                        .ConfigureAwait(false);
                     var jToken = jObject[nodeName];
-                    next = jObject["nextRecordsUrl"]?.ToString();
+                    next = jObject["nextRecordsUrl"]?.ToString() ?? string.Empty;
                     records.AddRange(jToken?.ToObject<IList<T>>() ?? new List<T>());
                 }
                 catch (BaseHttpClientException e)
@@ -94,21 +100,21 @@ namespace DotNetForce.Common
             return records;
         }
 
-        public async Task<T> HttpGetRestApiAsync<T>(string apiName)
+        public Task<T?> HttpGetRestApiAsync<T>(string apiName) where T : class
         {
             var url = Common.FormatRestApiUrl(apiName, InstanceUrl);
-            return await HttpGetAsync<T>(url);
+            return HttpGetAsync<T>(url);
         }
 
         // POST
 
-        public async Task<T> HttpPostAsync<T>(object inputObject, string urlSuffix)
+        public Task<T?> HttpPostAsync<T>(object? inputObject, string resourceName) where T: class
         {
-            var url = Common.FormatUrl(urlSuffix, InstanceUrl, ApiVersion);
-            return await HttpPostAsync<T>(inputObject, url);
+            var uri = Common.FormatUrl(resourceName, InstanceUrl, ApiVersion);
+            return HttpPostAsync<T>(inputObject, uri);
         }
 
-        public async Task<T> HttpPostAsync<T>(object inputObject, Uri uri)
+        public async Task<T?> HttpPostAsync<T>(object? inputObject, Uri uri) where T: class
         {
             var json = JsonConvert.SerializeObject(inputObject,
                 Formatting.None,
@@ -120,9 +126,10 @@ namespace DotNetForce.Common
                 });
             try
             {
-                //var response = await HttpPostAsync(json, uri);
+                //var response = await HttpPostAsync(json, uri).ConfigureAwait(false);
                 //return JsonConvert.DeserializeObject<T>(response);
-                var response = await HttpPostJsonAsync(json, uri);
+                var response = await HttpPostJsonAsync(json, uri)
+                    .ConfigureAwait(false);
                 return response.ToObject<T>();
             }
             catch (BaseHttpClientException e)
@@ -131,18 +138,18 @@ namespace DotNetForce.Common
             }
         }
 
-        public async Task<T> HttpPostRestApiAsync<T>(string apiName, object inputObject)
+        public Task<T?> HttpPostRestApiAsync<T>(string apiName, object? inputObject) where T : class
         {
             var url = Common.FormatRestApiUrl(apiName, InstanceUrl);
-            return await HttpPostAsync<T>(inputObject, url);
+            return HttpPostAsync<T>(inputObject, url);
         }
 
-        public async Task<T> HttpBinaryDataPostAsync<T>(string urlSuffix, object inputObject, byte[] fileContents, string headerName, string fileName)
+        public async Task<T?> HttpBinaryDataPostAsync<T>(string resourceName, object? inputObject, byte[] fileContents, string headerName, string fileName) where T : class
         {
             // BRAD: I think we should probably, in time, refactor multipart and binary support to the BaseHttpClient.
             // For now though, I just left this in here.
 
-            var uri = Common.FormatUrl(urlSuffix, InstanceUrl, ApiVersion);
+            var uri = Common.FormatUrl(resourceName, InstanceUrl, ApiVersion);
 
             var json = JsonConvert.SerializeObject(inputObject,
                 Formatting.None,
@@ -162,8 +169,10 @@ namespace DotNetForce.Common
             byteArrayContent.Headers.Add("Content-Disposition", $"form-data; name=\"{headerName}\"; filename=\"{fileName}\"");
             content.Add(byteArrayContent, headerName, fileName);
 
-            var responseMessage = await HttpClient.PostAsync(DnfClient.Proxy(uri), content).ConfigureAwait(false);
-            var response = await responseMessage.Content.ReadAsStringAsync().ConfigureAwait(false);
+            var responseMessage = await HttpClient.PostAsync(DnfClient.Proxy(uri), content)
+                .ConfigureAwait(false);
+            var response = await responseMessage.Content.ReadAsStringAsync()
+                .ConfigureAwait(false);
 
             if (responseMessage.IsSuccessStatusCode) return JsonConvert.DeserializeObject<T>(response);
 
@@ -172,18 +181,17 @@ namespace DotNetForce.Common
 
         // PATCH
 
-        public async Task<SuccessResponse> HttpPatchAsync(object inputObject, string urlSuffix)
+        public Task<SuccessResponse> HttpPatchAsync(object inputObject, string resourceName)
         {
-            var url = Common.FormatUrl(urlSuffix, InstanceUrl, ApiVersion);
-            return await HttpPatchAsync(inputObject, url);
+            var uri = Common.FormatUrl(resourceName, InstanceUrl, ApiVersion);
+            return HttpPatchAsync(inputObject, uri);
         }
 
-        public async Task<SuccessResponse> HttpPatchAsync(object inputObject, string urlSuffix, bool ignoreNull)
+        public Task<SuccessResponse> HttpPatchAsync(object inputObject, string resourceName, bool ignoreNull)
         {
-            var url = Common.FormatUrl(urlSuffix, InstanceUrl, ApiVersion);
-            if (ignoreNull) return await HttpPatchAsync(inputObject, url);
-            return await HttpPatchAsync(inputObject, url, NullValueHandling.Include);
-            //   return await HttpPatchAsync(inputObject, url, ignoreNull);
+            var uri = Common.FormatUrl(resourceName, InstanceUrl, ApiVersion);
+            return ignoreNull ? HttpPatchAsync(inputObject, uri) : HttpPatchAsync(inputObject, uri, NullValueHandling.Include);
+            //   return await HttpPatchAsync(inputObject, url, ignoreNull).ConfigureAwait(false);
         }
 
 
@@ -199,8 +207,11 @@ namespace DotNetForce.Common
                 });
             try
             {
-                var response = await base.HttpPatchAsync(json, uri);
-                return string.IsNullOrEmpty(response) ? new SuccessResponse { Id = "", Errors = "", Success = true } : JsonConvert.DeserializeObject<SuccessResponse>(response);
+                var response = await base.HttpPatchAsync(json, uri)
+                    .ConfigureAwait(false);
+                return string.IsNullOrEmpty(response) ?
+                    new SuccessResponse { Id = "", Errors = "", Success = true } :
+                    JsonConvert.DeserializeObject<SuccessResponse>(response) ?? new SuccessResponse();
             }
             catch (BaseHttpClientException e)
             {
@@ -222,8 +233,11 @@ namespace DotNetForce.Common
 
             try
             {
-                var response = await base.HttpPatchAsync(json, uri);
-                return string.IsNullOrEmpty(response) ? new SuccessResponse { Id = "", Errors = "", Success = true } : JsonConvert.DeserializeObject<SuccessResponse>(response);
+                var response = await base.HttpPatchAsync(json, uri)
+                    .ConfigureAwait(false);
+                return (string.IsNullOrEmpty(response) ?
+                    new SuccessResponse { Id = "", Errors = "", Success = true } :
+                    JsonConvert.DeserializeObject<SuccessResponse>(response)) ?? new SuccessResponse();
             }
             catch (BaseHttpClientException e)
             {
@@ -233,17 +247,18 @@ namespace DotNetForce.Common
 
         // DELETE
 
-        public async Task<bool> HttpDeleteAsync(string urlSuffix)
+        public Task<bool> HttpDeleteAsync(string resourceName)
         {
-            var url = Common.FormatUrl(urlSuffix, InstanceUrl, ApiVersion);
-            return await HttpDeleteAsync(url);
+            var uri = Common.FormatUrl(resourceName, InstanceUrl, ApiVersion);
+            return HttpDeleteAsync(uri);
         }
 
         public new async Task<bool> HttpDeleteAsync(Uri uri)
         {
             try
             {
-                await base.HttpDeleteAsync(uri);
+                await base.HttpDeleteAsync(uri)
+                    .ConfigureAwait(false);
                 return true;
             }
             catch (BaseHttpClientException e)
@@ -257,7 +272,7 @@ namespace DotNetForce.Common
             try
             {
                 var errorResponse = JsonConvert.DeserializeObject<ErrorResponses>(responseMessage);
-                return new ForceException(errorResponse?[0]?.ErrorCode, errorResponse?[0].Message);
+                return new ForceException(errorResponse?[0]?.ErrorCode ?? string.Empty, errorResponse?[0].Message ?? string.Empty);
             }
             catch (JsonSerializationException)
             {
@@ -266,43 +281,47 @@ namespace DotNetForce.Common
         }
 
 
-        public async Task<Stream> HttpGetBlobAsync(string urlSuffix)
+        public async Task<Stream> HttpGetBlobAsync(string resourceName)
         {
-            var url = Common.FormatUrl(urlSuffix, InstanceUrl, ApiVersion);
+            var uri = Common.FormatUrl(resourceName, InstanceUrl, ApiVersion);
 
             var request = new HttpRequestMessage
             {
-                RequestUri = DnfClient.Proxy(url),
+                RequestUri = DnfClient.Proxy(uri),
                 Method = HttpMethod.Get
             };
 
-            var responseMessage = await HttpClient.SendAsync(request).ConfigureAwait(false);
-            var response = await responseMessage.Content.ReadAsStreamAsync().ConfigureAwait(false);
+            var responseMessage = await HttpClient.SendAsync(request)
+                .ConfigureAwait(false);
+            var response = await responseMessage.Content.ReadAsStreamAsync()
+                .ConfigureAwait(false);
 
-            if (responseMessage.IsSuccessStatusCode) return response;
-            return new MemoryStream();
+            return responseMessage.IsSuccessStatusCode ? response : new MemoryStream();
         }
 
         // Get/Post/Patch/Delete
-        private static JToken DeserializeJson(StreamReader streamReader)
+        private static JToken DeserializeJson(TextReader streamReader)
         {
             using var jsonReader = new JsonTextReader(streamReader);
-            return new JsonSerializer().Deserialize<JToken>(jsonReader);
+            return new JsonSerializer().Deserialize<JToken>(jsonReader) ?? JValue.CreateNull();
         }
 
         private async Task<JToken> HttpGetJsonAsync(Uri uri)
         {
-            var responseMessage = await HttpClient.GetAsync(DnfClient.Proxy(uri)).ConfigureAwait(false);
+            var responseMessage = await HttpClient.GetAsync(DnfClient.Proxy(uri))
+                .ConfigureAwait(false);
             ParseApiUsage(responseMessage);
 
             if (responseMessage.StatusCode == HttpStatusCode.NoContent) return string.Empty;
 
-            var response = await responseMessage.Content.ReadAsStreamAsync().ConfigureAwait(false);
+            var response = await responseMessage.Content.ReadAsStreamAsync()
+                .ConfigureAwait(false);
 
             using var reader = new StreamReader(response);
             if (responseMessage.IsSuccessStatusCode) return DeserializeJson(reader);
 
-            throw new BaseHttpClientException(await reader.ReadToEndAsync().ConfigureAwait(false), responseMessage.StatusCode);
+            throw new BaseHttpClientException(await reader.ReadToEndAsync()
+                .ConfigureAwait(false), responseMessage.StatusCode);
         }
 
         private async Task<JToken> HttpPostJsonAsync(string payload, Uri uri)
@@ -310,18 +329,21 @@ namespace DotNetForce.Common
             //var content = new StringContent(payload, Encoding.UTF8, _contentType);
             var content = !DnfClient.UseCompression ? (HttpContent)new StringContent(payload, Encoding.UTF8, _contentType) : GetGZipContent(payload);
 
-            var responseMessage = await HttpClient.PostAsync(DnfClient.Proxy(uri), content).ConfigureAwait(false);
+            var responseMessage = await HttpClient.PostAsync(DnfClient.Proxy(uri), content)
+                .ConfigureAwait(false);
             ParseApiUsage(responseMessage);
 
 
             if (responseMessage.StatusCode == HttpStatusCode.NoContent) return string.Empty;
 
-            var response = await responseMessage.Content.ReadAsStreamAsync().ConfigureAwait(false);
+            var response = await responseMessage.Content.ReadAsStreamAsync()
+                .ConfigureAwait(false);
 
             using var reader = new StreamReader(response);
             if (responseMessage.IsSuccessStatusCode) return DeserializeJson(reader);
 
-            throw new BaseHttpClientException(await reader.ReadToEndAsync().ConfigureAwait(false), responseMessage.StatusCode);
+            throw new BaseHttpClientException(await reader.ReadToEndAsync()
+                .ConfigureAwait(false), responseMessage.StatusCode);
         }
     }
 }

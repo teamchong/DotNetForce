@@ -8,6 +8,6 @@ namespace DotNetForce.Common.Models.Xml
     public class JobInfoState
     {
         [XmlElement(ElementName = "state")]
-        public string State { get; set; }
+        public string? State { get; set; }
     }
 }

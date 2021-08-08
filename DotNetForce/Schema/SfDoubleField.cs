@@ -1,6 +1,7 @@
-﻿namespace DotNetForce.Schema
+﻿// ReSharper disable ClassNeverInstantiated.Global
+namespace DotNetForce.Schema
 {
-    public class SfDoubleField<T> : SfFieldBase where T : SfObjectBase
+    public class SfDoubleField : SfFieldBase
     {
         public SfDoubleField(string path) : base(path) { }
     }

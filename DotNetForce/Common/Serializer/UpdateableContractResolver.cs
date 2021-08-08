@@ -20,13 +20,12 @@ namespace DotNetForce.Common.Serializer
         private static bool IsPropertyUpdateable(Type type, JsonProperty property)
         {
             var isUpdateable = true;
+            if (property.PropertyName == null) return isUpdateable;
             var propInfo = type.GetRuntimeProperty(property.PropertyName);
 
-            if (propInfo != null)
-            {
-                var updateableAttr = propInfo.GetCustomAttribute(typeof(UpdateableAttribute), false);
-                isUpdateable = updateableAttr == null || ((UpdateableAttribute)updateableAttr).Updateable;
-            }
+            if (propInfo == null) return isUpdateable;
+            var updateableAttr = propInfo.GetCustomAttribute(typeof(UpdateableAttribute), false);
+            isUpdateable = updateableAttr == null || ((UpdateableAttribute)updateableAttr).Updateable;
 
             return isUpdateable;
         }

@@ -6,9 +6,9 @@ namespace DotNetForce.Chatter.Models
     public class LikeMessageBody
     {
         [JsonProperty(PropertyName = "messageSegments")]
-        public IList<MessageSegment> MessageSegments { get; set; }
+        public IList<MessageSegment>? MessageSegments { get; set; }
 
         [JsonProperty(PropertyName = "text")]
-        public string Text { get; set; }
+        public string? Text { get; set; }
     }
 }

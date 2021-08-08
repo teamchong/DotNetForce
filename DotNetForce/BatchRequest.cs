@@ -1,19 +1,21 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
+using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
+// ReSharper disable UnusedType.Global
+// ReSharper disable UnusedMember.Global
+// ReSharper disable MemberCanBePrivate.Global
 
 namespace DotNetForce
 {
     //https://developer.salesforce.com/docs/atlas.en-us.214.0.api_rest.meta/api_rest/resources_composite_batch.htm?search_text=connect
-    [JetBrains.Annotations.PublicAPI]
     public class BatchRequest : IBatchRequest
     {
         public BatchRequest(bool haltOnError = false)
         {
-            Prefix = "";
+            Prefix = string.Empty;
             HaltOnError = haltOnError;
             BatchRequests = new List<BatchSubRequest>();
         }
@@ -198,7 +200,7 @@ namespace DotNetForce
             var request = new BatchSubRequest
             {
                 Method = "GET",
-                Url = fields?.Length > 0
+                Url = fields.Length > 0
                     ? $"sobjects/{objectName}/{recordId}?fields={string.Join(",", fields.Select(Uri.EscapeDataString))}"
                     : $"sobjects/{objectName}/{recordId}"
             };
@@ -215,7 +217,7 @@ namespace DotNetForce
             var request = new BatchSubRequest
             {
                 Method = "GET",
-                Url = fields?.Length > 0
+                Url = fields.Length > 0
                     ? $"sobjects/{objectName}/{externalFieldName}/{Uri.EscapeDataString(externalId)}?fields={string.Join(",", fields.Select(Uri.EscapeDataString))}"
                     : $"sobjects/{objectName}/{externalFieldName}"
             };
@@ -223,7 +225,7 @@ namespace DotNetForce
             return request;
         }
 
-        public BatchSubRequest Relationships(string objectName, string recordId, string relationshipFieldName, string[] fields = null)
+        public BatchSubRequest Relationships(string objectName, string recordId, string relationshipFieldName, string[]? fields = null)
         {
             if (string.IsNullOrEmpty(objectName)) throw new ArgumentNullException(nameof(objectName));
             if (string.IsNullOrEmpty(recordId)) throw new ArgumentNullException(nameof(recordId));
@@ -246,7 +248,7 @@ namespace DotNetForce
             if (record == null) throw new ArgumentNullException(nameof(record));
 
             var richInput = Dnf.UnFlatten(JObject.FromObject(record));
-            return Update(objectName, richInput["Id"]?.ToString(), Dnf.Omit(richInput, "Id"));
+            return Update(objectName, richInput["Id"]?.ToString() ?? string.Empty, Dnf.Omit(richInput, "Id"));
         }
 
         public BatchSubRequest Update(string objectName, string recordId, object record)
@@ -272,7 +274,7 @@ namespace DotNetForce
             if (record == null) throw new ArgumentNullException(nameof(record));
 
             var richInput = Dnf.UnFlatten(JObject.FromObject(record));
-            return UpsertExternal(objectName, externalFieldName, richInput[externalFieldName]?.ToString(), Dnf.Omit(richInput, externalFieldName));
+            return UpsertExternal(objectName, externalFieldName, richInput[externalFieldName]?.ToString() ?? string.Empty, Dnf.Omit(richInput, externalFieldName));
         }
 
         public BatchSubRequest UpsertExternal(string objectName, string externalFieldName, string externalId, object record)
@@ -374,7 +376,7 @@ namespace DotNetForce
             return request;
         }
 
-        public BatchSubRequest PlatformAction(string referenceId)
+        public BatchSubRequest PlatformAction()
         {
             var request = new BatchSubRequest
             {

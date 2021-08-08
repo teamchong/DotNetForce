@@ -9,6 +9,6 @@ namespace DotNetForce
         public bool HasErrors { get; set; }
 
         [JsonProperty("results", DefaultValueHandling = DefaultValueHandling.Ignore)]
-        public IList<BatchSubRequestResult> Results { get; set; }
+        public IList<BatchSubRequestResult>? Results { get; set; }
     }
 }

@@ -8,9 +8,9 @@ namespace DotNetForce.Chatter.Models
         public readonly string FeedItem = "FeedItem";
 
         [JsonProperty(PropertyName = "subjectId")]
-        public string ObjectId { get; set; }
+        public string? ObjectId { get; set; }
 
         [JsonProperty(PropertyName = "capabilities")]
-        public Capabilities Capabilities { get; set; }
+        public Capabilities? Capabilities { get; set; }
     }
 }

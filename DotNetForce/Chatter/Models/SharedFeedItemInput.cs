@@ -9,15 +9,15 @@ namespace DotNetForce.Chatter.Models
     public class SharedFeedItemInput
     {
         [JsonProperty(PropertyName = "originalFeedItemId")]
-        public string OriginalFeedItemId { get; set; }
+        public string? OriginalFeedItemId { get; set; }
 
         [JsonProperty(PropertyName = "subjectId")]
-        public string SubjectId { get; set; }
+        public string? SubjectId { get; set; }
 
         [JsonProperty(PropertyName = "originalFeedElementId")]
-        public string OriginalFeedElementId { get; set; }
+        public string? OriginalFeedElementId { get; set; }
 
         [JsonProperty(PropertyName = "userId")]
-        public string UserId { get; set; }
+        public string? UserId { get; set; }
     }
 }

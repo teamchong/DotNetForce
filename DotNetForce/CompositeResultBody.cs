@@ -6,6 +6,6 @@ namespace DotNetForce
     public class CompositeResultBody
     {
         [JsonProperty("compositeResponse", DefaultValueHandling = DefaultValueHandling.Ignore)]
-        public IList<CompositeSubRequestResult> CompositeResponse { get; set; }
+        public IList<CompositeSubRequestResult>? CompositeResponse { get; set; }
     }
 }

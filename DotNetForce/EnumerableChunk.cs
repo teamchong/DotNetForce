@@ -1,17 +1,25 @@
-﻿using System.Collections.Generic;
+﻿using System.Collections;
+using System.Collections.Generic;
+using System.Linq;
+// ReSharper disable UnusedMember.Global
+
+// ReSharper disable AutoPropertyCanBeMadeGetOnly.Global
+// ReSharper disable MemberCanBePrivate.Global
 
 namespace DotNetForce
 {
-    internal class EnumerableChunk<T>
+    internal static class EnumerableChunk
     {
-        internal EnumerableChunk(IEnumerable<T> source, int size)
+        internal static EnumerableChunk<T> Create<T>(IEnumerable<T> source, int size)
         {
-            Source = source;
-            Size = size;
+            return new EnumerableChunk<T> { Source = source, Size = size };
         }
+    }
 
-        protected IEnumerable<T> Source { get; set; }
-        protected int Size { get; set; }
+    internal class EnumerableChunk<T> : IEnumerable<IList<T>>
+    {
+        internal IEnumerable<T> Source { get; set; } = Enumerable.Empty<T>();
+        internal int Size { get; set; }
 
         public IEnumerable<IList<T>> GetEnumerable()
         {
@@ -31,6 +39,16 @@ namespace DotNetForce
             }
 
             if (bucket.Count > 0) yield return bucket;
+        }
+
+        public IEnumerator<IList<T>> GetEnumerator()
+        {
+            return GetEnumerable().GetEnumerator();
+        }
+
+        IEnumerator IEnumerable.GetEnumerator()
+        {
+            return GetEnumerator();
         }
     }
 }

@@ -5,31 +5,31 @@ namespace DotNetForce.Chatter.Models
     public class FeedItem
     {
         [JsonProperty(PropertyName = "actor")]
-        public Actor Actor { get; set; }
+        public Actor? Actor { get; set; }
 
         [JsonProperty(PropertyName = "attachment")]
-        public object Attachment { get; set; }
+        public object? Attachment { get; set; }
 
         [JsonProperty(PropertyName = "body")]
-        public FeedBody Body { get; set; }
+        public FeedBody? Body { get; set; }
 
         [JsonProperty(PropertyName = "canShare")]
         public bool CanShare { get; set; }
 
         [JsonProperty(PropertyName = "clientInfo")]
-        public ClientInfo ClientInfo { get; set; }
+        public ClientInfo? ClientInfo { get; set; }
 
         [JsonProperty(PropertyName = "comments")]
-        public CommentPage Comments { get; set; }
+        public CommentPage? Comments { get; set; }
 
         [JsonProperty(PropertyName = "createdDate")]
-        public string CreatedDate { get; set; }
+        public string? CreatedDate { get; set; }
 
         [JsonProperty(PropertyName = "event")]
         public bool Event { get; set; }
 
         [JsonProperty(PropertyName = "id")]
-        public string Id { get; set; }
+        public string? Id { get; set; }
 
         [JsonProperty(PropertyName = "isBookmarkedByCurrentUser")]
         public bool IsBookmarkedByCurrentUser { get; set; }
@@ -41,48 +41,48 @@ namespace DotNetForce.Chatter.Models
         public bool IsLikedByCurrentUser { get; set; }
 
         [JsonProperty(PropertyName = "likes")]
-        public LikePage Likes { get; set; }
+        public LikePage? Likes { get; set; }
 
         [JsonProperty(PropertyName = "likesMessage")]
-        public LikeMessageBody LikesMessage { get; set; }
+        public LikeMessageBody? LikesMessage { get; set; }
 
         [JsonProperty(PropertyName = "myLike")]
-        public Reference MyLike { get; set; }
+        public Reference? MyLike { get; set; }
 
         [JsonProperty(PropertyName = "modifiedDate")]
-        public string ModifiedDate { get; set; }
+        public string? ModifiedDate { get; set; }
 
         [JsonProperty(PropertyName = "moderationFlags")]
-        public ModerationFlags ModerationFlags { get; set; }
+        public ModerationFlags? ModerationFlags { get; set; }
 
         [JsonProperty(PropertyName = "originalFeedItem")]
-        public Reference OriginalFeedItem { get; set; }
+        public Reference? OriginalFeedItem { get; set; }
 
         [JsonProperty(PropertyName = "originalFeedItemActor")]
-        public UserSummary OriginalFeedItemActor { get; set; }
+        public UserSummary? OriginalFeedItemActor { get; set; }
 
         [JsonProperty(PropertyName = "parent")]
-        public UserSummary Parent { get; set; }
+        public UserSummary? Parent { get; set; }
 
         [JsonProperty(PropertyName = "photoUrl")]
-        public string PhotoUrl { get; set; }
+        public string? PhotoUrl { get; set; }
 
         [JsonProperty(PropertyName = "preamble")]
-        public FeedItemPreambleMessageBody Preamble { get; set; }
+        public FeedItemPreambleMessageBody? Preamble { get; set; }
 
         [JsonProperty(PropertyName = "relativeCreatedDate")]
-        public string RelativeCreatedDate { get; set; }
+        public string? RelativeCreatedDate { get; set; }
 
         [JsonProperty(PropertyName = "topics")]
-        public FeedItemTopics Topics { get; set; }
+        public FeedItemTopics? Topics { get; set; }
 
         [JsonProperty(PropertyName = "type")]
-        public string Type { get; set; }
+        public string? Type { get; set; }
 
         [JsonProperty(PropertyName = "url")]
-        public string Url { get; set; }
+        public string? Url { get; set; }
 
         [JsonProperty(PropertyName = "visibility")]
-        public string Visibility { get; set; }
+        public string? Visibility { get; set; }
     }
 }

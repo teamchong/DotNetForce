@@ -6,7 +6,7 @@ namespace DotNetForce.Chatter.Models
     public class FeedItemTopics
     {
         [JsonProperty(PropertyName = "topics")]
-        public IList<object> Topics { get; set; }
+        public IList<object>? Topics { get; set; }
 
         [JsonProperty(PropertyName = "canAssignTopics")]
         public bool CanAssignTopics { get; set; }

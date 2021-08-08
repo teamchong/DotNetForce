@@ -1,14 +1,16 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
+using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
+// ReSharper disable UnusedType.Global
+// ReSharper disable UnusedMember.Global
+// ReSharper disable MemberCanBePrivate.Global
 
 namespace DotNetForce
 {
     //https://developer.salesforce.com/docs/atlas.en-us.api_tooling.meta/api_tooling/tooling_resources_composite_composite.htm
-    [JetBrains.Annotations.PublicAPI]
     public class ToolingCompositeRequest : ICompositeRequest
     {
         public ToolingCompositeRequest(bool allOrNone = false)
@@ -132,11 +134,6 @@ namespace DotNetForce
             return request;
         }
 
-        public CompositeSubRequest Retrieve(string referenceId, string objectName, string recordId)
-        {
-            return Retrieve(referenceId, objectName, recordId, null);
-        }
-
         public CompositeSubRequest Retrieve(string referenceId, string objectName, string recordId, params string[] fields)
         {
             if (string.IsNullOrEmpty(referenceId)) throw new ArgumentNullException(nameof(referenceId));
@@ -147,7 +144,7 @@ namespace DotNetForce
             {
                 Method = "GET",
                 ReferenceId = referenceId,
-                Url = fields?.Length > 0
+                Url = fields.Length > 0
                     ? $"sobjects/{objectName}/{recordId}?fields={string.Join(",", fields.Select(Uri.EscapeDataString))}"
                     : $"sobjects/{objectName}/{recordId}"
             };
@@ -162,7 +159,7 @@ namespace DotNetForce
             if (record == null) throw new ArgumentNullException(nameof(record));
 
             var body = Dnf.UnFlatten(JObject.FromObject(record));
-            return Update(referenceId, objectName, body["Id"]?.ToString(), Dnf.Omit(body, "Id"));
+            return Update(referenceId, objectName, body["Id"]?.ToString() ?? string.Empty, Dnf.Omit(body, "Id"));
         }
 
         public CompositeSubRequest Update(string referenceId, string objectName, string recordId, object record)
@@ -191,7 +188,7 @@ namespace DotNetForce
             if (record == null) throw new ArgumentNullException(nameof(record));
 
             var body = Dnf.UnFlatten(JObject.FromObject(record));
-            return UpsertExternal(referenceId, objectName, externalFieldName, body[externalFieldName]?.ToString(), Dnf.Omit(body, externalFieldName));
+            return UpsertExternal(referenceId, objectName, externalFieldName, body[externalFieldName]?.ToString() ?? string.Empty, Dnf.Omit(body, externalFieldName));
         }
 
         public CompositeSubRequest UpsertExternal(string referenceId, string objectName, string externalFieldName, string externalId, object record)

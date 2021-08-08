@@ -1,15 +1,16 @@
 using System;
 using System.Threading.Tasks;
+// ReSharper disable UnusedMemberInSuper.Global
+// ReSharper disable UnusedMember.Global
 
 namespace DotNetForce.Common
 {
-    [JetBrains.Annotations.PublicAPI]
     public interface IAuthenticationClient : IDisposable
     {
-        string InstanceUrl { get; set; }
-        string RefreshToken { get; set; }
-        string AccessToken { get; set; }
-        string Id { get; set; }
+        string? InstanceUrl { get; set; }
+        string? RefreshToken { get; set; }
+        string? AccessToken { get; set; }
+        string? Id { get; set; }
         string ApiVersion { get; set; }
 
         Task UsernamePasswordAsync(string clientId, string clientSecret, string username, string password);

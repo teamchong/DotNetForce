@@ -1,27 +1,41 @@
-﻿using System.Threading.Tasks;
-using DotNetForce.Common.Models.Json;
+﻿using DotNetForce.Common.Models.Json;
 using Newtonsoft.Json.Linq;
+using System.Collections.Generic;
+using System.Threading.Tasks;
+// ReSharper disable UnusedMember.Global
+// ReSharper disable UnusedMemberInSuper.Global
 
 namespace DotNetForce
 {
-    [JetBrains.Annotations.PublicAPI]
     public interface IToolingClient
     {
-        Task<DescribeGlobalResult<T>> GetObjectsAsync<T>();
+        Task<DescribeGlobalResult<JObject>?> GetObjectsAsync();
+        Task<DescribeGlobalResult<T>?> GetObjectsAsync<T>();
 
-        Task<T> BasicInformationAsync<T>(MetadataType metadataType);
+        Task<JObject?> BasicInformationAsync(MetadataType metadataType);
+        Task<T?> BasicInformationAsync<T>(MetadataType metadataType) where T : class;
 
-        Task<T> DescribeAsync<T>(MetadataType metadataType);
+        Task<JObject?> DescribeAsync(MetadataType metadataType);
+        Task<T?> DescribeAsync<T>(MetadataType metadataType) where T : class;
+        
 
-        Task<QueryResult<T>> QueryAsync<T>(string q);
+        IAsyncEnumerable<QueryResult<JObject>> QueryAsync(string query);
 
-        Task<QueryResult<T>> SearchAsync<T>(string q);
+        IAsyncEnumerable<QueryResult<T>> QueryAsync<T>(string query);
+
+        IAsyncEnumerable<QueryResult<T>> QueryByLocatorAsync<T>(QueryResult<T>? queryResult);
+
+        Task<JObject?> QueryByIdAsync(string objectName, string recordId);
+
+        Task<T?> QueryByIdAsync<T>(string objectName, string recordId) where T : class;
+
+        IAsyncEnumerable<QueryResult<JObject>> SearchAsync(string q);
+        IAsyncEnumerable<QueryResult<T>> SearchAsync<T>(string q);
 
         Task<SaveResponse> CreateAsync(MetadataType metadataType, object record);
 
-        Task<T> RetrieveAsync<T>(MetadataType metadataType, string recordId);
-
-        Task<T> RetrieveAsync<T>(MetadataType metadataType, string recordId, string[] fields);
+        Task<JObject?> RetrieveAsync(MetadataType metadataType, string recordId, params string[] fields);
+        Task<T?> RetrieveAsync<T>(MetadataType metadataType, string recordId, params string[] fields) where T : class;
 
         Task<SuccessResponse> UpdateAsync(MetadataType metadataType, object record);
 

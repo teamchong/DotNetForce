@@ -5,6 +5,7 @@ using System.Net;
 using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
+// ReSharper disable ClassNeverInstantiated.Global
 
 namespace DotNetForceSchemaGenerator
 {
@@ -15,7 +16,8 @@ namespace DotNetForceSchemaGenerator
             ServicePointManager.DefaultConnectionLimit = int.MaxValue;
             ServicePointManager.Expect100Continue = true;
             ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
-            await RunTransformAsync().ConfigureAwait(false);
+            await RunTransformAsync()
+                .ConfigureAwait(false);
         }
 
         private static string Prompt(string message, string defaultValue = "")
@@ -57,7 +59,8 @@ namespace DotNetForceSchemaGenerator
                     .ConfigureAwait(false);
 
                 var generator = new SchemaGenerator(output, schemaNamespace, schemaName);
-                await generator.GenerateAsync(client).ConfigureAwait(false);
+                await generator.GenerateAsync(client)
+                    .ConfigureAwait(false);
 
 
 
@@ -65,7 +68,8 @@ namespace DotNetForceSchemaGenerator
             finally
             {
                 var filePath = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location)!, $"{schemaName}.cs");
-                await File.WriteAllTextAsync(filePath, output.ToString());
+                await File.WriteAllTextAsync(filePath, output.ToString())
+                    .ConfigureAwait(false);
             }
         }
     }

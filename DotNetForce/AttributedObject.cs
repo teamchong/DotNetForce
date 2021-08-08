@@ -2,6 +2,7 @@
 using DotNetForce.Common.Models.Json;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+// ReSharper disable UnusedMember.Global
 
 namespace DotNetForce
 {
@@ -44,11 +45,13 @@ namespace DotNetForce
         }
 
         [JsonExtensionData]
+        // ReSharper disable once MemberCanBePrivate.Global
+        // ReSharper disable once AutoPropertyCanBeMadeGetOnly.Global
         public JObject AdditionalData { get; set; }
-
+        
         public JToken this[string propertyName]
         {
-            get => AdditionalData[propertyName];
+            get => AdditionalData[propertyName] ?? JValue.CreateNull();
             set => AdditionalData[propertyName] = value;
         }
 

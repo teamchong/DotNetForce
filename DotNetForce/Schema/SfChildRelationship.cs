@@ -1,6 +1,9 @@
-﻿namespace DotNetForce.Schema
+﻿// ReSharper disable ClassNeverInstantiated.Global
+// ReSharper disable UnusedMember.Global
+// ReSharper disable AutoPropertyCanBeMadeGetOnly.Global
+// ReSharper disable MemberCanBePrivate.Global
+namespace DotNetForce.Schema
 {
-    [JetBrains.Annotations.PublicAPI]
     public class SfChildRelationship<TChild> where TChild : SfObjectBase, new()
     {
         public SfChildRelationship(string path)
