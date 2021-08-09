@@ -1,6 +1,9 @@
-﻿namespace DotNetForce.Schema
+﻿// ReSharper disable UnusedMember.Global
+// ReSharper disable UnusedAutoPropertyAccessor.Global
+// ReSharper disable MemberCanBePrivate.Global
+// ReSharper disable AutoPropertyCanBeMadeGetOnly.Global
+namespace DotNetForce.Schema
 {
-    [JetBrains.Annotations.PublicAPI]
     public class SfPicklistValue
     {
         public SfPicklistValue(string value) : this(value, value) { }

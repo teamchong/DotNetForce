@@ -7,12 +7,12 @@ namespace DotNetForce.Common.Models.Xml
     public class BatchResultErrors
     {
         [XmlElement(ElementName = "fields")]
-        public IList<string> Fields { get; set; }
+        public IList<string>? Fields { get; set; }
 
         [XmlElement(ElementName = "message")]
-        public string Message { get; set; }
+        public string? Message { get; set; }
 
         [XmlElement(ElementName = "statusCode")]
-        public string StatusCode { get; set; }
+        public string? StatusCode { get; set; }
     }
 }

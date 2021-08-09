@@ -2,10 +2,12 @@
 using System.Collections.Generic;
 using System.Net;
 using DotNetForce.Common.Models.Json;
+// ReSharper disable UnusedMember.Global
+// ReSharper disable UnusedAutoPropertyAccessor.Global
+// ReSharper disable MemberCanBePrivate.Global
 
 namespace DotNetForce
 {
-    [JetBrains.Annotations.PublicAPI]
     public class ForceException : AggregateException
     {
         public ForceException(string error, string description)
@@ -43,7 +45,7 @@ namespace DotNetForce
 
         }
 
-        public string[] Fields { get; }
+        public string[] Fields { get; } = Array.Empty<string>();
         public HttpStatusCode HttpStatusCode { get; }
         public Error Error { get; }
 

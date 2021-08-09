@@ -8,12 +8,12 @@ namespace DotNetForce.Common.Models.Xml
     public class JobInfo
     {
         [XmlElement(ElementName = "operation")]
-        public string Operation { get; set; }
+        public string? Operation { get; set; }
 
         [XmlElement(ElementName = "object")]
-        public string Object { get; set; }
+        public string? Object { get; set; }
 
         [XmlElement(ElementName = "contentType")]
-        public string ContentType { get; set; }
+        public string? ContentType { get; set; }
     }
 }

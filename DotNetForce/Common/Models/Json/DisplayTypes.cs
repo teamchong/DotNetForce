@@ -1,6 +1,6 @@
-﻿namespace DotNetForce.Common.Models.Json
+﻿// ReSharper disable UnusedMember.Global
+namespace DotNetForce.Common.Models.Json
 {
-    [JetBrains.Annotations.PublicAPI]
     public enum DisplayTypes
     {
         Page,

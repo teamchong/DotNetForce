@@ -1,7 +1,7 @@
-﻿// ReSharper disable IdentifierTypo
+﻿// ReSharper disable UnusedMember.Global
+// ReSharper disable IdentifierTypo
 namespace DotNetForce.Common.Models.Json
 {
-    [JetBrains.Annotations.PublicAPI]
     public enum Error
     {
         Unknown,

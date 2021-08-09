@@ -9,13 +9,13 @@ namespace DotNetForce.Common.Models.Xml
     public class BatchInfoResult
     {
         [XmlElement(ElementName = "id")]
-        public string Id { get; set; }
+        public string? Id { get; set; }
 
         [XmlElement(ElementName = "jobId")]
-        public string JobId { get; set; }
+        public string? JobId { get; set; }
 
         [XmlElement(ElementName = "state")]
-        public string State { get; set; }
+        public string? State { get; set; }
 
         [XmlElement(ElementName = "createdDate")]
         public DateTime CreatedDate { get; set; }
@@ -31,7 +31,7 @@ namespace DotNetForce.Common.Models.Xml
             return string.Equals(Id, other.Id);
         }
 
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
             if (ReferenceEquals(null, obj)) return false;
             if (ReferenceEquals(this, obj)) return true;

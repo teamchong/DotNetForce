@@ -1,9 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+// ReSharper disable ClassNeverInstantiated.Global
+// ReSharper disable UnusedMember.Global
 
 namespace DotNetForce
 {
-    [JetBrains.Annotations.PublicAPI]
     public class HttpHeaders : Dictionary<string, string>
     {
         public HttpHeaders AutoAssign(bool enable)
@@ -13,7 +14,7 @@ namespace DotNetForce
             return this;
         }
 
-        public HttpHeaders CallOptions(string client, string defaultNamespace = null)
+        public HttpHeaders CallOptions(string? client, string? defaultNamespace = null)
         {
             if (string.IsNullOrEmpty(client)) Remove("Sforce-Call-Options");
             else Add("Sforce-Call-Options", string.IsNullOrEmpty(defaultNamespace) ? $"client={client}" : $"client={client}, defaultNamespace={defaultNamespace}");

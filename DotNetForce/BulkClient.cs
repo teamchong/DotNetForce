@@ -1,35 +1,23 @@
-﻿using DotNetForce.Chatter;
-using DotNetForce.Common;
-using DotNetForce.Common.Models.Json;
+﻿using DotNetForce.Common;
 using DotNetForce.Common.Models.Xml;
-using DotNetForce.Common.Soql;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
-using System.Globalization;
 using System.IO;
-using System.Linq;
-using System.Net;
-using System.Net.Http;
-using System.Net.Http.Headers;
-using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+// ReSharper disable MemberCanBePrivate.Global
 
 namespace DotNetForce
 {
     // ReSharper disable once InconsistentNaming
-    [JetBrains.Annotations.PublicAPI]
     public class BulkClient : IBulkClient
     {
-        protected readonly XmlHttpClient _xmlHttpClient;
-        protected readonly JsonHttpClient _jsonHttpClient;
+        protected readonly XmlHttpClient XmlHttpClient;
+        protected readonly JsonHttpClient JsonHttpClient;
 
         public BulkClient(XmlHttpClient xmlHttpClient, JsonHttpClient jsonHttpClient)
         {
-            _xmlHttpClient = xmlHttpClient;
-            _jsonHttpClient = jsonHttpClient;
+            XmlHttpClient = xmlHttpClient;
+            JsonHttpClient = jsonHttpClient;
         }
 
         public async Task<IList<BatchInfoResult>> RunJobAsync<T>(string objectName, BulkConstants.OperationType operationType,
@@ -37,10 +25,14 @@ namespace DotNetForce
         {
             if (recordsLists == null) throw new ArgumentNullException(nameof(recordsLists));
 
-            var jobInfoResult = await CreateJobAsync(objectName, operationType);
+            var jobInfoResult = await CreateJobAsync(objectName, operationType)
+                .ConfigureAwait(false);
             var batchResults = new List<BatchInfoResult>();
-            foreach (var recordList in recordsLists) batchResults.Add(await CreateJobBatchAsync(jobInfoResult, recordList));
-            await CloseJobAsync(jobInfoResult);
+            foreach (var recordList in recordsLists)
+                batchResults.Add(await CreateJobBatchAsync(jobInfoResult, recordList)
+                    .ConfigureAwait(false));
+            await CloseJobAsync(jobInfoResult)
+                .ConfigureAwait(false);
             return batchResults;
         }
 
@@ -50,7 +42,8 @@ namespace DotNetForce
             const float pollingStart = 1000;
             const float pollingIncrease = 2.0f;
 
-            var batchInfoResults = await RunJobAsync(objectName, operationType, recordsLists);
+            var batchInfoResults = await RunJobAsync(objectName, operationType, recordsLists)
+                .ConfigureAwait(false);
 
             var currentPoll = pollingStart;
             var finishedBatchInfoResults = new List<BatchInfoResult>();
@@ -59,24 +52,26 @@ namespace DotNetForce
                 var removeList = new List<BatchInfoResult>();
                 foreach (var batchInfoResult in batchInfoResults)
                 {
-                    var batchInfoResultNew = await PollBatchAsync(batchInfoResult);
-                    if (batchInfoResultNew.State.Equals(BulkConstants.BatchState.Completed.Value()) ||
-                        batchInfoResultNew.State.Equals(BulkConstants.BatchState.Failed.Value()) ||
-                        batchInfoResultNew.State.Equals(BulkConstants.BatchState.NotProcessed.Value()))
-                    {
-                        finishedBatchInfoResults.Add(batchInfoResultNew);
-                        removeList.Add(batchInfoResult);
-                    }
+                    var batchInfoResultNew = await PollBatchAsync(batchInfoResult)
+                        .ConfigureAwait(false);
+                    if (batchInfoResultNew.State == null || !batchInfoResultNew.State.Equals(BulkConstants.BatchState.Completed.Value()) &&
+                        !batchInfoResultNew.State.Equals(BulkConstants.BatchState.Failed.Value()) &&
+                        !batchInfoResultNew.State.Equals(BulkConstants.BatchState.NotProcessed.Value())) continue;
+                    finishedBatchInfoResults.Add(batchInfoResultNew);
+                    removeList.Add(batchInfoResult);
                 }
                 foreach (var removeItem in removeList) batchInfoResults.Remove(removeItem);
 
-                await Task.Delay((int)currentPoll);
+                await Task.Delay((int)currentPoll)
+                    .ConfigureAwait(false);
                 currentPoll *= pollingIncrease;
             }
 
 
             var batchResults = new List<BatchResultList>();
-            foreach (var batchInfoResultComplete in finishedBatchInfoResults) batchResults.Add(await GetBatchResultAsync(batchInfoResultComplete));
+            foreach (var batchInfoResultComplete in finishedBatchInfoResults)
+                batchResults.Add(await GetBatchResultAsync(batchInfoResultComplete)
+                    .ConfigureAwait(false));
             return batchResults;
         }
 
@@ -91,56 +86,62 @@ namespace DotNetForce
                 Operation = operationType.Value()
             };
 
-            return await _xmlHttpClient.HttpPostAsync<JobInfoResult>(jobInfo, "/services/async/{0}/job");
+            const string resourceName = "/services/async/{0}/job";
+            return await XmlHttpClient.HttpPostAsync<JobInfoResult>(jobInfo, resourceName)
+                .ConfigureAwait(false) ?? new JobInfoResult();
         }
 
-        public async Task<BatchInfoResult> CreateJobBatchAsync<T>(string jobId, ISObjectList<T> recordsObject)
+        public async Task<BatchInfoResult> CreateJobBatchAsync<T>(string? jobId, ISObjectList<T> recordsObject)
         {
             if (string.IsNullOrEmpty(jobId)) throw new ArgumentNullException(nameof(jobId));
             if (recordsObject == null) throw new ArgumentNullException(nameof(recordsObject));
 
-            return await _xmlHttpClient.HttpPostAsync<BatchInfoResult>(recordsObject, $"/services/async/{{0}}/job/{jobId}/batch")
-                .ConfigureAwait(false);
+            var resourceName = $"/services/async/{{0}}/job/{jobId}/batch";
+            return await XmlHttpClient.HttpPostAsync<BatchInfoResult>(recordsObject, resourceName)
+                .ConfigureAwait(false) ?? new BatchInfoResult();
         }
 
-        public async Task<BatchInfoResult> CreateJobBatchAsync<T>(JobInfoResult jobInfo, ISObjectList<T> recordsList)
+        public Task<BatchInfoResult> CreateJobBatchAsync<T>(JobInfoResult jobInfo, ISObjectList<T> recordsList)
         {
             if (jobInfo == null) throw new ArgumentNullException(nameof(jobInfo));
-            return await CreateJobBatchAsync(jobInfo.Id, recordsList).ConfigureAwait(false);
+            return CreateJobBatchAsync(jobInfo.Id, recordsList);
         }
 
         public async Task<JobInfoResult> CloseJobAsync(JobInfoResult jobInfo)
         {
             if (jobInfo == null) throw new ArgumentNullException(nameof(jobInfo));
-            return await CloseJobAsync(jobInfo.Id);
+            return await CloseJobAsync(jobInfo.Id)
+                .ConfigureAwait(false) ?? new JobInfoResult();
         }
 
-        public async Task<JobInfoResult> CloseJobAsync(string jobId)
+        public async Task<JobInfoResult> CloseJobAsync(string? jobId)
         {
             if (string.IsNullOrEmpty(jobId)) throw new ArgumentNullException(nameof(jobId));
 
             var state = new JobInfoState { State = "Closed" };
-            return await _xmlHttpClient.HttpPostAsync<JobInfoResult>(state, $"/services/async/{{0}}/job/{jobId}")
-                .ConfigureAwait(false);
+            var resourceName = $"/services/async/{{0}}/job/{jobId}";
+            return await XmlHttpClient.HttpPostAsync<JobInfoResult>(state, resourceName)
+                .ConfigureAwait(false) ?? new JobInfoResult();
         }
 
-        public Task<JobInfoResult> PollJobAsync(JobInfoResult jobInfo)
+        public Task<JobInfoResult> PollJobAsync(JobInfoResult? jobInfo)
         {
             return PollJobAsync(jobInfo?.Id);
         }
 
-        public async Task<JobInfoResult> PollJobAsync(string jobId)
+        public async Task<JobInfoResult> PollJobAsync(string? jobId)
         {
             if (string.IsNullOrEmpty(jobId)) throw new ArgumentNullException(nameof(jobId));
 
-            return await _xmlHttpClient.HttpGetAsync<JobInfoResult>($"/services/async/{{0}}/job/{jobId}")
-                .ConfigureAwait(false);
+            var resourceName = $"/services/async/{{0}}/job/{jobId}";
+            return await XmlHttpClient.HttpGetAsync<JobInfoResult>(resourceName)
+                .ConfigureAwait(false) ?? new JobInfoResult();
         }
 
-        public async Task<BatchInfoResult> PollBatchAsync(BatchInfoResult batchInfo)
+        public Task<BatchInfoResult> PollBatchAsync(BatchInfoResult batchInfo)
         {
             if (batchInfo == null) throw new ArgumentNullException(nameof(batchInfo));
-            return await PollBatchAsync(batchInfo.Id, batchInfo.JobId);
+            return PollBatchAsync(batchInfo.Id ?? string.Empty, batchInfo.JobId ?? string.Empty);
         }
 
         public async Task<BatchInfoResult> PollBatchAsync(string batchId, string jobId)
@@ -148,14 +149,15 @@ namespace DotNetForce
             if (string.IsNullOrEmpty(batchId)) throw new ArgumentNullException(nameof(batchId));
             if (string.IsNullOrEmpty(jobId)) throw new ArgumentNullException(nameof(jobId));
 
-            return await _xmlHttpClient.HttpGetAsync<BatchInfoResult>($"/services/async/{{0}}/job/{jobId}/batch/{batchId}")
-                .ConfigureAwait(false);
+            var resourceName = $"/services/async/{{0}}/job/{jobId}/batch/{batchId}";
+            return await XmlHttpClient.HttpGetAsync<BatchInfoResult>(resourceName)
+                .ConfigureAwait(false) ?? new BatchInfoResult();
         }
 
-        public async Task<BatchResultList> GetBatchResultAsync(BatchInfoResult batchInfo)
+        public Task<BatchResultList> GetBatchResultAsync(BatchInfoResult batchInfo)
         {
             if (batchInfo == null) throw new ArgumentNullException(nameof(batchInfo));
-            return await GetBatchResultAsync(batchInfo.Id, batchInfo.JobId);
+            return GetBatchResultAsync(batchInfo.Id ?? string.Empty, batchInfo.JobId ?? string.Empty);
         }
 
         public async Task<BatchResultList> GetBatchResultAsync(string batchId, string jobId)
@@ -163,17 +165,19 @@ namespace DotNetForce
             if (string.IsNullOrEmpty(batchId)) throw new ArgumentNullException(nameof(batchId));
             if (string.IsNullOrEmpty(jobId)) throw new ArgumentNullException(nameof(jobId));
 
-            return await _xmlHttpClient.HttpGetAsync<BatchResultList>($"/services/async/{{0}}/job/{jobId}/batch/{batchId}/result")
-                .ConfigureAwait(false);
+            var resourceName = $"/services/async/{{0}}/job/{jobId}/batch/{batchId}/result";
+            return await XmlHttpClient.HttpGetAsync<BatchResultList>(resourceName)
+                .ConfigureAwait(false) ?? new BatchResultList();
         }
 
-        public async Task<Stream> GetBlobAsync(string objectName, string objectId, string fieldName)
+        public Task<Stream> GetBlobAsync(string objectName, string objectId, string fieldName)
         {
             if (string.IsNullOrEmpty(objectName)) throw new ArgumentNullException(nameof(objectName));
             if (string.IsNullOrEmpty(objectId)) throw new ArgumentNullException(nameof(objectId));
             if (string.IsNullOrEmpty(fieldName)) throw new ArgumentNullException(nameof(fieldName));
 
-            return await _jsonHttpClient.HttpGetBlobAsync($"sobjects/{objectName}/{objectId}/{fieldName}");
+            var resourceName = $"sobjects/{objectName}/{objectId}/{fieldName}";
+            return JsonHttpClient.HttpGetBlobAsync(resourceName);
         }
     }
 }

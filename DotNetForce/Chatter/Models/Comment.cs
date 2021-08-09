@@ -5,48 +5,48 @@ namespace DotNetForce.Chatter.Models
     public class Comment
     {
         [JsonProperty(PropertyName = "attachment")]
-        public object Attachment { get; set; }
+        public object? Attachment { get; set; }
 
         [JsonProperty(PropertyName = "body")]
-        public FeedBody Body { get; set; }
+        public FeedBody? Body { get; set; }
 
         [JsonProperty(PropertyName = "clientInfo")]
-        public ClientInfo ClientInfo { get; set; }
+        public ClientInfo? ClientInfo { get; set; }
 
         [JsonProperty(PropertyName = "createdDate")]
-        public string CreatedDate { get; set; }
+        public string? CreatedDate { get; set; }
 
         [JsonProperty(PropertyName = "feedItem")]
-        public Reference FeedItem { get; set; }
+        public Reference? FeedItem { get; set; }
 
         [JsonProperty(PropertyName = "id")]
-        public string Id { get; set; }
+        public string? Id { get; set; }
 
         [JsonProperty(PropertyName = "isDeleteRestricted")]
         public bool IsDeleteRestricted { get; set; }
 
         [JsonProperty(PropertyName = "likes")]
-        public LikePage Likes { get; set; }
+        public LikePage? Likes { get; set; }
 
         [JsonProperty(PropertyName = "likesMessage")]
-        public LikeMessageBody LikesMessage { get; set; }
+        public LikeMessageBody? LikesMessage { get; set; }
 
         [JsonProperty(PropertyName = "myLike")]
-        public Reference MyLike { get; set; }
+        public Reference? MyLike { get; set; }
 
         [JsonProperty(PropertyName = "parent")]
-        public Reference Parent { get; set; }
+        public Reference? Parent { get; set; }
 
         [JsonProperty(PropertyName = "relativeCreatedDate")]
-        public string RelativeCreatedDate { get; set; }
+        public string? RelativeCreatedDate { get; set; }
 
         [JsonProperty(PropertyName = "type")]
-        public string Type { get; set; }
+        public string? Type { get; set; }
 
         [JsonProperty(PropertyName = "url")]
-        public string Url { get; set; }
+        public string? Url { get; set; }
 
         [JsonProperty(PropertyName = "user")]
-        public UserSummary User { get; set; }
+        public UserSummary? User { get; set; }
     }
 }

@@ -5,15 +5,15 @@ namespace DotNetForce.Chatter.Models
     public class Like
     {
         [JsonProperty(PropertyName = "id")]
-        public string Id { get; set; }
+        public string? Id { get; set; }
 
         [JsonProperty(PropertyName = "likedItem")]
-        public Reference LikedItem { get; set; }
+        public Reference? LikedItem { get; set; }
 
         [JsonProperty(PropertyName = "url")]
-        public string Url { get; set; }
+        public string? Url { get; set; }
 
         [JsonProperty(PropertyName = "user")]
-        public UserSummary User { get; set; }
+        public UserSummary? User { get; set; }
     }
 }

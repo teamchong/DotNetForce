@@ -1,6 +1,7 @@
-﻿namespace DotNetForce.Schema
+﻿// ReSharper disable MemberCanBePrivate.Global
+// ReSharper disable AutoPropertyCanBeMadeGetOnly.Global
+namespace DotNetForce.Schema
 {
-    [JetBrains.Annotations.PublicAPI]
     public abstract class SfFieldBase
     {
         protected SfFieldBase(string path)

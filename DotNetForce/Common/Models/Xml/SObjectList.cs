@@ -10,7 +10,7 @@ namespace DotNetForce.Common.Models.Xml
     [XmlRoot(Namespace = "http://www.force.com/2009/06/asyncapi/dataload", ElementName = "sObjects")]
     public sealed class SObjectList<T> : List<T>, ISObjectList<T>
     {
-        public XmlSchema GetSchema()
+        public XmlSchema? GetSchema()
         {
             return null;
         }
@@ -27,7 +27,7 @@ namespace DotNetForce.Common.Models.Xml
                 {
                     value.WriteXml(writer);
                 }
-                else
+                else if (entry != null)
                 {
                     var xmlSerializer = new XmlSerializer(typeof(T), new XmlRootAttribute("sObject"));
                     var ns = new XmlSerializerNamespaces();

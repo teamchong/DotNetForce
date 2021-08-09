@@ -4,10 +4,12 @@ using DotNetForce.Common;
 using DotNetForce.Common.Models.Json;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+// ReSharper disable UnusedMember.Global
+// ReSharper disable MemberCanBePrivate.Global
+// ReSharper disable AutoPropertyCanBeMadeGetOnly.Global
 
 namespace DotNetForce
 {
-    [JetBrains.Annotations.PublicAPI]
     public class RecordsObject
     {
         public RecordsObject()
@@ -31,7 +33,7 @@ namespace DotNetForce
 
         public JToken this[string propertyName]
         {
-            get => AdditionalData[propertyName];
+            get => AdditionalData[propertyName] ?? JValue.CreateNull();
             set => AdditionalData[propertyName] = value;
         }
 

@@ -6,12 +6,12 @@ namespace DotNetForce.Chatter.Models
     public class TopicCollection
     {
         [JsonProperty(PropertyName = "currentPageUrl")]
-        public string CurrentPageUrl { get; set; }
+        public string? CurrentPageUrl { get; set; }
 
         [JsonProperty(PropertyName = "nextPageUrl")]
-        public string NextPageUrl { get; set; }
+        public string? NextPageUrl { get; set; }
 
         [JsonProperty(PropertyName = "topics")]
-        public IList<Topic> Topics { get; set; }
+        public IList<Topic>? Topics { get; set; }
     }
 }

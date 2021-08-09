@@ -2,142 +2,154 @@
 using Newtonsoft.Json.Linq;
 using System;
 using System.Threading.Tasks;
+// ReSharper disable NotAccessedField.Global
+// ReSharper disable MemberCanBePrivate.Global
 
 namespace DotNetForce
 {
     // ReSharper disable once InconsistentNaming
-    [JetBrains.Annotations.PublicAPI]
     public class LayoutClient : ILayoutClient
     {
-        protected readonly XmlHttpClient _xmlHttpClient;
-        protected readonly JsonHttpClient _jsonHttpClient;
+        protected readonly XmlHttpClient XmlHttpClient;
+        protected readonly JsonHttpClient JsonHttpClient;
 
         public LayoutClient(XmlHttpClient xmlHttpClient, JsonHttpClient jsonHttpClient)
         {
-            _xmlHttpClient = xmlHttpClient;
-            _jsonHttpClient = jsonHttpClient;
+            XmlHttpClient = xmlHttpClient;
+            JsonHttpClient = jsonHttpClient;
         }
 
-        public Task<JObject> DescribeLayoutAsync(string objectName)
+        public Task<JObject?> DescribeLayoutAsync(string objectName)
         {
             return DescribeLayoutAsync<JObject>(objectName);
         }
 
-        public Task<T> DescribeLayoutAsync<T>(string objectName)
+        public Task<T?> DescribeLayoutAsync<T>(string objectName) where T : class
         {
             if (string.IsNullOrEmpty(objectName)) throw new ArgumentNullException(nameof(objectName));
-            return _jsonHttpClient.HttpGetAsync<T>($"sobjects/{objectName}/describe/layouts/");
+
+            var resourceName = $"sobjects/{objectName}/describe/layouts/";
+            return JsonHttpClient.HttpGetAsync<T>(resourceName);
         }
 
-        public Task<JObject> DescribeLayoutAsync(string objectName, string recordTypeId)
+        public Task<JObject?> DescribeLayoutAsync(string objectName, string recordTypeId)
         {
             return DescribeLayoutAsync<JObject>(objectName, recordTypeId);
         }
 
-        public Task<T> DescribeLayoutAsync<T>(string objectName, string recordTypeId)
+        public Task<T?> DescribeLayoutAsync<T>(string objectName, string recordTypeId) where T : class
         {
             if (string.IsNullOrEmpty(objectName)) throw new ArgumentNullException(nameof(objectName));
             if (string.IsNullOrEmpty(recordTypeId)) throw new ArgumentNullException(nameof(recordTypeId));
 
-            return _jsonHttpClient.HttpGetAsync<T>($"sobjects/{objectName}/describe/layouts/{recordTypeId}");
+            var resourceName = $"sobjects/{objectName}/describe/layouts/{recordTypeId}";
+            return JsonHttpClient.HttpGetAsync<T>(resourceName);
         }
 
-        public Task<JObject> NamedLayoutsAsync(string objectName, string layoutName)
+        public Task<JObject?> NamedLayoutsAsync(string objectName, string layoutName)
         {
             return NamedLayoutsAsync<JObject>(objectName, layoutName);
         }
 
-        public async Task<T> NamedLayoutsAsync<T>(string objectName, string layoutName)
+        public Task<T?> NamedLayoutsAsync<T>(string objectName, string layoutName) where T : class
         {
             if (string.IsNullOrEmpty(objectName)) throw new ArgumentNullException(nameof(objectName));
             if (string.IsNullOrEmpty(layoutName)) throw new ArgumentNullException(nameof(layoutName));
 
-            return await _jsonHttpClient.HttpGetAsync<T>($"sobjects/{objectName}/describe/namedLayouts/{layoutName}").ConfigureAwait(false);
+            var resourceName = $"sobjects/{objectName}/describe/namedLayouts/{layoutName}";
+            return JsonHttpClient.HttpGetAsync<T>(resourceName);
         }
 
-        public Task<JObject> ApprovalLayoutsAsync(string objectName, string approvalProcessName = "")
+        public Task<JObject?> ApprovalLayoutsAsync(string objectName, string approvalProcessName = "")
         {
             return ApprovalLayoutsAsync<JObject>(objectName, approvalProcessName);
         }
 
-        public async Task<T> ApprovalLayoutsAsync<T>(string objectName, string approvalProcessName = "")
+        public Task<T?> ApprovalLayoutsAsync<T>(string objectName, string approvalProcessName = "") where T : class
         {
             if (string.IsNullOrEmpty(objectName)) throw new ArgumentNullException(nameof(objectName));
 
 
-            return await _jsonHttpClient.HttpGetAsync<T>($"sobjects/{objectName}/describe/approvalLayouts/{approvalProcessName}").ConfigureAwait(false);
+            var resourceName = $"sobjects/{objectName}/describe/approvalLayouts/{approvalProcessName}";
+            return JsonHttpClient.HttpGetAsync<T>(resourceName);
         }
 
-        public Task<JObject> CompactLayoutsAsync(string objectName)
+        public Task<JObject?> CompactLayoutsAsync(string objectName)
         {
             return CompactLayoutsAsync<JObject>(objectName);
         }
 
-        public async Task<T> CompactLayoutsAsync<T>(string objectName)
+        public Task<T?> CompactLayoutsAsync<T>(string objectName) where T : class
         {
             if (string.IsNullOrEmpty(objectName)) throw new ArgumentNullException(nameof(objectName));
 
-            return await _jsonHttpClient.HttpGetAsync<T>($"sobjects/{objectName}/describe/compactLayouts/").ConfigureAwait(false);
+            var resourceName = $"sobjects/{objectName}/describe/compactLayouts/";
+            return JsonHttpClient.HttpGetAsync<T>(resourceName);
         }
 
-        public Task<JObject> DescribeLayoutsAsync(string objectName = "Global")
+        public Task<JObject?> DescribeLayoutsAsync(string objectName = "Global")
         {
             return DescribeLayoutAsync(objectName);
         }
 
-        public async Task<T> DescribeLayoutsAsync<T>(string objectName = "Global")
+        public Task<T?> DescribeLayoutsAsync<T>(string objectName = "Global") where T : class
         {
             if (string.IsNullOrEmpty(objectName)) throw new ArgumentNullException(nameof(objectName));
 
-            return await _jsonHttpClient.HttpGetAsync<T>($"sobjects/{objectName}/describe/layouts/").ConfigureAwait(false);
+            var resourceName = $"sobjects/{objectName}/describe/layouts/";
+            return JsonHttpClient.HttpGetAsync<T>(resourceName);
         }
 
-        public Task<JObject> PlatformActionAsync()
+        public Task<JObject?> PlatformActionAsync()
         {
             return PlatformActionAsync<JObject>();
         }
 
-        public async Task<T> PlatformActionAsync<T>()
+        public Task<T?> PlatformActionAsync<T>() where T : class
         {
-            return await _jsonHttpClient.HttpGetAsync<T>("sobjects/PlatformAction").ConfigureAwait(false);
+            const string? resourceName = "sobjects/PlatformAction";
+            return JsonHttpClient.HttpGetAsync<T>(resourceName);
         }
 
-        public Task<JObject> QuickActionsAsync(string objectName, string actionName = "")
+        public Task<JObject?> QuickActionsAsync(string objectName, string actionName = "")
         {
             return QuickActionsAsync<JObject>(objectName, actionName);
         }
 
-        public async Task<T> QuickActionsAsync<T>(string objectName, string actionName = "")
+        public Task<T?> QuickActionsAsync<T>(string objectName, string actionName = "") where T : class
         {
             if (string.IsNullOrEmpty(objectName)) throw new ArgumentNullException(nameof(objectName));
 
-            return await _jsonHttpClient.HttpGetAsync<T>($"sobjects/{objectName}/quickActions/{actionName}").ConfigureAwait(false);
+            var resourceName = $"sobjects/{objectName}/quickActions/{actionName}";
+            return JsonHttpClient.HttpGetAsync<T>(resourceName);
         }
 
-        public Task<JObject> QuickActionsDetailsAsync(string objectName, string actionName)
+        public Task<JObject?> QuickActionsDetailsAsync(string objectName, string actionName)
         {
             return QuickActionsDetailsAsync<JObject>(objectName, actionName);
         }
 
-        public async Task<T> QuickActionsDetailsAsync<T>(string objectName, string actionName)
+        public Task<T?> QuickActionsDetailsAsync<T>(string objectName, string actionName) where T : class
         {
             if (string.IsNullOrEmpty(objectName)) throw new ArgumentNullException(nameof(objectName));
             if (string.IsNullOrEmpty(actionName)) throw new ArgumentNullException(nameof(actionName));
 
-            return await _jsonHttpClient.HttpGetAsync<T>($"sobjects/{objectName}/quickActions/{actionName}/describe/").ConfigureAwait(false);
+            var resourceName = $"sobjects/{objectName}/quickActions/{actionName}/describe/";
+            return JsonHttpClient.HttpGetAsync<T>(resourceName);
         }
 
-        public Task<JObject> QuickActionsDefaultValuesAsync(string objectName, string actionName, string contextId)
+        public Task<JObject?> QuickActionsDefaultValuesAsync(string objectName, string actionName, string contextId)
         {
             return QuickActionsDefaultValuesAsync<JObject>(objectName, actionName, contextId);
         }
 
-        public async Task<T> QuickActionsDefaultValuesAsync<T>(string objectName, string actionName, string contextId)
+        public Task<T?> QuickActionsDefaultValuesAsync<T>(string objectName, string actionName, string contextId) where T : class
         {
             if (string.IsNullOrEmpty(objectName)) throw new ArgumentNullException(nameof(objectName));
             if (string.IsNullOrEmpty(actionName)) throw new ArgumentNullException(nameof(actionName));
 
-            return await _jsonHttpClient.HttpGetAsync<T>($"sobjects/{objectName}/quickActions/{actionName}/defaultValues/{contextId}").ConfigureAwait(false);
+            var resourceName = $"sobjects/{objectName}/quickActions/{actionName}/defaultValues/{contextId}";
+            return JsonHttpClient.HttpGetAsync<T>(resourceName);
         }
     }
 }

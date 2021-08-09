@@ -6,7 +6,7 @@ namespace DotNetForce.Common.Models.Xml
     public class BatchResult
     {
         [XmlElement(ElementName = "id")]
-        public string Id { get; set; }
+        public string? Id { get; set; }
 
         [XmlElement(ElementName = "success")]
         public bool Success { get; set; }
@@ -15,6 +15,6 @@ namespace DotNetForce.Common.Models.Xml
         public bool Created { get; set; }
 
         [XmlElement(ElementName = "errors")]
-        public BatchResultErrors Errors { get; set; }
+        public BatchResultErrors? Errors { get; set; }
     }
 }

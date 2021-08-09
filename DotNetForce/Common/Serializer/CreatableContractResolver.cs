@@ -20,13 +20,12 @@ namespace DotNetForce.Common.Serializer
         private static bool IsPropertyCreatable(Type type, JsonProperty property)
         {
             var isCreatable = true;
+            if (property.PropertyName == null) return isCreatable;
             var propInfo = type.GetRuntimeProperty(property.PropertyName);
 
-            if (propInfo != null)
-            {
-                var creatableAttr = propInfo.GetCustomAttribute(typeof(CreatableAttribute), false);
-                isCreatable = creatableAttr == null || ((CreatableAttribute)creatableAttr).Creatable;
-            }
+            if (propInfo == null) return isCreatable;
+            var creatableAttr = propInfo.GetCustomAttribute(typeof(CreatableAttribute), false);
+            isCreatable = creatableAttr == null || ((CreatableAttribute)creatableAttr).Creatable;
 
             return isCreatable;
         }

@@ -1,12 +1,13 @@
 ﻿using DotNetForce.Common.Models.Xml;
-using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
+// ReSharper disable UnusedMemberInSuper.Global
+// ReSharper disable UnusedMethodReturnValue.Global
+// ReSharper disable UnusedMember.Global
 
 namespace DotNetForce
 {
-    [JetBrains.Annotations.PublicAPI]
     public interface IBulkClient
     {
         Task<IList<BatchInfoResult>> RunJobAsync<T>(string objectName, BulkConstants.OperationType operationType, IEnumerable<ISObjectList<T>> recordsLists);
@@ -17,15 +18,15 @@ namespace DotNetForce
 
         Task<BatchInfoResult> CreateJobBatchAsync<T>(JobInfoResult jobInfo, ISObjectList<T> recordsObject);
 
-        Task<BatchInfoResult> CreateJobBatchAsync<T>(string jobId, ISObjectList<T> recordsObject);
+        Task<BatchInfoResult> CreateJobBatchAsync<T>(string? jobId, ISObjectList<T> recordsObject);
 
         Task<JobInfoResult> CloseJobAsync(JobInfoResult jobInfo);
 
-        Task<JobInfoResult> CloseJobAsync(string jobId);
+        Task<JobInfoResult> CloseJobAsync(string? jobId);
 
         Task<JobInfoResult> PollJobAsync(JobInfoResult jobInfo);
 
-        Task<JobInfoResult> PollJobAsync(string jobId);
+        Task<JobInfoResult> PollJobAsync(string? jobId);
 
         Task<BatchInfoResult> PollBatchAsync(BatchInfoResult batchInfo);
 

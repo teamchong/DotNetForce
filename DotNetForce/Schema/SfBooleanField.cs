@@ -1,6 +1,7 @@
-﻿namespace DotNetForce.Schema
+﻿// ReSharper disable ClassNeverInstantiated.Global
+namespace DotNetForce.Schema
 {
-    public class SfBooleanField<T> : SfFieldBase where T : SfObjectBase
+    public class SfBooleanField : SfFieldBase
     {
         public SfBooleanField(string path) : base(path) { }
     }

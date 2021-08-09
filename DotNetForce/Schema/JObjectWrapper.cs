@@ -6,73 +6,73 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+// ReSharper disable UnusedType.Global
+// ReSharper disable UnusedMember.Global
+// ReSharper disable MemberCanBePrivate.Global
+// ReSharper disable AutoPropertyCanBeMadeGetOnly.Global
 
 namespace DotNetForce.Schema
 {
-    [JetBrains.Annotations.PublicAPI]
     public class JObjectWrapper : IAttributedObject
     {
         public JObjectWrapper() { Object = new JObject(); }
 
-        public JObjectWrapper(SfObjectBase type) : this(new JObject(), type?.ToString()) { }
+        public JObjectWrapper(SfObjectBase? type) : this(new JObject(), type?.ToString()) { }
 
-        public JObjectWrapper(SfObjectBase type, string referenceId) : this(new JObject(), type?.ToString(), referenceId) { }
+        public JObjectWrapper(SfObjectBase? type, string? referenceId) : this(new JObject(), type?.ToString(), referenceId) { }
 
-        public JObjectWrapper(string type) : this(new JObject(), type) { }
+        public JObjectWrapper(string? type) : this(new JObject(), type) { }
 
-        public JObjectWrapper(string type, string referenceId) : this(new JObject(), type, referenceId) { }
+        public JObjectWrapper(string? type, string? referenceId) : this(new JObject(), type, referenceId) { }
 
-        public JObjectWrapper(JObject obj) { Object = obj; }
+        public JObjectWrapper(JObject? obj) { Object = obj ?? new JObject(); }
 
-        public JObjectWrapper(JObject obj, SfObjectBase type) : this(obj, type?.ToString()) { }
+        public JObjectWrapper(JObject? obj, SfObjectBase? type) : this(obj, type?.ToString()) { }
 
-        public JObjectWrapper(JObject obj, string type)
+        public JObjectWrapper(JObject? obj, string? type)
         {
             if (obj != null) obj["attributes"] = new JObject { ["type"] = type };
-            Object = obj;
+            Object = obj ?? new JObject();
         }
 
-        public JObjectWrapper(JObject obj, SfObjectBase type, string referenceId) : this(obj, type?.ToString(), referenceId) { }
+        public JObjectWrapper(JObject? obj, SfObjectBase? type, string? referenceId) : this(obj, type?.ToString(), referenceId) { }
 
-        public JObjectWrapper(JObject obj, string type, string referenceId)
+        public JObjectWrapper(JObject? obj, string? type, string? referenceId)
         {
             if (obj != null) obj["attributes"] = new JObject { ["type"] = type, ["referenceId"] = referenceId };
-            Object = obj;
+            Object = obj ?? new JObject();
         }
 
         [JsonExtensionData]
         protected JObject Object { get; set; }
 
         [JsonIgnore]
-        public ObjectAttributes Attributes { get => Object?["attributes"]?.ToObject<ObjectAttributes>(); set => Object["attributes"] = value == null ? null : JObject.FromObject(value); }
-
-        public JObjectWrapper Spread()
-        {
-            return Spread(":");
+        public ObjectAttributes Attributes {
+            get => Object["attributes"]?.ToObject<ObjectAttributes>() ?? new ObjectAttributes();
+            set => Object["attributes"] = JObject.FromObject(value);
         }
 
-        public JObjectWrapper Spread(string sep)
+        public JObjectWrapper Spread(string sep = ":")
         {
             var result = new JObject();
-            if (Object != null)
-                foreach (var prop in Object.Properties())
+            foreach (var prop in Object.Properties())
+            {
+                var splits = prop.Name.Split(new[] { sep }, 2, StringSplitOptions.None);
+                if (splits.Length == 1)
                 {
-                    var splits = prop.Name.Split(new[] { sep }, 2, StringSplitOptions.None);
-                    if (splits.Length == 1)
-                    {
-                        result[prop.Name] = prop.Value;
-                    }
-                    else if (result[prop.Name]?.Type == JTokenType.Object)
-                    {
-                        var subObj = result[prop.Name];
-                        subObj[splits[1]] = prop.Value;
-                        result[splits[0]] = new JObjectWrapper((JObject)subObj).Spread();
-                    }
-                    else
-                    {
-                        result[splits[0]] = new JObjectWrapper(new JObject { [splits[1]] = prop.Value }).Spread();
-                    }
+                    result[prop.Name] = prop.Value;
                 }
+                else if (result[prop.Name]?.Type == JTokenType.Object)
+                {
+                    var subObj = result[prop.Name] ?? new JObject();
+                    subObj[splits[1]] = prop.Value;
+                    result[splits[0]] = new JObjectWrapper((JObject)subObj).Spread();
+                }
+                else
+                {
+                    result[splits[0]] = new JObjectWrapper(new JObject { [splits[1]] = prop.Value }).Spread();
+                }
+            }
             return new JObjectWrapper(result);
         }
 
@@ -81,41 +81,39 @@ namespace DotNetForce.Schema
             return Object;
         }
 
-        public JObject Unwrap(SfObjectBase type)
+        public JObject Unwrap(SfObjectBase? type)
         {
             return Unwrap(type?.ToString());
         }
 
-        public JObject Unwrap(string type)
+        public JObject Unwrap(string? type)
         {
-            if (Object != null) Object["attributes"] = new JObject { ["type"] = type };
+            Object["attributes"] = new JObject { ["type"] = type };
             return Object;
         }
 
-        public JObject Unwrap(SfObjectBase type, string referenceId)
+        public JObject Unwrap(SfObjectBase? type, string? referenceId)
         {
             return Unwrap(type?.ToString(), referenceId);
         }
 
-        public JObject Unwrap(string type, string referenceId)
+        public JObject Unwrap(string? type, string? referenceId)
         {
-            if (Object != null) Object["attributes"] = new JObject { ["type"] = type, ["referenceId"] = referenceId };
+            Object["attributes"] = new JObject { ["type"] = type, ["referenceId"] = referenceId };
             return Object;
         }
 
-        public JToken Get(string path)
+        public JToken Get(string? path)
         {
             var paths = path?.Split(new[] { '.' }, 2);
-            if (paths?.Length == 1) return Object[paths[0]];
-            if (paths?.Length > 1)
-                if (Object[paths[0]]?.Type == JTokenType.Object)
-                    return new JObjectWrapper((JObject)Object[paths[0]]).Get(paths[1]);
-            return null;
+            if (paths?.Length == 1) return Object[paths[0]] ?? JValue.CreateNull();
+            if (!(paths?.Length > 1)) return JValue.CreateNull();
+            return Object[paths[0]]?.Type == JTokenType.Object ? new JObjectWrapper((JObject?)Object[paths[0]]).Get(paths[1]) : JValue.CreateNull();
         }
 
-        public JObjectWrapper Set(string path, JToken value)
+        public JObjectWrapper Set(string? path, JToken? value)
         {
-            var paths = path.Split(new[] { '.' }, 2);
+            var paths = path?.Split(new[] { '.' }, 2) ?? Array.Empty<string>();
             if (paths.Length == 1)
             {
                 Object[paths[0]] = value;
@@ -123,319 +121,373 @@ namespace DotNetForce.Schema
             else if (paths.Length > 1)
             {
                 if (Object[paths[0]]?.Type != JTokenType.Object) Object[paths[0]] = new JObject();
-                new JObjectWrapper((JObject)Object[paths[0]]).Set(paths[1], value);
+                new JObjectWrapper((JObject?)Object[paths[0]]).Set(paths[1], value);
             }
             return this;
         }
 
 
-        public JToken Get<T>(SfAddressField<T> field) where T : SfObjectBase
+        public JToken Get(SfAddressField? field)
         {
             return Get(field?.ToString());
         }
 
-        public JObjectWrapper Set<T>(SfAddressField<T> field, JObject value) where T : SfObjectBase
+        public JObjectWrapper Set(SfAddressField? field, JObject? value)
         {
             return Set(field?.ToString(), value);
         }
 
 
-        public JToken Get<T>(SfAnyTypeField<T> field) where T : SfObjectBase
+        public JToken Get(SfAnyTypeField? field)
         {
             return Get(field?.ToString());
         }
 
-        public JObjectWrapper Set<T>(SfAnyTypeField<T> field, JObject value) where T : SfObjectBase
+        public JObjectWrapper Set(SfAnyTypeField? field, JObject? value)
         {
             return Set(field?.ToString(), value);
         }
 
 
-        public string Get<T>(SfBase64Field<T> field) where T : SfObjectBase
+        public string Get(SfBase64Field? field)
         {
-            return Get(field?.ToString())?.ToString();
+            return Get(field?.ToString()).ToString();
         }
 
-        public JObjectWrapper Set<T>(SfBase64Field<T> field, string value) where T : SfObjectBase
+        public JObjectWrapper Set(SfBase64Field? field, string? value)
         {
             return Set(field?.ToString(), value);
         }
 
 
-        public bool? Get<T>(SfBooleanField<T> field) where T : SfObjectBase
+        public bool? Get(SfBooleanField? field)
         {
             return (bool?)Get(field?.ToString());
         }
 
-        public JObjectWrapper Set<T>(SfBooleanField<T> field, bool? value) where T : SfObjectBase
+        public JObjectWrapper Set(SfBooleanField? field, bool? value)
         {
             return Set(field?.ToString(), value);
         }
 
 
-        public QueryResult<JObject> Get<T, TChild>(SfChildRelationship<TChild> field)
-            where T : SfObjectBase, new() where TChild : SfObjectBase, new()
+        public QueryResult<JObject> Get<TChild>(SfChildRelationship<TChild>? field) where TChild : SfObjectBase, new()
         {
-            return Get(field?.ToString())?.ToObject<QueryResult<JObject>>();
+            return Get(field?.ToString()).ToObject<QueryResult<JObject>>() ?? new QueryResult<JObject>();
         }
 
-        public JObjectWrapper Set<T, TChild>(SfChildRelationship<TChild> field, JObject value)
-            where T : SfObjectBase, new() where TChild : SfObjectBase, new()
+        public JObjectWrapper Set<TChild>(SfChildRelationship<TChild>? field, JObject? value) where TChild : SfObjectBase, new()
         {
             return Set(field?.ToString(), value);
         }
 
 
-        public string Get<T>(SfComboBoxField<T> field) where T : SfObjectBase
+        public string Get(SfComboBoxField? field)
         {
-            return Get(field?.ToString())?.ToString();
+            return Get(field?.ToString()).ToString();
         }
 
-        public JObjectWrapper Set<T>(SfComboBoxField<T> field, string value) where T : SfObjectBase
+        public JObjectWrapper Set(SfComboBoxField? field, string? value)
         {
             return Set(field?.ToString(), value);
         }
 
 
-        public JToken Get<T>(SfComplexValueField<T> field) where T : SfObjectBase
+        public JToken Get(SfComplexValueField? field)
         {
             return Get(field?.ToString());
         }
 
-        public JObjectWrapper Set<T>(SfComplexValueField<T> field, JObject value) where T : SfObjectBase
+        public JObjectWrapper Set(SfComplexValueField? field, JObject? value)
         {
             return Set(field?.ToString(), value);
         }
 
 
-        public double? Get<T>(SfCurrencyField<T> field) where T : SfObjectBase
+        public double? Get(SfCurrencyField? field)
         {
             return (double?)Get(field?.ToString());
         }
 
-        public JObjectWrapper Set<T>(SfCurrencyField<T> field, double? value) where T : SfObjectBase
+        public JObjectWrapper Set(SfCurrencyField? field, double? value)
         {
             return Set(field?.ToString(), value);
         }
 
-        public JObjectWrapper Set<T>(SfCurrencyField<T> field, decimal? value) where T : SfObjectBase
+        public JObjectWrapper Set(SfCurrencyField? field, decimal? value)
         {
             return Set(field?.ToString(), value);
         }
 
 
-        public DateTime? Get<T>(SfDateField<T> field) where T : SfObjectBase
+        public DateTime? Get(SfDateField? field)
         {
-            return Dnf.ToDateTime(Get(field?.ToString())?.ToString());
+            return Dnf.ToDateTime(Get(field?.ToString()).ToString());
         }
 
-        public JObjectWrapper Set<T>(SfDateField<T> field, DateTime? value) where T : SfObjectBase
+        public JObjectWrapper Set(SfDateField? field, DateTime? value)
         {
             return Set(field?.ToString(), Dnf.SoqlDate(value));
         }
 
 
-        public DateTime? Get<T>(SfDateTimeField<T> field) where T : SfObjectBase
+        public DateTime? Get(SfDateTimeField? field)
         {
-            return Dnf.ToDateTime(Get(field?.ToString())?.ToString());
+            return Dnf.ToDateTime(Get(field?.ToString()).ToString());
         }
 
-        public JObjectWrapper Set<T>(SfDateTimeField<T> field, DateTime? value) where T : SfObjectBase
+        public JObjectWrapper Set(SfDateTimeField? field, DateTime? value)
         {
             return Set(field?.ToString(), Dnf.SoqlDateTime(value));
         }
 
 
-        public double? Get<T>(SfDoubleField<T> field) where T : SfObjectBase
+        public double? Get(SfDoubleField? field)
         {
             return (double?)Get(field?.ToString());
         }
 
-        public JObjectWrapper Set<T>(SfDoubleField<T> field, double? value) where T : SfObjectBase
+        public JObjectWrapper Set(SfDoubleField? field, double? value)
         {
             return Set(field?.ToString(), value);
         }
 
-        public JObjectWrapper Set<T>(SfDoubleField<T> field, decimal? value) where T : SfObjectBase
-        {
-            return Set(field?.ToString(), value);
-        }
-
-
-        public string Get<T>(SfEmailField<T> field) where T : SfObjectBase
-        {
-            return Get(field?.ToString())?.ToString();
-        }
-
-        public JObjectWrapper Set<T>(SfEmailField<T> field, string value) where T : SfObjectBase
+        public JObjectWrapper Set(SfDoubleField? field, decimal? value)
         {
             return Set(field?.ToString(), value);
         }
 
 
-        public string Get<T>(SfIdField<T> field) where T : SfObjectBase
+        public string Get(SfEmailField? field)
         {
-            return Dnf.ToId18(Get(field?.ToString())?.ToString());
+            return Get(field?.ToString()).ToString();
         }
 
-        public JObjectWrapper Set<T>(SfIdField<T> field, string value) where T : SfObjectBase
+        public JObjectWrapper Set(SfEmailField? field, string? value)
+        {
+            return Set(field?.ToString(), value);
+        }
+
+
+        public string Get(SfIdField? field)
+        {
+            return Dnf.ToId18(Get(field?.ToString()).ToString());
+        }
+
+        public JObjectWrapper Set(SfIdField? field, string? value)
         {
             return Set(field?.ToString(), Dnf.ToId15(value));
         }
 
 
-        public long? Get<T>(SfIntField field) where T : SfObjectBase
+        public long? Get(SfIntField? field)
         {
             return (long?)Get(field?.ToString());
         }
 
-        public JObjectWrapper Set<T>(SfIntField field, long? value) where T : SfObjectBase
+        public JObjectWrapper Set(SfIntField? field, long? value)
         {
             return Set(field?.ToString(), value);
         }
 
 
-        public JToken Get<T>(SfLocationField field) where T : SfObjectBase
+        public JToken Get(SfLocationField? field)
         {
             return Get(field?.ToString());
         }
 
-        public JObjectWrapper Set<T>(SfLocationField field, JObject value) where T : SfObjectBase
+        public JObjectWrapper Set(SfLocationField? field, JObject? value)
         {
             return Set(field?.ToString(), value);
         }
 
 
-        public string Get<T>(SfMultiPicklistField field) where T : SfObjectBase
+        public string Get(SfMultiPicklistField? field)
         {
-            return Get(field?.ToString())?.ToString();
+            return Get(field?.ToString()).ToString();
         }
 
-        public JObjectWrapper Set<T>(SfMultiPicklistField field, string value) where T : SfObjectBase
+        public JObjectWrapper Set(SfMultiPicklistField? field, string? value)
         {
             return Set(field?.ToString(), value);
         }
 
 
-        public double? Get<T>(SfPercentField field) where T : SfObjectBase
+        public double? Get(SfPercentField? field)
         {
             return (double?)Get(field?.ToString());
         }
 
-        public JObjectWrapper Set<T>(SfPercentField field, double? value) where T : SfObjectBase
+        public JObjectWrapper Set(SfPercentField? field, double? value)
         {
             return Set(field?.ToString(), value);
         }
 
-        public JObjectWrapper Set<T>(SfPercentField field, decimal? value) where T : SfObjectBase
-        {
-            return Set(field?.ToString(), value);
-        }
-
-
-        public string Get<T>(SfPhoneField field) where T : SfObjectBase
-        {
-            return Get(field?.ToString())?.ToString();
-        }
-
-        public JObjectWrapper Set<T>(SfPhoneField field, string value) where T : SfObjectBase
+        public JObjectWrapper Set(SfPercentField? field, decimal? value)
         {
             return Set(field?.ToString(), value);
         }
 
 
-        public string Get<T>(SfPicklistField field) where T : SfObjectBase
+        public string Get(SfPhoneField? field)
         {
-            return Get(field?.ToString())?.ToString();
+            return Get(field?.ToString()).ToString();
         }
 
-        public JObjectWrapper Set<T>(SfPicklistField field, string value) where T : SfObjectBase
-        {
-            return Set(field?.ToString(), value);
-        }
-
-
-        public string Get<T>(SfStringField field) where T : SfObjectBase
-        {
-            return Get(field?.ToString())?.ToString();
-        }
-
-        public JObjectWrapper Set<T>(SfStringField field, string value) where T : SfObjectBase
+        public JObjectWrapper Set(SfPhoneField? field, string? value)
         {
             return Set(field?.ToString(), value);
         }
 
 
-        public string Get<T>(SfTextAreaField field) where T : SfObjectBase
+        public string Get(SfPicklistField? field)
         {
-            return Get(field?.ToString())?.ToString();
+            return Get(field?.ToString()).ToString();
         }
 
-        public JObjectWrapper Set<T>(SfTextAreaField field, string value) where T : SfObjectBase
+        public JObjectWrapper Set(SfPicklistField? field, string? value)
         {
             return Set(field?.ToString(), value);
         }
 
 
-        public DateTime? Get<T>(SfTimeField field) where T : SfObjectBase
+        public string Get(SfStringField? field)
         {
-            return Dnf.FromSoqlTime(Get(field?.ToString())?.ToString());
+            return Get(field?.ToString()).ToString();
         }
 
-        public JObjectWrapper Set<T>(SfTimeField field, DateTime? value) where T : SfObjectBase
+        public JObjectWrapper Set(SfStringField? field, string? value)
+        {
+            return Set(field?.ToString(), value);
+        }
+
+
+        public string Get(SfTextAreaField? field)
+        {
+            return Get(field?.ToString()).ToString();
+        }
+
+        public JObjectWrapper Set(SfTextAreaField? field, string? value)
+        {
+            return Set(field?.ToString(), value);
+        }
+
+
+        public DateTime? Get(SfTimeField? field)
+        {
+            return Dnf.FromSoqlTime(Get(field?.ToString()).ToString());
+        }
+
+        public JObjectWrapper Set(SfTimeField? field, DateTime? value)
         {
             return Set(field?.ToString(), Dnf.SoqlTime(value));
         }
 
 
-        public string Get<T>(SfUrlField field) where T : SfObjectBase
+        public string Get(SfUrlField? field)
         {
-            return Get(field?.ToString())?.ToString();
+            return Get(field?.ToString()).ToString();
         }
 
-        public JObjectWrapper Set<T>(SfUrlField field, string value) where T : SfObjectBase
+        public JObjectWrapper Set(SfUrlField? field, string? value)
         {
             return Set(field?.ToString(), value);
         }
 
         public override string ToString()
         {
-            return Object?.ToString();
+            return Object.ToString();
         }
 
         public string ToString(Formatting formatting, params JsonConverter[] converters)
         {
-            return Object?.ToString(formatting, converters);
+            return Object.ToString(formatting, converters);
         }
 
-        public static implicit operator JObjectWrapper(JObject obj)
+        public static implicit operator JObjectWrapper(JObject? obj)
         {
             return new JObjectWrapper(obj);
         }
 
-        public static implicit operator JObject(JObjectWrapper wrapper)
+        public static implicit operator JObject(JObjectWrapper? wrapper)
         {
-            return wrapper.Unwrap();
+            return wrapper?.Unwrap() ?? new JObject();
         }
-        public static JObjectWrapper Wrap(JObject obj) { return new JObjectWrapper(obj); }
-        public static JObjectWrapper Wrap(JObject obj, SfObjectBase type) { return new JObjectWrapper(obj, type); }
-        public static JObjectWrapper Wrap(JObject obj, string type) { return new JObjectWrapper(obj, type); }
-        public static JObjectWrapper Wrap(JObject obj, SfObjectBase type, string referenceId) { return new JObjectWrapper(obj, type, referenceId); }
-        public static JObjectWrapper Wrap(JObject obj, string type, string referenceId) { return new JObjectWrapper(obj, type, referenceId); }
-        public static async Task<IEnumerable<JObjectWrapper>> Wrap(Task<IEnumerable<JObject>> objects) { return Wrap(await objects); }
-        public static async Task<IEnumerable<JObjectWrapper>> Wrap(Task<IEnumerable<JObject>> objects, SfObjectBase type) { return Wrap(await objects, type); }
-        public static async Task<IEnumerable<JObjectWrapper>> Wrap(Task<IEnumerable<JObject>> objects, string type) { return Wrap(await objects, type); }
-        public static async Task<IEnumerable<JObjectWrapper>> Wrap(Task<IEnumerable<JObject>> objects, SfObjectBase type, string referenceId) { return Wrap(await objects, type, referenceId); }
-        public static async Task<IEnumerable<JObjectWrapper>> Wrap(Task<IEnumerable<JObject>> objects, string type, string referenceId) { return Wrap(await objects, type, referenceId); }
-        public static IAsyncEnumerable<JObjectWrapper> Wrap(IAsyncEnumerable<JObject> objects) { return objects?.Select(o => new JObjectWrapper(o)); }
-        public static IAsyncEnumerable<JObjectWrapper> Wrap(IAsyncEnumerable<JObject> objects, SfObjectBase type) { return objects?.Select(o => new JObjectWrapper(o, type)); }
-        public static IAsyncEnumerable<JObjectWrapper> Wrap(IAsyncEnumerable<JObject> objects, string type) { return objects?.Select(o => new JObjectWrapper(o, type)); }
-        public static IAsyncEnumerable<JObjectWrapper> Wrap(IAsyncEnumerable<JObject> objects, SfObjectBase type, string referenceId) { return objects?.Select(o => new JObjectWrapper(o, type, referenceId)); }
-        public static IAsyncEnumerable<JObjectWrapper> Wrap(IAsyncEnumerable<JObject> objects, string type, string referenceId) { return objects?.Select(o => new JObjectWrapper(o, type, referenceId)); }
-        public static IEnumerable<JObjectWrapper> Wrap(IEnumerable<JObject> objects) { return objects?.Select(o => new JObjectWrapper(o)); }
-        public static IEnumerable<JObjectWrapper> Wrap(IEnumerable<JObject> objects, SfObjectBase type) { return objects?.Select(o => new JObjectWrapper(o, type)); }
-        public static IEnumerable<JObjectWrapper> Wrap(IEnumerable<JObject> objects, string type) { return objects?.Select(o => new JObjectWrapper(o, type)); }
-        public static IEnumerable<JObjectWrapper> Wrap(IEnumerable<JObject> objects, SfObjectBase type, string referenceId) { return objects?.Select(o => new JObjectWrapper(o, type, referenceId)); }
-        public static IEnumerable<JObjectWrapper> Wrap(IEnumerable<JObject> objects, string type, string referenceId) { return objects?.Select(o => new JObjectWrapper(o, type, referenceId)); }
+        public static JObjectWrapper Wrap(JObject? obj) =>
+            new JObjectWrapper(obj);
+        public static JObjectWrapper Wrap(JObject? obj, SfObjectBase? type) =>
+            new JObjectWrapper(obj, type);
+        public static JObjectWrapper Wrap(JObject? obj, string? type) =>
+            new JObjectWrapper(obj, type);
+        public static JObjectWrapper Wrap(JObject? obj, SfObjectBase? type, string? referenceId) =>
+            new JObjectWrapper(obj, type, referenceId);
+        public static JObjectWrapper Wrap(JObject? obj, string? type, string? referenceId) =>
+            new JObjectWrapper(obj, type, referenceId);
+        public static async Task<IEnumerable<JObjectWrapper>> Wrap(Task<IEnumerable<JObject>> objects) =>
+            Wrap(await objects
+                .ConfigureAwait(false));
+        public static async Task<IEnumerable<JObjectWrapper>> Wrap(Task<IEnumerable<JObject>> objects, SfObjectBase? type) =>
+            Wrap(await objects
+                .ConfigureAwait(false), type);
+        public static async Task<IEnumerable<JObjectWrapper>> Wrap(Task<IEnumerable<JObject>> objects, string? type) =>
+            Wrap(await objects
+                .ConfigureAwait(false), type);
+        public static async Task<IEnumerable<JObjectWrapper>> Wrap(Task<IEnumerable<JObject>> objects, SfObjectBase? type, string? referenceId) =>
+            Wrap(await objects
+                .ConfigureAwait(false), type, referenceId);
+
+        public static async Task<IEnumerable<JObjectWrapper>> Wrap(Task<IEnumerable<JObject>> objects, string? type, string? referenceId) =>
+            Wrap(await objects
+                .ConfigureAwait(false), type, referenceId);
+
+        public static async IAsyncEnumerable<JObjectWrapper> Wrap(IAsyncEnumerable<JObject>? objects)
+        {
+            if (objects == null) yield break;
+            await foreach (var obj in objects
+                .ConfigureAwait(false))
+                yield return new JObjectWrapper(obj);
+        }
+
+        public static async IAsyncEnumerable<JObjectWrapper> Wrap(IAsyncEnumerable<JObject>? objects, SfObjectBase? type)
+        {
+            if (objects == null) yield break;
+            await foreach (var obj in objects
+                .ConfigureAwait(false))
+                yield return new JObjectWrapper(obj, type);
+        }
+
+        public static async IAsyncEnumerable<JObjectWrapper> Wrap(IAsyncEnumerable<JObject>? objects, string? type)
+        {
+            if (objects == null) yield break;
+            await foreach (var obj in objects
+                .ConfigureAwait(false))
+                yield return new JObjectWrapper(obj, type);
+        }
+
+        public static async IAsyncEnumerable<JObjectWrapper> Wrap(IAsyncEnumerable<JObject>? objects, SfObjectBase? type, string? referenceId)
+        {
+            if (objects == null) yield break;
+            await foreach (var obj in objects
+                .ConfigureAwait(false))
+                yield return new JObjectWrapper(obj, type, referenceId);
+        }
+
+        public static async IAsyncEnumerable<JObjectWrapper> Wrap(IAsyncEnumerable<JObject>? objects, string? type, string? referenceId)
+        {
+            if (objects == null) yield break;
+            await foreach (var obj in objects
+                .ConfigureAwait(false))
+                yield return new JObjectWrapper(obj, type, referenceId);
+        }
+        public static IEnumerable<JObjectWrapper> Wrap(IEnumerable<JObject>? objects) => objects?.Select(o =>
+            new JObjectWrapper(o)) ?? Enumerable.Empty<JObjectWrapper>();
+        public static IEnumerable<JObjectWrapper> Wrap(IEnumerable<JObject>? objects, SfObjectBase? type) => objects?.Select(o =>
+            new JObjectWrapper(o, type)) ?? Enumerable.Empty<JObjectWrapper>();
+        public static IEnumerable<JObjectWrapper> Wrap(IEnumerable<JObject>? objects, string? type) => objects?.Select(o =>
+            new JObjectWrapper(o, type)) ?? Enumerable.Empty<JObjectWrapper>();
+        public static IEnumerable<JObjectWrapper> Wrap(IEnumerable<JObject>? objects, SfObjectBase? type, string? referenceId) =>
+            objects?.Select(o => new JObjectWrapper(o, type, referenceId)) ?? Enumerable.Empty<JObjectWrapper>();
+        public static IEnumerable<JObjectWrapper> Wrap(IEnumerable<JObject>? objects, string? type, string? referenceId) =>
+            objects?.Select(o => new JObjectWrapper(o, type, referenceId)) ?? Enumerable.Empty<JObjectWrapper>();
     }
 }

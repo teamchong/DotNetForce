@@ -9,10 +9,10 @@ namespace DotNetForce.Common.Models.Xml
     public class JobInfoResult : JobInfo
     {
         [XmlElement(ElementName = "id")]
-        public string Id { get; set; }
+        public string? Id { get; set; }
 
         [XmlElement(ElementName = "createdById")]
-        public string CreatedById { get; set; }
+        public string? CreatedById { get; set; }
 
         [XmlElement(ElementName = "createdDate")]
         public DateTime CreatedDate { get; set; }
@@ -21,10 +21,10 @@ namespace DotNetForce.Common.Models.Xml
         public DateTime SystemModstamp { get; set; }
 
         [XmlElement(ElementName = "state")]
-        public string State { get; set; }
+        public string? State { get; set; }
 
         [XmlElement(ElementName = "concurrencyMode")]
-        public string ConcurrencyMode { get; set; }
+        public string? ConcurrencyMode { get; set; }
 
         [XmlElement(ElementName = "numberBatchesQueued")]
         public int NumberBatchesQueued { get; set; }

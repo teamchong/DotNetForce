@@ -3,14 +3,16 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
+#if DEBUG
 using System.Diagnostics;
+#endif
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+// ReSharper disable MemberCanBePrivate.Global
 
 namespace DotNetForceSchemaGenerator
 {
-    [JetBrains.Annotations.PublicAPI]
     public class SchemaGenerator
     {
         public SchemaGenerator(StringBuilder generationEnvironment, string schemaNamespace, string schemaName)
@@ -24,19 +26,22 @@ namespace DotNetForceSchemaGenerator
         public string SchemaNamespace { get; }
         public string SchemaName { get; }
 
-        public async Task<JObject> RetrieveSObjectsAsync(DnfClient client)
+        public static async Task<JObject> RetrieveSObjectsAsync(DnfClient client)
         {
-            var describeGlobalResult = await client.GetObjectsAsync().ConfigureAwait(false);
+            var describeGlobalResult = await client.GetObjectsAsync()
+                .ConfigureAwait(false);
 
             var request = new CompositeRequest();
-            foreach (var sObject in describeGlobalResult.SObjects)
-            {
-                var objectName = sObject["name"]?.ToString();
-                if ((bool?)sObject["deprecatedAndHidden"] == true) continue;
-                request.Describe(objectName, objectName);
-            }
+            if (describeGlobalResult?.SObjects != null)
+                foreach (var sObject in describeGlobalResult.SObjects)
+                {
+                    var objectName = sObject["name"]?.ToString() ?? string.Empty;
+                    if ((bool?)sObject["deprecatedAndHidden"] == true) continue;
+                    request.Describe(objectName, objectName);
+                }
 
-            var describeResult = await client.Composite.PostAsync(request).ConfigureAwait(false);
+            var describeResult = await client.Composite.PostAsync(request)
+                .ConfigureAwait(false);
 
             var objects = JObject.FromObject(describeResult.Results());
             return objects;
@@ -49,7 +54,8 @@ namespace DotNetForceSchemaGenerator
 
         public async Task<string> GenerateAsync(DnfClient client, Func<JProperty, bool> filter)
         {
-            var objects = await RetrieveSObjectsAsync(client);
+            var objects = await RetrieveSObjectsAsync(client)
+                .ConfigureAwait(false);
 
             GenerationEnvironment.Append(@"using DotNetForce;
 using DotNetForce.Schema;
@@ -246,10 +252,12 @@ namespace ").Append(SchemaNamespace).Append(@"
                         case "reference":
                             if (field["referenceTo"]?.Count() != 1)
                             {
+#if DEBUG
                                 var fieldReferenceTo = field["referenceTo"]?.ToString() ?? "";
                                 Debug.WriteLine("referenceTo.Count != 1 " + (objName.Length > 50 ? objName.Remove(50) : objName) + "." +
                                                 (fieldName.Length > 50 ? fieldName.Remove(50) : fieldName) + " " +
                                                 (fieldReferenceTo.Length > 50 ? fieldReferenceTo.Remove(50) : fieldReferenceTo));
+#endif
                                 continue;
                             }
                             var relationshipName = field["relationshipName"]?.ToString();
@@ -287,6 +295,7 @@ namespace ").Append(SchemaNamespace).Append(@"
                                 .Append(FormatPath(fieldName)).Append(@"); } }
 ");
                             break;
+#if DEBUG
                         default:
                             Debug.WriteLine("unknown type: " + (objName.Length > 50 ? objName.Remove(50) : objName) + "." + (fieldName.Length > 50 ? fieldName.Remove(50) : fieldName) +
                                             " " + (field["type"]?.ToString() ?? ""));
@@ -294,6 +303,7 @@ namespace ").Append(SchemaNamespace).Append(@"
 //		public SfStringField<Sf").Append(objName).Append(@"> ").Append(fieldName).Append(@" { get { return new SfStringField<Sf").Append(objName).Append(@">(").Append(FormatPath(fieldName)).Append(@"); } }
 //");
                             break;
+#endif
                     }
                 }
 
@@ -319,16 +329,7 @@ namespace ").Append(SchemaNamespace).Append(@"
 
             var childRelationships = new List<JToken>();
 
-            if (objDescribe["childRelationships"]?.Type == JTokenType.Array && objDescribe["childRelationships"].Any())
-                foreach (var childRelationship in objDescribe["childRelationships"])
-                {
-                    var relationshipName = childRelationship["relationshipName"]?.ToString();
-                    var childSObject = childRelationship["childSObject"]?.ToString();
-
-                    if (string.IsNullOrEmpty(relationshipName) || string.IsNullOrEmpty(childSObject)) continue;
-
-                    childRelationships.Add(childRelationship);
-                }
+            if (objDescribe["childRelationships"]?.Type == JTokenType.Array && objDescribe["childRelationships"].Any()) childRelationships.AddRange(from childRelationship in objDescribe["childRelationships"] let relationshipName = childRelationship["relationshipName"]?.ToString() let childSObject = childRelationship["childSObject"]?.ToString() where !string.IsNullOrEmpty(relationshipName) && !string.IsNullOrEmpty(childSObject) select childRelationship);
 
             if (childRelationships.Count > 0)
             {
@@ -358,12 +359,12 @@ namespace ").Append(SchemaNamespace).Append(@"
             //await GenerateFileAsync("Sf" + objName + ".cs").ConfigureAwait(false);
         }
 
-        private string FormatPath(string fieldName)
+        private static string FormatPath(string fieldName)
         {
             return "string.IsNullOrEmpty(_Path) ? " + EncodeJson(fieldName) + " : _Path + " + EncodeJson("." + fieldName);
         }
 
-        protected string EncodeJson(object obj)
+        protected static string EncodeJson(object obj)
         {
             return JsonConvert.SerializeObject(obj);
         }

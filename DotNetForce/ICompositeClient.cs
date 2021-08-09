@@ -1,21 +1,37 @@
-﻿using System.Collections.Generic;
+﻿using DotNetForce.Common.Models.Json;
+using Newtonsoft.Json.Linq;
+using System.Collections.Generic;
 using System.Threading.Tasks;
-using DotNetForce.Common.Models.Json;
+
+// ReSharper disable UnusedMember.Global
+// ReSharper disable UnusedMemberInSuper.Global
 
 namespace DotNetForce
 {
-    [JetBrains.Annotations.PublicAPI]
     public interface ICompositeClient
     {
         Task<CompositeResult> PostAsync(ICompositeRequest request);
 
         Task<BatchResult> BatchAsync(IBatchRequest request);
-
+        
         Task<SaveResponse> CreateTreeAsync<T>(string objectName, IList<T> objectTree);
 
-        IAsyncEnumerable<T> GetAsyncEnumerableByQueryResult<T>(QueryResult<T> queryResult);
+        IAsyncEnumerable<QueryResult<JObject>> QueryAsync(string query);
 
-        IAsyncEnumerable<T> GetAsyncEnumerableByQueryResult<T>(QueryResult<T> queryResult, int batchSize);
+        IAsyncEnumerable<QueryResult<T>> QueryAsync<T>(string query);
+
+        IAsyncEnumerable<QueryResult<JObject>> QueryAllAsync(string query);
+
+        IAsyncEnumerable<QueryResult<T>> QueryAllAsync<T>(string query);
+        
+        IAsyncEnumerable<QueryResult<T>> QueryByLocatorAsync<T>(QueryResult<T>? queryResult);
+        IAsyncEnumerable<QueryResult<T>> QueryByLocatorAsync<T>(QueryResult<T>? queryResult, int batchSize);
+
+        IAsyncEnumerable<QueryResult<JObject>> QueryByIdsAsync(IEnumerable<string> source, string templateSoql, string template);
+        IAsyncEnumerable<QueryResult<T>> QueryByIdsAsync<T>(IEnumerable<string> source, string templateSoql, string template);
+
+        IAsyncEnumerable<QueryResult<JObject>> QueryByFieldValuesAsync(IEnumerable<string> source, string templateSoql, string template);
+        IAsyncEnumerable<QueryResult<T>> QueryByFieldValuesAsync<T>(IEnumerable<string> source, string templateSoql, string template);
 
         #region Collections
 

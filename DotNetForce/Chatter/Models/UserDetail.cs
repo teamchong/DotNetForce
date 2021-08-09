@@ -7,31 +7,31 @@ namespace DotNetForce.Chatter.Models
     {
         [JsonProperty(PropertyName = "aboutMe")]
         // ReSharper disable once InconsistentNaming
-        public string aboutMe { get; set; }
+        public string? aboutMe { get; set; }
 
         [JsonProperty(PropertyName = "address")]
         // ReSharper disable once InconsistentNaming
-        public Address address { get; set; }
+        public Address? address { get; set; }
 
         [JsonProperty(PropertyName = "chatterActivity")]
         // ReSharper disable once InconsistentNaming
-        public ChatterActivity chatterActivity { get; set; }
+        public ChatterActivity? chatterActivity { get; set; }
 
         [JsonProperty(PropertyName = "chatterInfluence")]
         // ReSharper disable once InconsistentNaming
-        public ChatterInfluence chatterInfluence { get; set; }
+        public ChatterInfluence? chatterInfluence { get; set; }
 
         [JsonProperty(PropertyName = "companyName")]
         // ReSharper disable once InconsistentNaming
-        public string companyName { get; set; }
+        public string? companyName { get; set; }
 
         [JsonProperty(PropertyName = "email")]
         // ReSharper disable once InconsistentNaming
-        public string email { get; set; }
+        public string? email { get; set; }
 
         [JsonProperty(PropertyName = "firstName")]
         // ReSharper disable once InconsistentNaming
-        public string firstName { get; set; }
+        public string? firstName { get; set; }
 
         [JsonProperty(PropertyName = "followersCount")]
         // ReSharper disable once InconsistentNaming
@@ -39,7 +39,7 @@ namespace DotNetForce.Chatter.Models
 
         [JsonProperty(PropertyName = "followingCounts")]
         // ReSharper disable once InconsistentNaming
-        public FollowingCounts followingCounts { get; set; }
+        public FollowingCounts? followingCounts { get; set; }
 
         [JsonProperty(PropertyName = "groupCount")]
         // ReSharper disable once InconsistentNaming
@@ -47,7 +47,7 @@ namespace DotNetForce.Chatter.Models
 
         [JsonProperty(PropertyName = "id")]
         // ReSharper disable once InconsistentNaming
-        public string id { get; set; }
+        public string? id { get; set; }
 
         [JsonProperty(PropertyName = "isActive")]
         // ReSharper disable once InconsistentNaming
@@ -59,35 +59,35 @@ namespace DotNetForce.Chatter.Models
 
         [JsonProperty(PropertyName = "lastName")]
         // ReSharper disable once InconsistentNaming
-        public string lastName { get; set; }
+        public string? lastName { get; set; }
 
         [JsonProperty(PropertyName = "managerId")]
         // ReSharper disable once InconsistentNaming
-        public string managerId { get; set; }
+        public string? managerId { get; set; }
 
         [JsonProperty(PropertyName = "managerName")]
         // ReSharper disable once InconsistentNaming
-        public string managerName { get; set; }
+        public string? managerName { get; set; }
 
         [JsonProperty(PropertyName = "motif")]
         // ReSharper disable once InconsistentNaming
-        public Motif motif { get; set; }
+        public Motif? motif { get; set; }
 
         [JsonProperty(PropertyName = "mySubscription")]
         // ReSharper disable once InconsistentNaming
-        public Reference mySubscription { get; set; }
+        public Reference? mySubscription { get; set; }
 
         [JsonProperty(PropertyName = "name")]
         // ReSharper disable once InconsistentNaming
-        public string name { get; set; }
+        public string? name { get; set; }
 
         [JsonProperty(PropertyName = "phoneNumbers")]
         // ReSharper disable once InconsistentNaming
-        public IList<PhoneNumber> phoneNumbers { get; set; }
+        public IList<PhoneNumber>? phoneNumbers { get; set; }
 
         // ReSharper disable once InconsistentNaming
         [JsonProperty(PropertyName = "photo")]
-        public Photo photo { get; set; }
+        public Photo? photo { get; set; }
 
         [JsonProperty(PropertyName = "thanksReceived")]
         // ReSharper disable once InconsistentNaming
@@ -95,22 +95,22 @@ namespace DotNetForce.Chatter.Models
 
         [JsonProperty(PropertyName = "title")]
         // ReSharper disable once InconsistentNaming
-        public string title { get; set; }
+        public string? title { get; set; }
 
         [JsonProperty(PropertyName = "type")]
         // ReSharper disable once InconsistentNaming
-        public string type { get; set; }
+        public string? type { get; set; }
 
         [JsonProperty(PropertyName = "url")]
         // ReSharper disable once InconsistentNaming
-        public string url { get; set; }
+        public string? url { get; set; }
 
         [JsonProperty(PropertyName = "username")]
         // ReSharper disable once InconsistentNaming
-        public string username { get; set; }
+        public string? username { get; set; }
 
         [JsonProperty(PropertyName = "userType")]
         // ReSharper disable once InconsistentNaming
-        public string userType { get; set; }
+        public string? userType { get; set; }
     }
 }

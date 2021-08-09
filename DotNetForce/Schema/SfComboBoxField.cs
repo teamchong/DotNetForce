@@ -1,6 +1,10 @@
-﻿namespace DotNetForce.Schema
+﻿// ReSharper disable ClassNeverInstantiated.Global
+// ReSharper disable UnusedAutoPropertyAccessor.Global
+// ReSharper disable MemberCanBePrivate.Global
+// ReSharper disable AutoPropertyCanBeMadeGetOnly.Global
+namespace DotNetForce.Schema
 {
-    public class SfComboBoxField<T> : SfFieldBase where T : SfObjectBase
+    public class SfComboBoxField : SfFieldBase
     {
         public SfComboBoxField(string path, string defaultValue, SfPicklistValue[] picklistValues) : base(path)
         {

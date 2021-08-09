@@ -2,32 +2,33 @@
   <PropertyGroup>
     <TargetFramework>net5.0</TargetFramework>
     <IsPackable>false</IsPackable>
-    <Version>6.0.0</Version>
+    <Version>6.0.2</Version>
     <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
     <Authors>Steven Chong</Authors>
-    <Company/>
-    <RepositoryUrl>https://github.com/ste80/DotNetForce</RepositoryUrl>
-    <PackageProjectUrl>https://ste80.github.io/DotNetForce</PackageProjectUrl>
-    <PackageReleaseNotes>https://ste80.github.io/DotNetForce</PackageReleaseNotes>
-    <Description>https://ste80.github.io/DotNetForce</Description>
+    <Company />
+    <RepositoryUrl>https://github.com/teamchong/DotNetForce/</RepositoryUrl>
+    <PackageProjectUrl>https://github.com/teamchong/DotNetForce/</PackageProjectUrl>
+    <PackageReleaseNotes>https://github.com/teamchong/DotNetForce/</PackageReleaseNotes>
+    <Description>https://github.com/teamchong/DotNetForce/</Description>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <Copyright>Copyright (c) 2018 Steven Chong</Copyright>
     <PackageTags>salesforce</PackageTags>
     <UserSecretsId>abc5d0e6-7f0f-4090-ac5e-eff75506dfc5</UserSecretsId>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.10.0"/>
-    <PackageReference Include="Newtonsoft.Json" Version="13.0.1"/>
-    <PackageReference Include="System.Linq.Async" Version="5.0.0"/>
-    <PackageReference Include="xunit" Version="2.4.1"/>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.10.0" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
+    <PackageReference Include="System.Linq.Async" Version="5.0.0" />
+    <PackageReference Include="System.Reactive" Version="5.0.0" />
+    <PackageReference Include="xunit" Version="2.4.1" />
     <PackageReference Include="xunit.runner.visualstudio" Version="2.4.3">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="Microsoft.Extensions.Configuration" Version="5.0.0"/>
-    <PackageReference Include="Microsoft.Extensions.Configuration.UserSecrets" Version="5.0.0"/>
+    <PackageReference Include="Microsoft.Extensions.Configuration" Version="5.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.UserSecrets" Version="5.0.0" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\DotNetForce\DotNetForce.csproj"/>
+    <ProjectReference Include="..\DotNetForce\DotNetForce.csproj" />
   </ItemGroup>
 </Project>
